@@ -124,10 +124,21 @@ public class UserSystemObjectDefinitionMetadata
 	public String getTitleObjectFieldName() {
 		return "givenName";
 	}
-
 	@Override
 	public int getVersion() {
 		return 1;
+	}
+	@Override
+	public void validateVariablesFields(Map<String, Object> variables) {
+
+		if (variables.containsKey("firstName")) {
+			variables.put("givenName", variables.get("firstName"));
+		}
+
+		if (variables.containsKey("middleName")) {
+			variables.put(
+				"additionalName", variables.get("middleName"));
+		}
 	}
 
 	@Reference

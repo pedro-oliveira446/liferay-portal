@@ -18,11 +18,13 @@ import com.liferay.object.model.ObjectField;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.Table;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.BaseModel;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author Marco Leo
@@ -64,6 +66,8 @@ public interface SystemObjectDefinitionMetadata {
 
 	public String getTitleObjectFieldName();
 
-	public int getVersion();
+	public default void validateVariablesFields(Map<String, Object> variables) {
+	}
 
+	public int getVersion();
 }
