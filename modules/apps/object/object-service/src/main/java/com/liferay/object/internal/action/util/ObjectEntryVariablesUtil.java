@@ -401,6 +401,13 @@ public class ObjectEntryVariablesUtil {
 			variables.putAll(
 				(Map<String, Object>)payloadJSONObject.get(
 					"extendedProperties"));
+
+			SystemObjectDefinitionMetadata systemObjectDefinitionMetadata =
+				systemObjectDefinitionMetadataRegistry.
+					getSystemObjectDefinitionMetadata(
+						objectDefinition.getName());
+
+			systemObjectDefinitionMetadata.validateVariablesFields(variables);
 		}
 		else {
 			if (oldValues) {

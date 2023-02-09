@@ -130,6 +130,17 @@ public class UserSystemObjectDefinitionMetadata
 		return 1;
 	}
 
+	@Override
+	public void validateVariablesFields(Map<String, Object> variables) {
+		if (variables.containsKey("firstName")) {
+			variables.put("givenName", variables.get("firstName"));
+		}
+
+		if (variables.containsKey("middleName")) {
+			variables.put("additionalName", variables.get("middleName"));
+		}
+	}
+
 	@Reference
 	private UserLocalService _userLocalService;
 

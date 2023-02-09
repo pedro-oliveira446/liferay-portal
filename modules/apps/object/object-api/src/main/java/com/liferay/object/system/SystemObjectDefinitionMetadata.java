@@ -66,4 +66,7 @@ public interface SystemObjectDefinitionMetadata {
 
 	public int getVersion();
 
+	public default void validateVariablesFields(Map<String, Object> variables) {
+	}
+
 }
