@@ -219,7 +219,8 @@ public interface ListTypeEntryLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ListTypeEntry fetchListTypeEntryByExternalReferenceCode(
-		String externalReferenceCode, long companyId);
+		String externalReferenceCode, long companyId,
+		long listTypeDefinitionId);
 
 	/**
 	 * Returns the list type entry with the matching UUID and company.
@@ -287,11 +288,6 @@ public interface ListTypeEntryLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ListTypeEntry getListTypeEntry(long listTypeDefinitionId, String key)
-		throws PortalException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public ListTypeEntry getListTypeEntryByExternalReferenceCode(
-			String externalReferenceCode, long companyId)
 		throws PortalException;
 
 	/**

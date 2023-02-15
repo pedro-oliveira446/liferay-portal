@@ -236,10 +236,11 @@ public class ListTypeEntryLocalServiceUtil {
 	}
 
 	public static ListTypeEntry fetchListTypeEntryByExternalReferenceCode(
-		String externalReferenceCode, long companyId) {
+		String externalReferenceCode, long companyId,
+		long listTypeDefinitionId) {
 
 		return getService().fetchListTypeEntryByExternalReferenceCode(
-			externalReferenceCode, companyId);
+			externalReferenceCode, companyId, listTypeDefinitionId);
 	}
 
 	/**
@@ -336,14 +337,6 @@ public class ListTypeEntryLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getListTypeEntry(listTypeDefinitionId, key);
-	}
-
-	public static ListTypeEntry getListTypeEntryByExternalReferenceCode(
-			String externalReferenceCode, long companyId)
-		throws PortalException {
-
-		return getService().getListTypeEntryByExternalReferenceCode(
-			externalReferenceCode, companyId);
 	}
 
 	/**
