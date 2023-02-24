@@ -28,6 +28,10 @@ import com.liferay.knowledge.base.exception.NoSuchCommentException;
 import com.liferay.message.boards.exception.DiscussionMaxCommentsException;
 import com.liferay.message.boards.exception.MessageSubjectException;
 import com.liferay.message.boards.model.MBMessage;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -58,6 +62,7 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -274,6 +279,29 @@ public class CommentResourceImpl extends BaseCommentResourceImpl {
 	@Override
 	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
 		return new CommentEntityModel();
+	}
+
+	@Override
+	public Page<Comment> getObjectEntryCommentsPage(
+		Long objectEntryId, String search, Aggregation aggregation,
+		Filter filter, Pagination pagination, Sort[] sorts) throws Exception {
+
+		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(objectEntryId);
+
+		ObjectDefinition objectDefinition = _objectDefinitionLocalService.getObjectDefinition(objectEntry.getObjectDefinitionId());
+
+		Discussion discussion = _commentManager.getDiscussion(
+			objectEntry.getUserId(), 20121,
+			objectDefinition.getClassName(), objectEntryId,
+			_createServiceContextFunction());
+
+		DiscussionComment rootDiscussionComment =
+			discussion.getRootDiscussionComment();
+
+		return _getComments(
+			Collections.emptyMap(),
+			rootDiscussionComment.getCommentId(), search, aggregation, filter,
+			pagination, sorts);
 	}
 
 	@Override
@@ -845,6 +873,11 @@ public class CommentResourceImpl extends BaseCommentResourceImpl {
 	@Reference
 	private JournalArticleService _journalArticleService;
 
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 	@Reference
 	private Portal _portal;
 
