@@ -103,6 +103,12 @@ public interface CommentResource {
 			Long documentId, String callbackURL, Object object)
 		throws Exception;
 
+	public Page<Comment> getObjectEntryCommentsPage(
+			Long objectEntryId, String search,
+			com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+			Filter filter, Pagination pagination, Sort[] sorts)
+		throws Exception;
+
 	public void
 			deleteSiteBlogPostingByExternalReferenceCodeBlogPostingExternalReferenceCodeCommentByExternalReferenceCode(
 				Long siteId, String blogPostingExternalReferenceCode,

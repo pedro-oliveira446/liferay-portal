@@ -3274,9 +3274,6 @@ components:
                 scopeKey:
                     readOnly: true
                     type: string
-                status:
-                    $ref: "../../../object/object-rest-impl/rest-openapi.yaml#Status"
-                    readOnly: true
             type: object
         OpenGraphSettings:
             # @review
