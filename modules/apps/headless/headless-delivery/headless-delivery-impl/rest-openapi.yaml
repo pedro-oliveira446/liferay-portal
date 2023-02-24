@@ -2643,6 +2643,16 @@ components:
                     description:
                         The message's main content.
                     type: string
+                classNameId:
+                    description:
+                        The ID of the Class Name to which this message is scoped.
+                    format: int64
+                    type: integer
+                classPK:
+                    description:
+                        The ID of the Class PK.
+                    format: int64
+                    type: integer
                 creator:
                     allOf:
                         - $ref: "#/components/schemas/Creator"
@@ -3231,6 +3241,43 @@ components:
                     type: string
                 useCustomName:
                     type: boolean
+        ObjectEntry:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                creator:
+                    allOf:
+                        - $ref: "#/components/schemas/Creator"
+                    readOnly: true
+                dateCreated:
+                    format: date
+                    type: string
+                dateModified:
+                    format: date
+                    type: string
+                externalReferenceCode:
+                    readOnly: true
+                    type: string
+                id:
+                    format: int64
+                    type: integer
+                properties:
+                    additionalProperties:
+                        type: object
+                    type: object
+                    x-json-map: true
+                scopeKey:
+                    readOnly: true
+                    type: string
+                status:
+                    $ref: "../../../object/object-rest-impl/rest-openapi.yaml#Status"
+                    readOnly: true
+            type: object
         OpenGraphSettings:
             # @review
             description:
@@ -10619,6 +10666,71 @@ paths:
                         application/json: {}
                         application/xml: {}
             tags: ["NavigationMenu"]
+    "/object-entry/{objectEntryId}/comments":
+        get:
+            description:
+                Retrieves the object entry's comments in a list. Results can be paginated, filtered, searched, and
+                sorted.
+            operationId: getObjectEntryCommentsPage
+            parameters:
+                - in: path
+                  name: objectEntryId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: aggregationTerms
+                  schema:
+                      items:
+                          type: string
+                      type: array
+                - in: query
+                  name: fields
+                  schema:
+                      type: string
+                - in: query
+                  name: nestedFields
+                  schema:
+                      type: string
+                - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/Comment"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/Comment"
+                                type: array
+            tags: ["Comment"]
     "/sites/{siteId}/blog-posting-images":
         get:
             description:
