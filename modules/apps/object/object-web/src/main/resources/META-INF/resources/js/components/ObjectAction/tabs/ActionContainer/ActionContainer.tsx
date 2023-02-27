@@ -70,8 +70,13 @@ export function ActionContainer({
 		Liferay.Language.Locale
 	>();
 
+	const [isObjectActionSystem, setIsObjectActionSystem] = useState<boolean>(
+		false
+	);
+
 	const isValidField = ({
 		businessType,
+		name,
 		objectFieldSettings,
 		system,
 	}: ObjectField) => {
@@ -84,19 +89,41 @@ export function ActionContainer({
 			return true;
 		}
 
-		return (
-			businessType !== 'Aggregation' &&
-			businessType !== 'Formula' &&
-			businessType !== 'Relationship' &&
-			!system
-		);
+		return Liferay.FeatureFlags['LPS-173537'] && isObjectActionSystem
+			? businessType !== 'Aggregation' &&
+					businessType !== 'Formula' &&
+					businessType !== 'Relationship' &&
+					name !== 'creator' &&
+					name !== 'createDate' &&
+					name !== 'id' &&
+					name !== 'modifiedDate' &&
+					name !== 'status'
+			: businessType !== 'Aggregation' &&
+					businessType !== 'Formula' &&
+					businessType !== 'Relationship' &&
+					!system;
+	};
+
+	const getIsSystem = (value: string) => {
+		const values = value.split(',');
+		setIsObjectActionSystem(values[2] === 'true');
 	};
 
 	const updateParameters = useCallback(
 		async (value: string) => {
-			const [externalReferenceCode, definitionIdValue] = value.split(',');
+			const [
+				externalReferenceCode,
+				definitionIdValue,
+				isSystemValue,
+			] = value.split(',');
 
 			const definitionId = Number(definitionIdValue);
+
+			const isSystem = isSystemValue
+				? isSystemValue === 'true'
+				: undefined;
+
+			// setIsObjectActionSystem(() => !!isSystem);
 
 			const object = relationships.find(
 				(relationship) =>
@@ -107,6 +134,7 @@ export function ActionContainer({
 				objectDefinitionExternalReferenceCode: externalReferenceCode,
 				objectDefinitionId: definitionId,
 				predefinedValues: [],
+				system: isSystem,
 			};
 
 			if (object?.related) {
@@ -169,7 +197,8 @@ export function ActionContainer({
 
 	useEffect(() => {
 		if (values.objectActionExecutorKey === 'update-object-entry') {
-			updateParameters(objectDefinitionExternalReferenceCode);
+			getIsSystem(objectDefinitionExternalReferenceCode),
+				updateParameters(objectDefinitionExternalReferenceCode);
 			fetchObjectDefinitionFields(
 				objectDefinitionId,
 				objectDefinitionExternalReferenceCode,

@@ -49,11 +49,11 @@ export async function fetchObjectDefinitions(
 	const unrelatedObjects: LabelValueObject[] = [];
 
 	relationships?.forEach((object) => {
-		const {externalReferenceCode, id, label} = object;
+		const {externalReferenceCode, id, label, system} = object;
 
 		const target = object.related ? relatedObjects : unrelatedObjects;
 
-		target.push({label, value: `${externalReferenceCode},${id}`});
+		target.push({label, value: `${externalReferenceCode},${id},${system}`});
 	});
 
 	const objectsOptionsList: ObjectsOptionsList = [];
