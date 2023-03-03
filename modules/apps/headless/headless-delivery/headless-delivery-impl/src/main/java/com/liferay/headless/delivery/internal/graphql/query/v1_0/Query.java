@@ -746,6 +746,45 @@ public class Query {
 	/**
 	 * Invoke this method with the command line:
 	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionExternalReferenceCodeObjectEntryExternalReferenceCodeComments(aggregation: ___, externalReferenceCode: ___, filter: ___, objectDefinitionExternalReferenceCode: ___, page: ___, pageSize: ___, search: ___, siteKey: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
+	@GraphQLField(
+		description = "Retrieves the object entry's comments by external reference code in a list. Results can be paginated, filtered, searched, and sorted."
+	)
+	public CommentPage
+			objectDefinitionExternalReferenceCodeObjectEntryExternalReferenceCodeComments(
+				@GraphQLName("siteKey") @NotEmpty String siteKey,
+				@GraphQLName("objectDefinitionExternalReferenceCode") String
+					objectDefinitionExternalReferenceCode,
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("search") String search,
+				@GraphQLName("aggregation") List<String> aggregations,
+				@GraphQLName("filter") String filterString,
+				@GraphQLName("pageSize") int pageSize,
+				@GraphQLName("page") int page,
+				@GraphQLName("sort") String sortsString)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_commentResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			commentResource -> new CommentPage(
+				commentResource.
+					getSiteObjectDefinitionExternalReferenceCodeObjectEntryExternalReferenceCodeCommentsPage(
+						Long.valueOf(siteKey),
+						objectDefinitionExternalReferenceCode,
+						externalReferenceCode, search,
+						_aggregationBiFunction.apply(
+							commentResource, aggregations),
+						_filterBiFunction.apply(commentResource, filterString),
+						Pagination.of(page, pageSize),
+						_sortsBiFunction.apply(commentResource, sortsString))));
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
 	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {structuredContentComments(aggregation: ___, filter: ___, page: ___, pageSize: ___, search: ___, sorts: ___, structuredContentId: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField(
