@@ -349,6 +349,35 @@ public class CommentResourceImpl extends BaseCommentResourceImpl {
 	}
 
 	@Override
+	public Page<Comment>
+			getSiteObjectDefinitionExternalReferenceCodeObjectEntryExternalReferenceCodeCommentsPage(
+				Long siteId, String objectDefinitionExternalReferenceCode,
+				String externalReferenceCode, String search,
+				Aggregation aggregation, Filter filter, Pagination pagination,
+				Sort[] sorts)
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionService.getObjectDefinitionByExternalReferenceCode(
+				objectDefinitionExternalReferenceCode,
+				contextCompany.getCompanyId());
+
+		ObjectEntry objectEntry = _objectEntryService.getObjectEntry(
+			externalReferenceCode, objectDefinition.getObjectDefinitionId());
+
+		Discussion discussion = _commentManager.getDiscussion(
+			objectEntry.getUserId(), siteId, objectDefinition.getClassName(),
+			objectEntry.getObjectEntryId(), _createServiceContextFunction());
+
+		DiscussionComment rootDiscussionComment =
+			discussion.getRootDiscussionComment();
+
+		return _getComments(
+			Collections.emptyMap(), rootDiscussionComment.getCommentId(),
+			search, aggregation, filter, pagination, sorts);
+	}
+
+	@Override
 	public Page<Comment> getSiteObjectEntryCommentsPage(
 			Long siteId, Long objectEntryId, String search,
 			Aggregation aggregation, Filter filter, Pagination pagination,
