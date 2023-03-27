@@ -43,6 +43,7 @@ import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.exception.NoSuchObjectFieldException;
 import com.liferay.object.exception.ObjectDefinitionScopeException;
 import com.liferay.object.exception.ObjectEntryValuesException;
+import com.liferay.object.exception.ObjectFieldNameException;
 import com.liferay.object.field.business.type.ObjectFieldBusinessType;
 import com.liferay.object.field.business.type.ObjectFieldBusinessTypeRegistry;
 import com.liferay.object.field.setting.util.ObjectFieldSettingUtil;
@@ -55,8 +56,12 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryTable;
 import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectFieldModel;
 import com.liferay.object.model.ObjectFieldSetting;
 import com.liferay.object.model.ObjectFilter;
+import com.liferay.object.model.ObjectLayout;
+import com.liferay.object.model.ObjectLayoutBox;
+import com.liferay.object.model.ObjectLayoutTab;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.ObjectState;
 import com.liferay.object.model.ObjectStateFlow;
@@ -68,6 +73,8 @@ import com.liferay.object.scope.ObjectScopeProvider;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFieldSettingLocalService;
+import com.liferay.object.service.ObjectLayoutLocalService;
+import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.service.ObjectStateFlowLocalService;
 import com.liferay.object.service.ObjectStateLocalService;
 import com.liferay.object.service.base.ObjectEntryLocalServiceBaseImpl;
@@ -152,6 +159,7 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -231,6 +239,8 @@ public class ObjectEntryLocalServiceImpl
 		_validateValues(
 			user.isDefaultUser(), objectDefinitionId, null,
 			objectDefinition.getPortletId(), serviceContext, userId, values);
+
+		_validateExpectedKeyValues(objectDefinitionId, values);
 
 		_fillBusinessTypePicklistDefaultValue(
 			_objectFieldLocalService.getObjectFields(objectDefinitionId),
@@ -1177,6 +1187,9 @@ public class ObjectEntryLocalServiceImpl
 			user.isDefaultUser(), objectEntry.getObjectDefinitionId(),
 			objectEntry, objectDefinition.getPortletId(), serviceContext,
 			userId, values);
+
+		_validateExpectedKeyValues(
+			objectDefinition.getObjectDefinitionId(), values);
 
 		Map<String, Serializable> transientValues = objectEntry.getValues();
 
@@ -3197,6 +3210,52 @@ public class ObjectEntryLocalServiceImpl
 		}
 	}
 
+	private void _validateExpectedKeyValues(
+			long objectDefinitionId, Map<String, Serializable> values)
+		throws PortalException {
+
+		List<String> objectRelationshipERCObjectFieldNames = ListUtil.toList(
+			_objectRelationshipLocalService.getAllObjectRelationships(
+				objectDefinitionId),
+			objectRelationship -> {
+				ObjectFieldSetting objectFieldSetting =
+					_objectFieldSettingLocalService.fetchObjectFieldSetting(
+						objectRelationship.getObjectFieldId2(),
+						ObjectFieldSettingConstants.
+							NAME_OBJECT_RELATIONSHIP_ERC_OBJECT_FIELD_NAME);
+
+				if (Objects.isNull(objectFieldSetting)) {
+					return "";
+				}
+
+				return objectFieldSetting.getValue();
+			});
+
+		List<String> objectFieldNames = ListUtil.toList(
+			_objectFieldLocalService.getObjectFields(objectDefinitionId),
+			ObjectFieldModel::getName);
+
+		for (Map.Entry<String, Serializable> property : values.entrySet()) {
+			String key = property.getKey();
+
+			if (objectFieldNames.contains(key) ||
+				objectRelationshipERCObjectFieldNames.contains(key) ||
+				StringUtil.equals(key, "categoryIds") ||
+				StringUtil.equals(key, "tagNames") ||
+				key.contains("objectEntrySiteInitializerKey") ||
+				!Objects.isNull(
+					_objectRelationshipLocalService.
+						fetchObjectRelationshipByObjectDefinitionId(
+							objectDefinitionId, key)) ||
+				_validateKeyInLayout(key, objectDefinitionId)) {
+
+				continue;
+			}
+
+			throw new ObjectFieldNameException.KeyNotExpected(key);
+		}
+	}
+
 	private void _validateExternalReferenceCode(
 			String externalReferenceCode, long companyId,
 			long objectDefinitionId, long objectEntryId)
@@ -3272,6 +3331,33 @@ public class ObjectEntryLocalServiceImpl
 					"Group ID ", groupId, " is not valid for scope \"", scope,
 					"\""));
 		}
+	}
+
+	private boolean _validateKeyInLayout(String key, long objectDefinitionId) {
+		if (!Validator.isNumber(key)) {
+			return false;
+		}
+
+		for (ObjectLayout objectLayout :
+				_objectLayoutLocalService.getObjectLayouts(
+					objectDefinitionId)) {
+
+			for (ObjectLayoutTab objectLayoutTab :
+					objectLayout.getObjectLayoutTabs()) {
+
+				for (ObjectLayoutBox objectLayoutBox :
+						objectLayoutTab.getObjectLayoutBoxes()) {
+
+					if (Long.valueOf(key) ==
+							objectLayoutBox.getObjectLayoutBoxId()) {
+
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	private void _validateObjectStateTransition(
@@ -3704,8 +3790,14 @@ public class ObjectEntryLocalServiceImpl
 		_objectFilterParserServiceRegistry;
 
 	@Reference
+	private ObjectLayoutLocalService _objectLayoutLocalService;
+
+	@Reference
 	private ObjectRelatedModelsProviderRegistry
 		_objectRelatedModelsProviderRegistry;
+
+	@Reference
+	private ObjectRelationshipLocalService _objectRelationshipLocalService;
 
 	@Reference
 	private ObjectRelationshipPersistence _objectRelationshipPersistence;
