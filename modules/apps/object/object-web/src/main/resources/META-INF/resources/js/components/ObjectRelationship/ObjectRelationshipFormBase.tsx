@@ -116,7 +116,7 @@ export function ObjectRelationshipFormBase({
 	>();
 
 	const [objectDefinitions, setObjectDefinitions] = useState<
-		ObjectDefinition[]
+		Partial<ObjectDefinition>[]
 	>([]);
 	const [query, setQuery] = useState<string>('');
 
@@ -224,7 +224,7 @@ export function ObjectRelationshipFormBase({
 				value={selectedType}
 			/>
 
-			<AutoComplete<ObjectDefinition>
+			<AutoComplete<Partial<ObjectDefinition>>
 				creationLanguageId={
 					creationLanguageId as Liferay.Language.Locale
 				}
@@ -284,11 +284,3 @@ interface IPros {
 	setValues: (values: Partial<ObjectRelationship>) => void;
 	values: Partial<ObjectRelationship>;
 }
-
-type ObjectDefinition = {
-	externalReferenceCode: string;
-	id: number;
-	label: LocalizedValue<string>;
-	name: string;
-	system: boolean;
-};
