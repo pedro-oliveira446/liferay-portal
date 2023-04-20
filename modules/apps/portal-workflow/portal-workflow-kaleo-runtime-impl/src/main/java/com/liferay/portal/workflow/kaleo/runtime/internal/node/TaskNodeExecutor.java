@@ -14,6 +14,7 @@
 
 package com.liferay.portal.workflow.kaleo.runtime.internal.node;
 
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
 import com.liferay.portal.workflow.kaleo.runtime.assignment.AggregateKaleoTaskAssignmentSelector;
 import com.liferay.portal.workflow.kaleo.runtime.calendar.DueDateCalculator;
 import com.liferay.portal.workflow.kaleo.runtime.graph.PathElement;
+import com.liferay.portal.workflow.kaleo.runtime.internal.action.KaleoActionThreadLocal;
 import com.liferay.portal.workflow.kaleo.runtime.internal.assignment.helper.TaskAssignerHelper;
 import com.liferay.portal.workflow.kaleo.runtime.node.BaseNodeExecutor;
 import com.liferay.portal.workflow.kaleo.runtime.node.NodeExecutor;
@@ -66,9 +68,14 @@ public class TaskNodeExecutor extends BaseNodeExecutor {
 
 		KaleoTimer kaleoTimer = kaleoTimerInstanceToken.getKaleoTimer();
 
-		kaleoActionExecutor.executeKaleoActions(
-			KaleoTimer.class.getName(), kaleoTimer.getKaleoTimerId(),
-			ExecutionType.ON_TIMER, executionContext);
+		try (SafeCloseable safeCloseable =
+				 KaleoActionThreadLocal.lock(
+					 kaleoTimer.getKaleoTimerId())) {
+
+			kaleoActionExecutor.executeKaleoActions(
+				KaleoTimer.class.getName(), kaleoTimer.getKaleoTimerId(),
+				ExecutionType.ON_TIMER, executionContext);
+		}
 
 		List<KaleoTaskAssignment> kaleoTaskReassignments =
 			kaleoTimer.getKaleoTaskReassignments();

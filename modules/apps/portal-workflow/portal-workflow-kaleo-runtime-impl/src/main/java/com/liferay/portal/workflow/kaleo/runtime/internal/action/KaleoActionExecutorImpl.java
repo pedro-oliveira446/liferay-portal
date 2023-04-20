@@ -65,14 +65,9 @@ public class KaleoActionExecutorImpl implements KaleoActionExecutor {
 				KaleoInstanceToken kaleoInstanceToken =
 					executionContext.getKaleoInstanceToken();
 
-				try (SafeCloseable safeCloseable =
-						KaleoActionThreadLocal.lock(
-							kaleoAction.getKaleoActionId())) {
-
-					_kaleoInstanceLocalService.updateKaleoInstance(
-						kaleoInstanceToken.getKaleoInstanceId(),
-						executionContext.getWorkflowContext(), serviceContext);
-				}
+				_kaleoInstanceLocalService.updateKaleoInstance(
+					kaleoInstanceToken.getKaleoInstanceId(),
+					executionContext.getWorkflowContext(), serviceContext);
 			}
 			catch (Exception exception) {
 				_log.error(exception);
