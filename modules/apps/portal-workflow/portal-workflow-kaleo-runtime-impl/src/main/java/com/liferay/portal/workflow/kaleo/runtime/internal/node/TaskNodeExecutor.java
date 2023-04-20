@@ -68,9 +68,12 @@ public class TaskNodeExecutor extends BaseNodeExecutor {
 
 		KaleoTimer kaleoTimer = kaleoTimerInstanceToken.getKaleoTimer();
 
+		KaleoTaskInstanceToken kaleoTaskInstanceToken =
+			executionContext.getKaleoTaskInstanceToken();
+
 		try (SafeCloseable safeCloseable =
 				 KaleoActionThreadLocal.lock(
-					 kaleoTimer.getKaleoTimerId())) {
+					 kaleoTaskInstanceToken.getKaleoTaskInstanceTokenId())) {
 
 			kaleoActionExecutor.executeKaleoActions(
 				KaleoTimer.class.getName(), kaleoTimer.getKaleoTimerId(),
