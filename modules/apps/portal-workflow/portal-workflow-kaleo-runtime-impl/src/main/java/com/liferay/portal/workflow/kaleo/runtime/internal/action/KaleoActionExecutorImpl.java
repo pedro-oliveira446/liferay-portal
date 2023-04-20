@@ -14,9 +14,11 @@
 
 package com.liferay.portal.workflow.kaleo.runtime.internal.action;
 
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.workflow.kaleo.definition.ExecutionType;
 import com.liferay.portal.workflow.kaleo.model.KaleoAction;
@@ -64,9 +66,14 @@ public class KaleoActionExecutorImpl implements KaleoActionExecutor {
 				KaleoInstanceToken kaleoInstanceToken =
 					executionContext.getKaleoInstanceToken();
 
-				_kaleoInstanceLocalService.updateKaleoInstance(
-					kaleoInstanceToken.getKaleoInstanceId(),
-					executionContext.getWorkflowContext(), serviceContext);
+				try (SafeCloseable safeCloseable =
+						KaleoActionThreadLocal.setWithSafeCloseable(
+							kaleoInstanceToken.getKaleoInstanceId())) {
+
+					_kaleoInstanceLocalService.updateKaleoInstance(
+						kaleoInstanceToken.getKaleoInstanceId(),
+						executionContext.getWorkflowContext(), serviceContext);
+				}
 			}
 			catch (Exception exception) {
 				_log.error(exception);
