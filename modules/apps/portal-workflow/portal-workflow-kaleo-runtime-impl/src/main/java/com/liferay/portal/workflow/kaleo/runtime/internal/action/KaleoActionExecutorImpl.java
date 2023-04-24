@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.workflow.kaleo.definition.ExecutionType;
 import com.liferay.portal.workflow.kaleo.model.KaleoAction;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
+import com.liferay.portal.workflow.kaleo.model.KaleoTimerInstanceToken;
 import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
 import com.liferay.portal.workflow.kaleo.runtime.action.ActionExecutorManager;
 import com.liferay.portal.workflow.kaleo.runtime.action.KaleoActionExecutor;
@@ -53,33 +54,50 @@ public class KaleoActionExecutorImpl implements KaleoActionExecutor {
 				serviceContext.getCompanyId(), kaleoClassName, kaleoClassPK,
 				executionType.getValue());
 
-		for (KaleoAction kaleoAction : kaleoActions) {
-			long startTime = System.currentTimeMillis();
 
-			String comment = _COMMENT_ACTION_SUCCESS;
+			for (KaleoAction kaleoAction : kaleoActions) {
+				long startTime = System.currentTimeMillis();
 
-			try {
-				actionExecutorManager.executeKaleoAction(
-					kaleoAction, executionContext);
+				String comment = _COMMENT_ACTION_SUCCESS;
 
-				KaleoInstanceToken kaleoInstanceToken =
-					executionContext.getKaleoInstanceToken();
+				try {
+					actionExecutorManager.executeKaleoAction(
+						kaleoAction, executionContext);
 
-				_kaleoInstanceLocalService.updateKaleoInstance(
-					kaleoInstanceToken.getKaleoInstanceId(),
-					executionContext.getWorkflowContext(), serviceContext);
-			}
-			catch (Exception exception) {
-				_log.error(exception);
+					KaleoInstanceToken kaleoInstanceToken =
+						executionContext.getKaleoInstanceToken();
 
-				comment = exception.getMessage();
-			}
-			finally {
-				_kaleoLogLocalService.addActionExecutionKaleoLog(
-					executionContext.getKaleoInstanceToken(), kaleoAction,
-					startTime, System.currentTimeMillis(), comment,
-					serviceContext);
-			}
+					KaleoTimerInstanceToken kaleoTimerInstanceToken =
+						executionContext.getKaleoTimerInstanceToken();
+
+					if (kaleoTimerInstanceToken == null) {
+						_kaleoInstanceLocalService.updateKaleoInstance(
+							kaleoInstanceToken.getKaleoInstanceId(),
+							executionContext.getWorkflowContext(),
+							serviceContext);
+					} else {
+						try (SafeCloseable safeCloseable =
+								 KaleoActionThreadLocal.setWithSafeCloseable(
+									 kaleoInstanceToken.getKaleoInstanceId())) {
+
+							_kaleoInstanceLocalService.updateKaleoInstance(
+								kaleoInstanceToken.getKaleoInstanceId(),
+								executionContext.getWorkflowContext(),
+								serviceContext);
+						}
+					}
+				}
+				catch (Exception exception) {
+					_log.error(exception);
+
+					comment = exception.getMessage();
+				}
+				finally {
+					_kaleoLogLocalService.addActionExecutionKaleoLog(
+						executionContext.getKaleoInstanceToken(), kaleoAction,
+						startTime, System.currentTimeMillis(), comment,
+						serviceContext);
+				}
 		}
 	}
 
