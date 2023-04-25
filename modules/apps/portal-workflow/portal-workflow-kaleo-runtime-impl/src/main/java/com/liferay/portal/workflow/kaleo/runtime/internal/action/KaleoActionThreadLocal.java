@@ -32,8 +32,8 @@ public class KaleoActionThreadLocal {
 		return _locked.get();
 	}
 
-	public static SafeCloseable lock(long kaleoInstanceId) {
-		SafeCloseable safeCloseable = setWithSafeCloseable(kaleoInstanceId);
+	public static SafeCloseable lock(long kaleoTimerInstanceTokenId) {
+		SafeCloseable safeCloseable = setWithSafeCloseable(kaleoTimerInstanceTokenId);
 
 		_locked.set(true);
 
@@ -44,16 +44,16 @@ public class KaleoActionThreadLocal {
 		};
 	}
 
-	public static SafeCloseable setWithSafeCloseable(Long kaleoInstanceId) {
-		return _kaleoInstanceId.setWithSafeCloseable(kaleoInstanceId);
+	public static SafeCloseable setWithSafeCloseable(Long kaleoTimerInstanceTokenId) {
+		return _kaleoTimerInstanceTokenId.setWithSafeCloseable(kaleoTimerInstanceTokenId);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		KaleoActionThreadLocal.class);
 
-	private static final CentralizedThreadLocal<Long> _kaleoInstanceId =
+	private static final CentralizedThreadLocal<Long> _kaleoTimerInstanceTokenId =
 		new CentralizedThreadLocal<>(
-			CompanyThreadLocal.class + "._kaleoInstanceId",
+			CompanyThreadLocal.class + "._kaleoTimerInstanceTokenId",
 			() -> CompanyConstants.SYSTEM);
 	private static final ThreadLocal<Boolean> _locked =
 		new CentralizedThreadLocal<>(

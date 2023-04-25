@@ -55,49 +55,50 @@ public class KaleoActionExecutorImpl implements KaleoActionExecutor {
 				executionType.getValue());
 
 
-			for (KaleoAction kaleoAction : kaleoActions) {
-				long startTime = System.currentTimeMillis();
+		for (KaleoAction kaleoAction : kaleoActions) {
+			long startTime = System.currentTimeMillis();
 
-				String comment = _COMMENT_ACTION_SUCCESS;
+			String comment = _COMMENT_ACTION_SUCCESS;
 
-				try {
-					actionExecutorManager.executeKaleoAction(
-						kaleoAction, executionContext);
+			try {
+				actionExecutorManager.executeKaleoAction(
+					kaleoAction, executionContext);
 
-					KaleoInstanceToken kaleoInstanceToken =
-						executionContext.getKaleoInstanceToken();
+				KaleoInstanceToken kaleoInstanceToken =
+					executionContext.getKaleoInstanceToken();
 
-					KaleoTimerInstanceToken kaleoTimerInstanceToken =
-						executionContext.getKaleoTimerInstanceToken();
+				KaleoTimerInstanceToken kaleoTimerInstanceToken =
+					executionContext.getKaleoTimerInstanceToken();
 
-					if (kaleoTimerInstanceToken == null) {
+				if (kaleoTimerInstanceToken == null) {
+					_kaleoInstanceLocalService.updateKaleoInstance(
+						kaleoInstanceToken.getKaleoInstanceId(),
+						executionContext.getWorkflowContext(),
+						serviceContext);
+				} else {
+					try (SafeCloseable safeCloseable =
+							 KaleoActionThreadLocal.setWithSafeCloseable(
+								 kaleoTimerInstanceToken.
+									 getKaleoTimerInstanceTokenId())) {
+
 						_kaleoInstanceLocalService.updateKaleoInstance(
 							kaleoInstanceToken.getKaleoInstanceId(),
 							executionContext.getWorkflowContext(),
 							serviceContext);
-					} else {
-						try (SafeCloseable safeCloseable =
-								 KaleoActionThreadLocal.setWithSafeCloseable(
-									 kaleoInstanceToken.getKaleoInstanceId())) {
-
-							_kaleoInstanceLocalService.updateKaleoInstance(
-								kaleoInstanceToken.getKaleoInstanceId(),
-								executionContext.getWorkflowContext(),
-								serviceContext);
-						}
 					}
 				}
-				catch (Exception exception) {
-					_log.error(exception);
+			}
+			catch (Exception exception) {
+				_log.error(exception);
 
-					comment = exception.getMessage();
-				}
-				finally {
-					_kaleoLogLocalService.addActionExecutionKaleoLog(
-						executionContext.getKaleoInstanceToken(), kaleoAction,
-						startTime, System.currentTimeMillis(), comment,
-						serviceContext);
-				}
+				comment = exception.getMessage();
+			}
+			finally {
+				_kaleoLogLocalService.addActionExecutionKaleoLog(
+					executionContext.getKaleoInstanceToken(), kaleoAction,
+					startTime, System.currentTimeMillis(), comment,
+					serviceContext);
+			}
 		}
 	}
 
