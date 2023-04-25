@@ -77,7 +77,7 @@ public class KaleoActionExecutorImpl implements KaleoActionExecutor {
 						serviceContext);
 				} else {
 					try (SafeCloseable safeCloseable =
-							 KaleoActionThreadLocal.setWithSafeCloseable(
+							 KaleoActionThreadLocal.lock(
 								 kaleoTimerInstanceToken.
 									 getKaleoTimerInstanceTokenId())) {
 

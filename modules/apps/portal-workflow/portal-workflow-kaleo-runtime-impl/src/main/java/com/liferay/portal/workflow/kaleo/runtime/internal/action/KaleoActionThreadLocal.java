@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.workflow.kaleo.model.KaleoAction;
 import com.liferay.portal.workflow.kaleo.service.KaleoActionLocalServiceUtil;
+import com.liferay.portal.workflow.kaleo.service.KaleoTaskInstanceTokenLocalServiceUtil;
 
 /**
  * @author Selton Guedes
@@ -53,10 +54,10 @@ public class KaleoActionThreadLocal {
 
 	private static final CentralizedThreadLocal<Long> _kaleoTimerInstanceTokenId =
 		new CentralizedThreadLocal<>(
-			CompanyThreadLocal.class + "._kaleoTimerInstanceTokenId",
-			() -> CompanyConstants.SYSTEM);
+			KaleoActionThreadLocal.class + "._kaleoTimerInstanceTokenId",
+			() -> 0L);
 	private static final ThreadLocal<Boolean> _locked =
 		new CentralizedThreadLocal<>(
-			CompanyThreadLocal.class + "._locked", () -> Boolean.FALSE);
+			KaleoActionThreadLocal.class + "._locked", () -> Boolean.FALSE);
 
 }
