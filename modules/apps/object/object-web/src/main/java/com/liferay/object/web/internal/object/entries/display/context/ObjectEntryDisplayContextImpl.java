@@ -320,16 +320,26 @@ public class ObjectEntryDisplayContextImpl
 				ObjectDefinitionConstants.SCOPE_COMPANY) &&
 			  StringUtil.equals(
 				  objectDefinition2.getScope(),
-				  ObjectDefinitionConstants.SCOPE_SITE)) &&
-			StringUtil.equals(
-				objectRelationship.getType(),
-				ObjectRelationshipConstants.TYPE_ONE_TO_MANY)) {
+				  ObjectDefinitionConstants.SCOPE_SITE))) {
 
 			ServiceContext serviceContext =
 				ServiceContextThreadLocal.getServiceContext();
 
 			creationMenu.addDropdownItem(
 				dropdownItem -> {
+					String nameField = "";
+
+					if (StringUtil.equals(
+							objectRelationship.getType(),
+							ObjectRelationshipConstants.TYPE_ONE_TO_MANY)) {
+
+						nameField = ObjectFieldSettingUtil.getValue(
+							ObjectFieldSettingConstants.
+								NAME_OBJECT_RELATIONSHIP_ERC_OBJECT_FIELD_NAME,
+							_objectFieldLocalService.getObjectField(
+								objectRelationship.getObjectFieldId2()));
+					}
+
 					dropdownItem.setHref(
 						PortletURLBuilder.create(
 							PortalUtil.getControlPanelPortletURL(
@@ -344,14 +354,13 @@ public class ObjectEntryDisplayContextImpl
 						).setParameter(
 							ObjectFieldSettingConstants.
 								NAME_OBJECT_RELATIONSHIP_ERC_OBJECT_FIELD_NAME,
-							ObjectFieldSettingUtil.getValue(
-								ObjectFieldSettingConstants.
-									NAME_OBJECT_RELATIONSHIP_ERC_OBJECT_FIELD_NAME,
-								_objectFieldLocalService.getObjectField(
-									objectRelationship.getObjectFieldId2()))
+							nameField
 						).setParameter(
 							"objectDefinitionId",
 							objectDefinition2.getObjectDefinitionId()
+						).setParameter(
+							"objectRelationshipType",
+							objectRelationship.getType()
 						).setParameter(
 							"parentObjectEntryERC",
 							() -> {

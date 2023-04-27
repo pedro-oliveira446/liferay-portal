@@ -107,6 +107,35 @@ portletDisplay.setURLBack(backURL);
 			}, {});
 		}
 
+		function <portlet:namespace />putRelationshipMtoM(externalReferenceCode,parentObjectEntryERC,path) {
+			const pathPut = path+'/by-external-reference-code/'+parentObjectEntryERC+'/mTomAdressToPerson/'+externalReferenceCode
+
+			Liferay.Util.fetch(pathPut, {
+				headers: new Headers({
+					'Accept': 'application/json',
+					'Content-Type': 'application/json',
+				}),
+				method: 'PUT',
+			})
+				.then((response) => {
+					console.log("response",response)
+					if (response.status === 401) {
+						console.log("Erro !!")
+					}
+					else if (response.ok) {
+						console.log("Deu certo !! !!")
+					}
+				})
+				.then((response) => {
+					if (response && response.title) {
+						Liferay.Util.openToast({
+							message: response.title,
+							type: 'danger',
+						});
+					}
+				});
+		}
+
 		Liferay.provide(
 			window,
 			'<portlet:namespace />submitObjectEntry',
@@ -184,7 +213,6 @@ portletDisplay.setURLBack(backURL);
 										autoRelatedValue['parentObjectEntryERC'],
 								});
 							}
-
 							Liferay.Util.fetch(path, {
 								body: JSON.stringify(values),
 								headers: new Headers({
@@ -213,7 +241,9 @@ portletDisplay.setURLBack(backURL);
 												'externalReferenceCode',
 												payload.externalReferenceCode
 											);
-
+											if (autoRelatedValue['parentObjectEntryERC'] !== 'null') {
+												<portlet:namespace />putRelationshipMtoM(payload.externalReferenceCode,autoRelatedValue['parentObjectEntryERC'],path)
+											}
 											Liferay.Util.navigate(
 												portletURL.toString()
 											);
