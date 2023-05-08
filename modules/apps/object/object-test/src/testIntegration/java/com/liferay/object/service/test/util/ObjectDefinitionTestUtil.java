@@ -69,6 +69,25 @@ public class ObjectDefinitionTestUtil {
 			ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT, objectFields);
 	}
 
+	public static ObjectDefinition addObjectDefinition(
+			String name,
+			ObjectDefinitionLocalService objectDefinitionLocalService,
+			List<ObjectField> objectFields)
+		throws Exception {
+
+		if (name.equals("")) {
+			name = "A" + RandomTestUtil.randomString();
+		}
+
+		return objectDefinitionLocalService.addCustomObjectDefinition(
+			TestPropsValues.getUserId(), false, false,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			name, null, null,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			ObjectDefinitionConstants.SCOPE_COMPANY,
+			ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT, objectFields);
+	}
+
 	public static ObjectDefinition addUnmodifiableSystemObjectDefinition(
 			long userId, String className, String dbTableName,
 			Map<Locale, String> labelMap, String name,

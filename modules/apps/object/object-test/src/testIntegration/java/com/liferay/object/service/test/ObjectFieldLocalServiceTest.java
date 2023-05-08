@@ -521,6 +521,86 @@ public class ObjectFieldLocalServiceTest {
 					).state(
 						true
 					).build())));
+
+		// Object field relationship name must have the same default name
+		//  regardless of the form of its creation
+
+		ObjectDefinition objectDefinition1 = _publishCustomObjectDefinition(
+			"TestA");
+		ObjectDefinition objectDefinition2 = _publishCustomObjectDefinition(
+			"TestB");
+
+		ObjectRelationship objectRelationship =
+			_objectRelationshipLocalService.addObjectRelationship(
+				TestPropsValues.getUserId(),
+				objectDefinition1.getObjectDefinitionId(),
+				objectDefinition2.getObjectDefinitionId(), 0,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				"relationship", ObjectRelationshipConstants.TYPE_ONE_TO_MANY);
+
+		ObjectField objectField1 = _objectFieldLocalService.fetchObjectField(
+			objectRelationship.getObjectFieldId2());
+
+		String objectFieldDBColumnName1 = objectField1.getDBColumnName();
+
+		char lastChar = objectFieldDBColumnName1.charAt(
+			objectFieldDBColumnName1.length() - 1);
+
+		Assert.assertNotEquals("_", lastChar);
+
+		_objectRelationshipLocalService.deleteObjectRelationship(
+			objectRelationship);
+
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition1);
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition2);
+
+		objectDefinition1 = ObjectDefinitionTestUtil.addObjectDefinition(
+			"TestA", _objectDefinitionLocalService,
+			Arrays.asList(
+				ObjectFieldUtil.createObjectField(
+					ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+					ObjectFieldConstants.DB_TYPE_STRING,
+					RandomTestUtil.randomString(), StringUtil.randomId())));
+
+		objectDefinition2 = ObjectDefinitionTestUtil.addObjectDefinition(
+			"TestB", _objectDefinitionLocalService,
+			Arrays.asList(
+				ObjectFieldUtil.createObjectField(
+					ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+					ObjectFieldConstants.DB_TYPE_STRING,
+					RandomTestUtil.randomString(), StringUtil.randomId())));
+
+		objectRelationship =
+			_objectRelationshipLocalService.addObjectRelationship(
+				TestPropsValues.getUserId(),
+				objectDefinition1.getObjectDefinitionId(),
+				objectDefinition2.getObjectDefinitionId(), 0,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				"relationship", ObjectRelationshipConstants.TYPE_ONE_TO_MANY);
+
+		objectDefinition1 =
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				objectDefinition1.getObjectDefinitionId());
+
+		objectDefinition2 =
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				objectDefinition2.getObjectDefinitionId());
+
+		ObjectField objectField2 = _objectFieldLocalService.fetchObjectField(
+			objectRelationship.getObjectFieldId2());
+
+		Assert.assertEquals(
+			objectFieldDBColumnName1, objectField2.getDBColumnName());
+
+		_objectRelationshipLocalService.deleteObjectRelationship(
+			objectRelationship);
+
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition1);
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition2);
 	}
 
 	@Test
@@ -1382,8 +1462,8 @@ public class ObjectFieldLocalServiceTest {
 
 		// Deletion type cascade
 
-		ObjectDefinition objectDefinition1 = _publishCustomObjectDefinition();
-		ObjectDefinition objectDefinition2 = _publishCustomObjectDefinition();
+		ObjectDefinition objectDefinition1 = _publishCustomObjectDefinition("");
+		ObjectDefinition objectDefinition2 = _publishCustomObjectDefinition("");
 
 		ObjectRelationship objectRelationship =
 			_objectRelationshipLocalService.addObjectRelationship(
@@ -1592,10 +1672,12 @@ public class ObjectFieldLocalServiceTest {
 		}
 	}
 
-	private ObjectDefinition _publishCustomObjectDefinition() throws Exception {
+	private ObjectDefinition _publishCustomObjectDefinition(String name)
+		throws Exception {
+
 		ObjectDefinition objectDefinition =
 			ObjectDefinitionTestUtil.addObjectDefinition(
-				_objectDefinitionLocalService,
+				name, _objectDefinitionLocalService,
 				Arrays.asList(
 					ObjectFieldUtil.createObjectField(
 						ObjectFieldConstants.BUSINESS_TYPE_TEXT,
