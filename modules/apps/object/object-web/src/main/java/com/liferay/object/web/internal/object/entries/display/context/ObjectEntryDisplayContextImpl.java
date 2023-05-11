@@ -647,7 +647,7 @@ public class ObjectEntryDisplayContextImpl
 
 		DDMForm ddmForm = new DDMForm();
 
-		ddmForm.addAvailableLocale(_objectRequestHelper.getLocale());
+		ddmForm.setAvailableLocales(LanguageUtil.getAvailableLocales());
 
 		ObjectDefinition objectDefinition = getObjectDefinition1();
 
@@ -731,6 +731,8 @@ public class ObjectEntryDisplayContextImpl
 
 		ddmFormField.setProperty(
 			"objectFieldId", String.valueOf(objectField.getObjectFieldId()));
+
+		ddmFormField.setLocalizable(objectField.isLocalized());
 
 		if (Validator.isNotNull(objectField.getRelationshipType())) {
 			ObjectRelationship objectRelationship =

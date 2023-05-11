@@ -52,15 +52,6 @@ portletDisplay.setURLBack(backURL);
 
 		<%@ include file="/object_entries/object_entry/categorization.jspf" %>
 	</liferay-frontend:edit-form-body>
-
-	<c:if test="<%= !objectEntryDisplayContext.isReadOnly() %>">
-		<liferay-frontend:edit-form-footer>
-			<liferay-frontend:edit-form-buttons
-				redirect="<%= backURL %>"
-				submitOnClick='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "submitObjectEntry();" %>'
-			/>
-		</liferay-frontend:edit-form-footer>
-	</c:if>
 </liferay-frontend:edit-form>
 
 <c:if test="<%= !objectEntryDisplayContext.isReadOnly() %>">
