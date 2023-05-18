@@ -54,6 +54,10 @@ public interface ObjectFieldBusinessType {
 
 	public String getDDMFormFieldTypeName();
 
+	public default String getDDMFormFieldTypeName(boolean localized){
+		return getDDMFormFieldTypeName();
+	}
+
 	public default String getDescription(Locale locale) {
 		return StringPool.BLANK;
 	}
