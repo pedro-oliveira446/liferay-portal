@@ -95,45 +95,52 @@ const LocalizableRichText = ({
 			visible={visible}
 		>
 			<ClayInput.Group>
-				<ClassicEditor
-					contents={contents}
-					editorConfig={editorConfig}
-					name={name}
-					onBlur={onBlur}
-					onChange={(content) => {
-						if (contents !== content) {
-							const valueJSON = convertValueToJSON(currentValue);
+				<ClayInput.GroupItem>
+					<ClassicEditor
+						contents={contents}
+						editorConfig={editorConfig}
+						name={name}
+						onBlur={onBlur}
+						onChange={(content) => {
+							if (contents !== content) {
+								const valueJSON = convertValueToJSON(
+									currentValue
+								);
 
-							const newValue = JSON.stringify({
-								...valueJSON,
-								[currentEditingLocale.localeId]: content,
-							});
+								const newValue = JSON.stringify({
+									...valueJSON,
+									[currentEditingLocale.localeId]: content,
+								});
 
-							setCurrentValue(newValue);
-							setCurrentInternalValue(content);
+								setCurrentValue(newValue);
+								setCurrentInternalValue(content);
 
-							const {availableLocales} = {
-								...transformAvailableLocalesAndValue({
-									availableLocales: currentAvailableLocales,
-									defaultLocale,
-									value: newValue,
-								}),
-							};
+								const {availableLocales} = {
+									...transformAvailableLocalesAndValue({
+										availableLocales: currentAvailableLocales,
+										defaultLocale,
+										value: newValue,
+									}),
+								};
 
-							setCurrentAvailableLocales(availableLocales);
+								setCurrentAvailableLocales(availableLocales);
 
-							onChange({target: {value: content}});
-						}
-					}}
-					onFocus={onFocus}
-					onSetData={({data: {dataValue: value}, editor: {mode}}) => {
-						if (mode === 'source') {
-							onChange({target: {value}});
-						}
-					}}
-					readOnly={readOnly}
-					ref={editorRef}
-				/>
+								onChange({target: {value: content}});
+							}
+						}}
+						onFocus={onFocus}
+						onSetData={({
+							data: {dataValue: value},
+							editor: {mode},
+						}) => {
+							if (mode === 'source') {
+								onChange({target: {value}});
+							}
+						}}
+						readOnly={readOnly}
+						ref={editorRef}
+					/>
+				</ClayInput.GroupItem>
 
 				<input
 					id={id}
