@@ -78,6 +78,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -1099,6 +1100,10 @@ public class ObjectEntryDisplayContextImpl
 			ObjectField objectField = _objectFieldLocalService.getObjectField(
 				GetterUtil.getLong(ddmFormField.getProperty("objectFieldId")));
 
+			if (objectField.isLocalized()) {
+				return values.get(objectField.getI18nObjectFieldName());
+			}
+
 			ObjectFieldBusinessType objectFieldBusinessType =
 				_objectFieldBusinessTypeRegistry.getObjectFieldBusinessType(
 					objectField.getBusinessType());
@@ -1205,6 +1210,13 @@ public class ObjectEntryDisplayContextImpl
 
 			ddmFormFieldValue.setValue(
 				new UnlocalizedValue(listEntry.getKey()));
+		}
+		else if (value instanceof Map) {
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+				(Map<String, String>)value);
+
+			ddmFormFieldValue.setValue(
+				new UnlocalizedValue(jsonObject.toString()));
 		}
 		else {
 			if (value instanceof Double) {
