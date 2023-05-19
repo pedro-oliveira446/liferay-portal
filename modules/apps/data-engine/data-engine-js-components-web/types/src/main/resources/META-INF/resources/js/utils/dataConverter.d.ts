@@ -96,6 +96,7 @@ export declare type FieldTypeName =
 	| 'help_text'
 	| 'image'
 	| 'key_value'
+	| 'localizable_rich_text'
 	| 'localizable_text'
 	| 'multi_language_option_select'
 	| 'numeric'
