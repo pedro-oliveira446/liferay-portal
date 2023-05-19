@@ -12,150 +12,24 @@
  * details.
  */
 
-import ClayButton from '@clayui/button';
-import ClayDropDown from '@clayui/drop-down';
 import {ClayInput} from '@clayui/form';
-import ClayIcon from '@clayui/icon';
-import ClayLabel from '@clayui/label';
-import ClayLayout from '@clayui/layout';
-import classNames from 'classnames';
 import {ClassicEditor} from 'frontend-editor-ckeditor-web';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 import {FieldBase} from '../FieldBase/ReactFieldBase.es';
+import LocalesDropdown from '../util/localizable/components/LocalesDropdown.es';
 import {
 	convertValueToJSON,
 	getEditingValue,
 	getInitialInternalValue,
 	normalizeLocaleId,
-	transformAvailableLocales,
 	transformAvailableLocalesAndValue,
-	transformEditingLocale,
-} from './transform.es';
-
-const AvailableLocaleLabel = ({isDefault, isSubmitLabel, isTranslated}) => {
-	let labelText = '';
-
-	if (isSubmitLabel) {
-		labelText = isTranslated ? 'customized' : 'not-customized';
-	}
-	else {
-		labelText = isDefault
-			? 'default'
-			: isTranslated
-			? 'translated'
-			: 'not-translated';
-	}
-
-	return (
-		<ClayLabel
-			displayType={classNames({
-				info: isDefault && !isSubmitLabel,
-				success: isTranslated,
-				warning:
-					(!isDefault && !isTranslated) ||
-					(!isTranslated && isSubmitLabel),
-			})}
-		>
-			{Liferay.Language.get(labelText)}
-		</ClayLabel>
-	);
-};
-
-const LocalesDropdown = ({
-	availableLocales,
-	editingLocale,
-	fieldName,
-	onLanguageClicked = () => {},
-}) => {
-	const alignElementRef = useRef(null);
-	const dropdownMenuRef = useRef(null);
-
-	const [dropdownActive, setDropdownActive] = useState(false);
-
-	return (
-		<div>
-			<ClayButton
-				aria-expanded="false"
-				aria-haspopup="true"
-				className="dropdown-toggle"
-				data-testid="triggerButton"
-				displayType="secondary"
-				monospaced
-				onClick={() => setDropdownActive(!dropdownActive)}
-				ref={alignElementRef}
-			>
-				<span className="inline-item">
-					<ClayIcon symbol={editingLocale.icon} />
-				</span>
-
-				<span className="btn-section" data-testid="triggerText">
-					{editingLocale.icon}
-				</span>
-			</ClayButton>
-
-			<ClayDropDown.Menu
-				active={dropdownActive}
-				alignElementRef={alignElementRef}
-				onSetActive={setDropdownActive}
-				ref={dropdownMenuRef}
-			>
-				<ClayDropDown.ItemList>
-					{availableLocales.map(
-						({
-							displayName,
-							icon,
-							isDefault,
-							isTranslated,
-							localeId,
-						}) => (
-							<ClayDropDown.Item
-								className="custom-dropdown-item-row"
-								data-testid={`availableLocalesDropdown${localeId}`}
-								key={localeId}
-								onClick={(event) => {
-									onLanguageClicked({event, localeId});
-									setDropdownActive(false);
-								}}
-							>
-								<ClayLayout.ContentRow containerElement="span">
-									<ClayLayout.ContentCol
-										containerElement="span"
-										expand
-									>
-										<ClayLayout.ContentSection containerElement="span">
-											<span className="inline-item inline-item-before">
-												<ClayIcon symbol={icon} />
-											</span>
-
-											{displayName}
-										</ClayLayout.ContentSection>
-									</ClayLayout.ContentCol>
-
-									<ClayLayout.ContentCol containerElement="span">
-										<AvailableLocaleLabel
-											isDefault={isDefault}
-											isSubmitLabel={
-												fieldName === 'submitLabel'
-											}
-											isTranslated={isTranslated}
-										/>
-									</ClayLayout.ContentCol>
-								</ClayLayout.ContentRow>
-							</ClayDropDown.Item>
-						)
-					)}
-				</ClayDropDown.ItemList>
-			</ClayDropDown.Menu>
-		</div>
-	);
-};
+} from '../util/localizable/transform.es';
 
 const LocalizableRichText = ({
 	availableLocales,
 	defaultLocale,
 	editable,
-	editingLanguageId,
 	editingLocale,
 	editorConfig,
 	fieldName,
@@ -200,19 +74,16 @@ const LocalizableRichText = ({
 
 			editor.config.contentsLanguage = currentEditingLocale.localeId;
 
-			let newData = '';
+			let newData = predefinedValue;
 
-			if (currentValue) {
-				const valueJSON = convertValueToJSON(currentValue);
-				newData = valueJSON[currentEditingLocale.localeId];
+			if (currentInternalValue) {
+				newData = currentInternalValue;
 			}
 
 			editor.setData(newData);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [currentEditingLocale]);
-
-	console.log('currentInternalValue', currentInternalValue);
 
 	return (
 		<FieldBase
