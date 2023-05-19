@@ -788,6 +788,13 @@ public class ObjectEntryDisplayContextImpl
 
 		ddmFormField.setRequired(objectField.isRequired());
 
+		if (objectField.isLocalized() &&
+			StringUtil.equals(
+				ddmFormField.getType(), DDMFormFieldTypeConstants.TEXT)) {
+
+			ddmFormField.setType(DDMFormFieldTypeConstants.LOCALIZABLE_TEXT);
+		}
+
 		return ddmFormField;
 	}
 
