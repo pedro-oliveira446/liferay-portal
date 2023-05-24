@@ -98,6 +98,7 @@ portletDisplay.setURLBack(backURL);
 
 		function <portlet:namespace />getValues(fields) {
 			return fields.reduce((obj, field) => {
+				console.log(field)
 				let value = field.value;
 				if (field.type === 'select' && !field.multiple) {
 					value = {key: value.length ? field.value[0] : ''};
@@ -107,7 +108,10 @@ portletDisplay.setURLBack(backURL);
 
 				if (field.localizable) {
 					fieldName += '_i18n';
-					value = JSON.parse(value);
+
+					if(typeof value == 'string'){
+						value = JSON.parse(value);
+					}
 				}
 
 				return Object.assign(obj, {[fieldName]: value});
