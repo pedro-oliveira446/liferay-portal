@@ -64,7 +64,7 @@ const LocalizableRichText = ({
 	const [currentEditingLocale, setCurrentEditingLocale] = useState(
 		editingLocale
 	);
-	const [currentValue, setCurrentValue] = useState(value);
+	const [currentValue, setCurrentValue] = useState(JSON.stringify(value));
 	const [currentInternalValue, setCurrentInternalValue] = useState(
 		getInitialInternalValue({
 			editingLocale: currentEditingLocale,
@@ -135,7 +135,7 @@ const LocalizableRichText = ({
 
 								setCurrentAvailableLocales(availableLocales);
 
-								onChange({target: {value: content}});
+								onChange({target: {value: newValue}});
 							}
 						}}
 						onFocus={onFocus}
