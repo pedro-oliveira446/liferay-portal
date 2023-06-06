@@ -12,15 +12,37 @@
  * details.
  */
 
+import {ClayInput} from '@clayui/form';
 import {ClassicEditor} from 'frontend-editor-ckeditor-web';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import {FieldBase} from '../FieldBase/ReactFieldBase.es';
+import LocalesDropdown from '../util/localizable/LocalesDropdown';
+import {
+	convertStringToObject,
+	getEditingValue,
+	getInitialInternalValue,
+	normalizeLocaleId,
+	transformAvailableLocalesAndValue,
+} from '../util/localizable/transform.es';
+
+const INITIAL_DEFAULT_LOCALE = {
+	icon: themeDisplay.getDefaultLanguageId(),
+	localeId: themeDisplay.getDefaultLanguageId(),
+};
+const INITIAL_EDITING_LOCALE = {
+	icon: normalizeLocaleId(themeDisplay.getDefaultLanguageId()),
+	localeId: themeDisplay.getDefaultLanguageId(),
+};
 
 const RichText = ({
+	availableLocales,
+	defaultLocale = INITIAL_DEFAULT_LOCALE,
 	editable,
 	editingLanguageId,
+	editingLocale = INITIAL_EDITING_LOCALE,
 	editorConfig,
+	fieldName,
 	id,
 	name,
 	onBlur,
@@ -28,30 +50,63 @@ const RichText = ({
 	onFocus,
 	predefinedValue = '',
 	readOnly,
+	showLanguageDropdown,
 	value,
 	visible,
 	...otherProps
 }) => {
 	const editorRef = useRef();
-
-	const contents = useMemo(
-		() => (editable ? predefinedValue : value ?? predefinedValue),
-		[editable, predefinedValue, value]
+	const [currentAvailableLocales, setCurrentAvailableLocales] = useState(
+		availableLocales
 	);
-
+	const [currentEditingLocale, setCurrentEditingLocale] = useState(
+		editingLanguageId && availableLocales
+			? availableLocales?.find(
+					(availableLocale) =>
+						availableLocale.localeId === editingLanguageId
+			  )
+			: editingLocale
+	);
+	const [currentValue, setCurrentValue] = useState(
+		editable
+			? convertStringToObject(
+					value,
+					editingLanguageId ?? defaultLocale?.localeId
+			  )
+			: convertStringToObject(
+					value,
+					editingLanguageId ?? defaultLocale?.localeId
+			  ) ??
+					convertStringToObject(
+						predefinedValue,
+						editingLanguageId ?? defaultLocale?.localeId
+					)
+	);
+	const [currentInternalValue, setCurrentInternalValue] = useState(
+		getInitialInternalValue({
+			editingLocale: currentEditingLocale,
+			value: currentValue,
+		})
+	);
 	useEffect(() => {
 		const editor = editorRef.current?.editor;
-
 		if (editor) {
 			editor.config.contentsLangDirection =
-				Liferay.Language.direction[editingLanguageId];
-
-			editor.config.contentsLanguage = editingLanguageId;
-
-			editor.setData(contents);
+				Liferay.Language.direction[currentEditingLocale.localeId];
+			editor.config.contentsLanguage = currentEditingLocale.localeId;
+			editor.setData(currentInternalValue);
 		}
+		const {availableLocales} = {
+			...transformAvailableLocalesAndValue({
+				availableLocales: currentAvailableLocales,
+				defaultLocale,
+				value: currentValue,
+			}),
+		};
+
+		setCurrentAvailableLocales(availableLocales);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [editingLanguageId, predefinedValue]);
+	}, [currentEditingLocale]);
 
 	return (
 		<FieldBase
@@ -62,27 +117,114 @@ const RichText = ({
 			style={readOnly ? {pointerEvents: 'none'} : null}
 			visible={visible}
 		>
-			<ClassicEditor
-				contents={contents}
-				editorConfig={editorConfig}
-				name={name}
-				onBlur={onBlur}
-				onChange={(content) => {
-					if (contents !== content) {
-						onChange({target: {value: content}});
-					}
-				}}
-				onFocus={onFocus}
-				onSetData={({data: {dataValue: value}, editor: {mode}}) => {
-					if (mode === 'source') {
-						onChange({target: {value}});
-					}
-				}}
-				readOnly={readOnly}
-				ref={editorRef}
-			/>
+			<ClayInput.Group>
+				<ClayInput.GroupItem>
+					<ClassicEditor
+						className="w-100"
+						contents={
+							currentValue
+								? currentValue[currentEditingLocale?.localeId]
+								: ''
+						}
+						editorConfig={editorConfig}
+						name={name}
+						onBlur={onBlur}
+						onChange={(content) => {
+							if (
+								currentValue[currentEditingLocale?.localeId] !==
+								content
+							) {
+								const newValue = {
+									...currentValue,
+									[currentEditingLocale.localeId]: content,
+								};
 
-			<input name={name} type="hidden" value={contents} />
+								setCurrentValue(newValue);
+								setCurrentInternalValue(content);
+
+								const {availableLocales} = {
+									...transformAvailableLocalesAndValue({
+										availableLocales: currentAvailableLocales,
+										defaultLocale,
+										value: newValue,
+									}),
+								};
+
+								setCurrentAvailableLocales(availableLocales);
+
+								onChange({
+									target: {
+										value: showLanguageDropdown
+											? newValue
+											: newValue[
+													currentEditingLocale
+														?.localeId
+											  ],
+									},
+								});
+							}
+						}}
+						onFocus={onFocus}
+						onSetData={({
+							data: {dataValue: value},
+							editor: {mode},
+						}) => {
+							if (mode === 'source') {
+								onChange({target: {value}});
+							}
+						}}
+						readOnly={readOnly}
+						ref={editorRef}
+					/>
+				</ClayInput.GroupItem>
+
+				<input
+					id={id}
+					name={name}
+					type="hidden"
+					value={
+						showLanguageDropdown
+							? currentValue || ''
+							: currentValue
+							? currentValue[currentEditingLocale?.localeId]
+							: ''
+					}
+				/>
+
+				{showLanguageDropdown && (
+					<ClayInput.GroupItem
+						className="liferay-ddm-form-field-localizable-text"
+						shrink
+					>
+						<LocalesDropdown
+							availableLocales={currentAvailableLocales}
+							editingLocale={currentEditingLocale}
+							fieldName={fieldName}
+							onLanguageClicked={(localeId) => {
+								const newEditingLocale = currentAvailableLocales.find(
+									(availableLocale) =>
+										availableLocale.localeId === localeId
+								);
+
+								setCurrentEditingLocale({
+									...newEditingLocale,
+									icon: normalizeLocaleId(
+										newEditingLocale.localeId
+									),
+								});
+								setCurrentInternalValue(
+									getEditingValue({
+										defaultLocale,
+										editingLocale: newEditingLocale,
+										fieldName,
+										value: currentValue,
+									})
+								);
+							}}
+						/>
+					</ClayInput.GroupItem>
+				)}
+			</ClayInput.Group>
 		</FieldBase>
 	);
 };

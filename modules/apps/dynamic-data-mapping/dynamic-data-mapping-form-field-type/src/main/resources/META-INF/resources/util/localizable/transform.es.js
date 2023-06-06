@@ -25,6 +25,17 @@ export function convertValueToJSON(value) {
 	return value;
 }
 
+export function convertStringToObject(value, editingLanguageId) {
+	if (typeof value === 'string') {
+		const object = new Object();
+		object[editingLanguageId] = value;
+
+		return object;
+	}
+
+	return value;
+}
+
 export function getEditingValue({
 	defaultLocale,
 	editingLocale,
@@ -52,7 +63,7 @@ export function getEditingValue({
 export function getInitialInternalValue({editingLocale, value}) {
 	const valueJSON = convertValueToJSON(value);
 
-	return valueJSON[editingLocale.localeId] || '';
+	return valueJSON ? valueJSON[editingLocale?.localeId] : '';
 }
 
 const convertValueToString = (value) => {
@@ -91,7 +102,7 @@ export function transformAvailableLocales(
 	value
 ) {
 	return {
-		availableLocales: availableLocales.map((availableLocale) => ({
+		availableLocales: availableLocales?.map((availableLocale) => ({
 			displayName: availableLocale[1].label,
 			icon: normalizeLocaleId(availableLocale[0]),
 			isDefault: isDefaultLocale({
@@ -113,7 +124,7 @@ export function transformAvailableLocalesAndValue({
 	value,
 }) {
 	return {
-		availableLocales: availableLocales.map((availableLocale) => ({
+		availableLocales: availableLocales?.map((availableLocale) => ({
 			...availableLocale,
 			icon: normalizeLocaleId(availableLocale.localeId),
 			isDefault: isDefaultLocale({
@@ -137,4 +148,10 @@ export function transformEditingLocale({defaultLocale, editingLocale, value}) {
 		isTranslated: isTranslated({localeId: editingLocale.id, value}),
 		localeId: editingLocale.id,
 	};
+}
+
+export function findCurrentAvaibleLocale({currentAvailableLocales, localeId}) {
+	return currentAvailableLocales?.find(
+		(availableLocale) => availableLocale.localeId === localeId
+	);
 }
