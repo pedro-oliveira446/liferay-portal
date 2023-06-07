@@ -60,17 +60,12 @@ const RichText = ({
 		availableLocales
 	);
 	const [currentEditingLocale, setCurrentEditingLocale] = useState(
-		editingLanguageId && availableLocales
-			? availableLocales?.find(
-					(availableLocale) =>
-						availableLocale.localeId === editingLanguageId
-			  )
-			: editingLocale
+		editingLocale
 	);
 	const [currentValue, setCurrentValue] = useState(
 		editable
 			? convertStringToObject(
-					value,
+					predefinedValue,
 					editingLanguageId ?? defaultLocale?.localeId
 			  )
 			: convertStringToObject(
@@ -88,6 +83,11 @@ const RichText = ({
 			value: currentValue,
 		})
 	);
+	useEffect(() => {
+		changeLanguage(editingLanguageId);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [editingLanguageId]);
+
 	useEffect(() => {
 		const editor = editorRef.current?.editor;
 		if (editor) {
@@ -107,6 +107,28 @@ const RichText = ({
 		setCurrentAvailableLocales(availableLocales);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [currentEditingLocale]);
+
+	const changeLanguage = (localeId) => {
+		if (!localeId) {
+			return;
+		}
+		const newEditingLocale = currentAvailableLocales.find(
+			(availableLocale) => availableLocale.localeId === localeId
+		);
+
+		setCurrentEditingLocale({
+			...newEditingLocale,
+			icon: normalizeLocaleId(newEditingLocale.localeId),
+		});
+		setCurrentInternalValue(
+			getEditingValue({
+				defaultLocale,
+				editingLocale: newEditingLocale,
+				fieldName,
+				value: convertStringToObject(value, localeId),
+			})
+		);
+	};
 
 	return (
 		<FieldBase
@@ -201,25 +223,7 @@ const RichText = ({
 							editingLocale={currentEditingLocale}
 							fieldName={fieldName}
 							onLanguageClicked={(localeId) => {
-								const newEditingLocale = currentAvailableLocales.find(
-									(availableLocale) =>
-										availableLocale.localeId === localeId
-								);
-
-								setCurrentEditingLocale({
-									...newEditingLocale,
-									icon: normalizeLocaleId(
-										newEditingLocale.localeId
-									),
-								});
-								setCurrentInternalValue(
-									getEditingValue({
-										defaultLocale,
-										editingLocale: newEditingLocale,
-										fieldName,
-										value: currentValue,
-									})
-								);
+								changeLanguage(localeId);
 							}}
 						/>
 					</ClayInput.GroupItem>
