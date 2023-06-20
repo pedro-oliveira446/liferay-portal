@@ -390,16 +390,27 @@ public class DefaultObjectEntryManagerImplTest {
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY);
 
 		_addAggregationObjectField(
-			"AVERAGE", "precisionDecimalObjectFieldName",
+			"averageAggregationObjectFieldName", "AVERAGE",
+			"precisionDecimalObjectFieldName",
+			_objectDefinition1.getObjectDefinitionId(),
 			objectRelationship1.getName());
 		_addAggregationObjectField(
-			"COUNT", null, objectRelationship1.getName());
+			"countAggregationObjectFieldName", "COUNT", null,
+			_objectDefinition1.getObjectDefinitionId(),
+			objectRelationship1.getName());
 		_addAggregationObjectField(
-			"MAX", "integerObjectFieldName", objectRelationship1.getName());
+			"maxAggregationObjectFieldName", "MAX", "integerObjectFieldName",
+			_objectDefinition1.getObjectDefinitionId(),
+			objectRelationship1.getName());
 		_addAggregationObjectField(
-			"MIN", "longIntegerObjectFieldName", objectRelationship1.getName());
+			"minAggregationObjectFieldName", "MIN",
+			"longIntegerObjectFieldName",
+			_objectDefinition1.getObjectDefinitionId(),
+			objectRelationship1.getName());
 		_addAggregationObjectField(
-			"SUM", "decimalObjectFieldName", objectRelationship1.getName());
+			"sumAggregationObjectFieldName", "SUM", "decimalObjectFieldName",
+			_objectDefinition1.getObjectDefinitionId(),
+			objectRelationship1.getName());
 
 		ObjectField objectField = _objectFieldLocalService.getObjectField(
 			objectRelationship1.getObjectFieldId2());
@@ -2378,7 +2389,8 @@ public class DefaultObjectEntryManagerImplTest {
 	}
 
 	private void _addAggregationObjectField(
-			String functionName, String objectFieldName,
+			String aggregationObjectFieldName, String functionName,
+			String objectFieldName, long objectDefinitionId,
 			String objectRelationshipName)
 		throws Exception {
 
@@ -2401,10 +2413,9 @@ public class DefaultObjectEntryManagerImplTest {
 			).labelMap(
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
 			).name(
-				StringUtil.lowerCase(functionName) +
-					"AggregationObjectFieldName"
+				aggregationObjectFieldName
 			).objectDefinitionId(
-				_objectDefinition1.getObjectDefinitionId()
+				objectDefinitionId
 			).objectFieldSettings(
 				objectFieldSettings
 			).build());
