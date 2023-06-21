@@ -42,8 +42,10 @@ public class ObjectRelationshipsTableFDSView extends BaseTableFDSView {
 
 		return fdsTableSchemaBuilder.add(
 			"label.LANG", "label",
-			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
-				"actionLink")
+			fdsTableSchemaField -> {
+				fdsTableSchemaField.setContentRenderer("actionLink");
+				fdsTableSchemaField.setSortable(true);
+			}
 		).add(
 			"objectDefinitionName2", "related-object"
 		).add(
