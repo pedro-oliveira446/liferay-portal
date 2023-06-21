@@ -779,6 +779,10 @@ paths:
                   name: search
                   schema:
                       type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
             responses:
                 200:
                     content:
@@ -1264,6 +1268,10 @@ paths:
                       type: integer
                 - in: query
                   name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
                   schema:
                       type: string
             responses:
