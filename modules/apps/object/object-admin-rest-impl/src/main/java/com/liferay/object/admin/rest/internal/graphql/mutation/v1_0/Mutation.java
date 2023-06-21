@@ -675,6 +675,7 @@ public class Mutation {
 			@GraphQLName("objectDefinitionId") Long objectDefinitionId,
 			@GraphQLName("search") String search,
 			@GraphQLName("filter") String filterString,
+			@GraphQLName("sort") String sortsString,
 			@GraphQLName("callbackURL") String callbackURL,
 			@GraphQLName("contentType") String contentType,
 			@GraphQLName("fieldNames") String fieldNames)
@@ -689,6 +690,8 @@ public class Mutation {
 						objectDefinitionId, search,
 						_filterBiFunction.apply(
 							objectRelationshipResource, filterString),
+						_sortsBiFunction.apply(
+							objectRelationshipResource, sortsString),
 						callbackURL, contentType, fieldNames));
 	}
 
