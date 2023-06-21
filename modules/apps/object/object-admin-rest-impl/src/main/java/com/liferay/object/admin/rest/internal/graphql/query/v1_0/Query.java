@@ -327,7 +327,7 @@ public class Query {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionByExternalReferenceCodeObjectLayouts(externalReferenceCode: ___, page: ___, pageSize: ___, search: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionByExternalReferenceCodeObjectLayouts(externalReferenceCode: ___, page: ___, pageSize: ___, search: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField
 	public ObjectLayoutPage
@@ -336,7 +336,8 @@ public class Query {
 					externalReferenceCode,
 				@GraphQLName("search") String search,
 				@GraphQLName("pageSize") int pageSize,
-				@GraphQLName("page") int page)
+				@GraphQLName("page") int page,
+				@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
@@ -346,20 +347,23 @@ public class Query {
 				objectLayoutResource.
 					getObjectDefinitionByExternalReferenceCodeObjectLayoutsPage(
 						externalReferenceCode, search,
-						Pagination.of(page, pageSize))));
+						Pagination.of(page, pageSize),
+						_sortsBiFunction.apply(
+							objectLayoutResource, sortsString))));
 	}
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionObjectLayouts(objectDefinitionId: ___, page: ___, pageSize: ___, search: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionObjectLayouts(objectDefinitionId: ___, page: ___, pageSize: ___, search: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField
 	public ObjectLayoutPage objectDefinitionObjectLayouts(
 			@GraphQLName("objectDefinitionId") Long objectDefinitionId,
 			@GraphQLName("search") String search,
 			@GraphQLName("pageSize") int pageSize,
-			@GraphQLName("page") int page)
+			@GraphQLName("page") int page,
+			@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
@@ -367,8 +371,9 @@ public class Query {
 			this::_populateResourceContext,
 			objectLayoutResource -> new ObjectLayoutPage(
 				objectLayoutResource.getObjectDefinitionObjectLayoutsPage(
-					objectDefinitionId, search,
-					Pagination.of(page, pageSize))));
+					objectDefinitionId, search, Pagination.of(page, pageSize),
+					_sortsBiFunction.apply(
+						objectLayoutResource, sortsString))));
 	}
 
 	/**
@@ -812,7 +817,8 @@ public class Query {
 		public ObjectLayoutPage byExternalReferenceCodeObjectLayouts(
 				@GraphQLName("search") String search,
 				@GraphQLName("pageSize") int pageSize,
-				@GraphQLName("page") int page)
+				@GraphQLName("page") int page,
+				@GraphQLName("sort") String sortsString)
 			throws Exception {
 
 			return _applyComponentServiceObjects(
@@ -822,7 +828,9 @@ public class Query {
 					objectLayoutResource.
 						getObjectDefinitionByExternalReferenceCodeObjectLayoutsPage(
 							_objectDefinition.getExternalReferenceCode(),
-							search, Pagination.of(page, pageSize))));
+							search, Pagination.of(page, pageSize),
+							_sortsBiFunction.apply(
+								objectLayoutResource, sortsString))));
 		}
 
 		private ObjectDefinition _objectDefinition;
