@@ -909,6 +909,10 @@ paths:
                   name: search
                   schema:
                       type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
                 - in: header
                   name: Accept-Language
                   schema:
@@ -1394,6 +1398,10 @@ paths:
                       type: integer
                 - in: query
                   name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
                   schema:
                       type: string
                 - in: header
