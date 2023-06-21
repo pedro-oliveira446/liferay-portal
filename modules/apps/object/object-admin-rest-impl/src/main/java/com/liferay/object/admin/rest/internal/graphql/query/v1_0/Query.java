@@ -391,7 +391,7 @@ public class Query {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionByExternalReferenceCodeObjectRelationships(externalReferenceCode: ___, filter: ___, page: ___, pageSize: ___, search: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionByExternalReferenceCodeObjectRelationships(externalReferenceCode: ___, filter: ___, page: ___, pageSize: ___, search: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField
 	public ObjectRelationshipPage
@@ -401,7 +401,8 @@ public class Query {
 				@GraphQLName("search") String search,
 				@GraphQLName("filter") String filterString,
 				@GraphQLName("pageSize") int pageSize,
-				@GraphQLName("page") int page)
+				@GraphQLName("page") int page,
+				@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
@@ -413,13 +414,15 @@ public class Query {
 						externalReferenceCode, search,
 						_filterBiFunction.apply(
 							objectRelationshipResource, filterString),
-						Pagination.of(page, pageSize))));
+						Pagination.of(page, pageSize),
+						_sortsBiFunction.apply(
+							objectRelationshipResource, sortsString))));
 	}
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionObjectRelationships(filter: ___, objectDefinitionId: ___, page: ___, pageSize: ___, search: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {objectDefinitionObjectRelationships(filter: ___, objectDefinitionId: ___, page: ___, pageSize: ___, search: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField
 	public ObjectRelationshipPage objectDefinitionObjectRelationships(
@@ -427,7 +430,8 @@ public class Query {
 			@GraphQLName("search") String search,
 			@GraphQLName("filter") String filterString,
 			@GraphQLName("pageSize") int pageSize,
-			@GraphQLName("page") int page)
+			@GraphQLName("page") int page,
+			@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
@@ -439,7 +443,9 @@ public class Query {
 						objectDefinitionId, search,
 						_filterBiFunction.apply(
 							objectRelationshipResource, filterString),
-						Pagination.of(page, pageSize))));
+						Pagination.of(page, pageSize),
+						_sortsBiFunction.apply(
+							objectRelationshipResource, sortsString))));
 	}
 
 	/**
@@ -700,7 +706,8 @@ public class Query {
 					@GraphQLName("search") String search,
 					@GraphQLName("filter") String filterString,
 					@GraphQLName("pageSize") int pageSize,
-					@GraphQLName("page") int page)
+					@GraphQLName("page") int page,
+					@GraphQLName("sort") String sortsString)
 			throws Exception {
 
 			return _applyComponentServiceObjects(
@@ -713,7 +720,9 @@ public class Query {
 							search,
 							_filterBiFunction.apply(
 								objectRelationshipResource, filterString),
-							Pagination.of(page, pageSize))));
+							Pagination.of(page, pageSize),
+							_sortsBiFunction.apply(
+								objectRelationshipResource, sortsString))));
 		}
 
 		private ObjectDefinition _objectDefinition;

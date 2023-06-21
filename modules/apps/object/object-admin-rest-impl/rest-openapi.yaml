@@ -978,6 +978,10 @@ paths:
                   name: search
                   schema:
                       type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
             responses:
                 200:
                     content:

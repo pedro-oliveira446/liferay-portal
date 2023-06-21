@@ -128,7 +128,7 @@ export default function Relationships({
 		},
 		portletId:
 			'com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet',
-		style,
+		style, 
 		views: [
 			{
 				contentRenderer: 'table',
@@ -142,7 +142,7 @@ export default function Relationships({
 							fieldName: 'label',
 							label: Liferay.Language.get('label'),
 							localizeLabel: true,
-							sortable: false,
+							sortable: true,
 						},
 						{
 							expand: false,
@@ -173,5 +173,5 @@ export default function Relationships({
 		],
 	};
 
-	return <FrontendDataSet {...dataSetProps} />;
+	return <FrontendDataSet sorting={[{direction: 'asc', key: 'label'}]} {...dataSetProps} />;
 }
