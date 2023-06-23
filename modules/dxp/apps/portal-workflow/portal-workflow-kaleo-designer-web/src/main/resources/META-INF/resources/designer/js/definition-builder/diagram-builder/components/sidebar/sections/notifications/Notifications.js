@@ -64,7 +64,7 @@ const Notifications = (props) => {
 			});
 
 		const sectionsData = [];
-
+		console.log(notifications)
 		if (notifications) {
 			for (let i = 0; i < notifications.name.length; i++) {
 				let notificationTypes = notifications.notificationTypes[i];
