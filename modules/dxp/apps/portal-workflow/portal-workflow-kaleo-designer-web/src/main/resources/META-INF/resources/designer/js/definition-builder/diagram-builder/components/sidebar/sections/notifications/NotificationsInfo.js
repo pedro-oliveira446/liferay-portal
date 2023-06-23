@@ -229,19 +229,44 @@ const NotificationsInfo = ({
 	};
 
 	const updateSelectedItem = (values) => {
+		const descriptionValues = [];
+		const executionTypeValues = [];
+		const nameValues = [];
+		const notificationTypesValues = [];
+		const templateValues = [];
+		const templateLanguageValues = [];
+
+		values.map(
+			({
+				description,
+				executionType,
+				name,
+				notificationTypes,
+				template,
+				templateLanguage,
+			}) => {
+				descriptionValues.push(description ? description : '');
+				executionTypeValues.push(executionType ? executionType : null);
+				nameValues.push(name ? name : '');
+				notificationTypesValues.push(
+					notificationTypes ? notificationTypes : null
+				);
+				templateValues.push(template ? executionType : null);
+				templateLanguageValues.push(
+					templateLanguage ? templateLanguage : null
+				);
+			}
+		);
+
 		setSelectedItem((previousItem) => ({
 			...previousItem,
 			data: {
 				...previousItem.data,
 				notifications: {
-					description: values.map(({description}) => description),
-					executionType: values.map(
-						({executionType}) => executionType
-					),
-					name: values.map(({name}) => name),
-					notificationTypes: values.map(
-						({notificationTypes}) => notificationTypes
-					),
+					description: descriptionValues,
+					executionType: executionTypeValues,
+					name: nameValues,
+					notificationTypes: notificationTypesValues,
 					recipients: !previousItem.data.notifications?.recipients
 						? [
 								{
@@ -249,10 +274,8 @@ const NotificationsInfo = ({
 								},
 						  ]
 						: [...previousItem.data.notifications.recipients],
-					template: values.map(({template}) => template),
-					templateLanguage: values.map(
-						({templateLanguage}) => templateLanguage
-					),
+					template: templateValues,
+					templateLanguage: templateLanguageValues,
 				},
 			},
 		}));
