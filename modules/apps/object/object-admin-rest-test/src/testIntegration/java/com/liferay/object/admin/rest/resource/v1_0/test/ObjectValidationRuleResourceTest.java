@@ -262,18 +262,13 @@ public class ObjectValidationRuleResourceTest
 		else if (entityFieldName.contains("email")) {
 			BeanTestUtil.setProperty(
 				objectValidationRule1, entityFieldName,
-				StringBundler.concat(
-					"aaa",
-					StringUtil.toLowerCase(
-						RandomTestUtil.randomString()),
-					"@liferay.com"));
+				"aaa" + StringUtil.toLowerCase(RandomTestUtil.randomString()) +
+					"@liferay.com");
 			BeanTestUtil.setProperty(
 				objectValidationRule2, entityFieldName,
-				StringBundler.concat(
-					"bbb",
-					StringUtil.toLowerCase(
-						RandomTestUtil.randomString()),
-					"@liferay.com"));
+				"bbb" + StringUtil.toLowerCase(RandomTestUtil.randomString()) +
+					"@liferay.com");
+
 		}
 		else {
 			BeanTestUtil.setProperty(
