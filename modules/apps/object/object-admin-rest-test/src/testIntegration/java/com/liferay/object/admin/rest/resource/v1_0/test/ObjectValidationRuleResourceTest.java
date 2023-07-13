@@ -274,16 +274,12 @@ public class ObjectValidationRuleResourceTest
 				"bbb" + randomString2 + "@liferay.com");
 		}
 		else {
-			String randomString1 = StringUtil.toLowerCase(
-				RandomTestUtil.randomString());
-
-			String randomString2 = StringUtil.toLowerCase(
-				RandomTestUtil.randomString());
-
 			BeanTestUtil.setProperty(
-				objectValidationRule1, entityFieldName, "aaa" + randomString1);
+				objectValidationRule1, entityFieldName,
+				"aaa" + StringUtil.toLowerCase(RandomTestUtil.randomString()));
 			BeanTestUtil.setProperty(
-				objectValidationRule2, entityFieldName, "bbb" + randomString2);
+				objectValidationRule2, entityFieldName,
+				"bbb" + StringUtil.toLowerCase(RandomTestUtil.randomString()));
 		}
 	}
 
