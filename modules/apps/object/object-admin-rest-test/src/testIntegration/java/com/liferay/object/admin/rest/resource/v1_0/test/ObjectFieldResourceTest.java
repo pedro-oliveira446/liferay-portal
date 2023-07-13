@@ -455,7 +455,6 @@ public class ObjectFieldResourceTest extends BaseObjectFieldResourceTestCase {
 		objectField1 =
 			testGetObjectDefinitionByExternalReferenceCodeObjectFieldsPage_addObjectField(
 				externalReferenceCode, objectField1);
-
 		objectField2 =
 			testGetObjectDefinitionByExternalReferenceCodeObjectFieldsPage_addObjectField(
 				externalReferenceCode, objectField2);
@@ -517,7 +516,6 @@ public class ObjectFieldResourceTest extends BaseObjectFieldResourceTestCase {
 
 		objectField1 = testGetObjectDefinitionObjectFieldsPage_addObjectField(
 			objectDefinitionId, objectField1);
-
 		objectField2 = testGetObjectDefinitionObjectFieldsPage_addObjectField(
 			objectDefinitionId, objectField2);
 
