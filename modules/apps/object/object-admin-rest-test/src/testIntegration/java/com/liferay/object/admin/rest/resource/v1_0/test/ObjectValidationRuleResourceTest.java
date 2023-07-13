@@ -260,18 +260,20 @@ public class ObjectValidationRuleResourceTest
 				Collections.singletonMap("en-US", "Bbb"));
 		}
 		else if (entityFieldName.contains("email")) {
-			String randomString1 = StringUtil.toLowerCase(
-				RandomTestUtil.randomString());
-
-			String randomString2 = StringUtil.toLowerCase(
-				RandomTestUtil.randomString());
-
 			BeanTestUtil.setProperty(
 				objectValidationRule1, entityFieldName,
-				"aaa" + randomString1 + "@liferay.com");
+				StringBundler.concat(
+					"aaa",
+					StringUtil.toLowerCase(
+						RandomTestUtil.randomString()),
+					"@liferay.com"));
 			BeanTestUtil.setProperty(
 				objectValidationRule2, entityFieldName,
-				"bbb" + randomString2 + "@liferay.com");
+				StringBundler.concat(
+					"bbb",
+					StringUtil.toLowerCase(
+						RandomTestUtil.randomString()),
+					"@liferay.com"));
 		}
 		else {
 			BeanTestUtil.setProperty(
