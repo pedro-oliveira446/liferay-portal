@@ -2708,6 +2708,13 @@ public class ObjectEntryLocalServiceImpl
 									getObjectDefinitionId()),
 							relatedObjectDefinition.getExtensionDBTableName());
 
+				if (objectRelationship.isSelf()) {
+					relatedDynamicObjectDefinitionTable =
+						relatedDynamicObjectDefinitionTable.as("t");
+					relatedExtensionDynamicObjectDefinitionTable =
+						relatedExtensionDynamicObjectDefinitionTable.as("t2");
+				}
+
 				JoinStep joinStep = DSLQueryFactoryUtil.select(
 					_getFunctionExpression(
 						objectFieldSettingsValues, relatedObjectDefinition,
