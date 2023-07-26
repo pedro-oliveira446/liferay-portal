@@ -23,10 +23,13 @@ const HeaderKebab = ({kebabItems = []}) => {
 		return null;
 	}
 
+	const container = nav?.firstElementChild;
+	const li = nav?.querySelector('.control-menu-nav-item-separator');
+
 	return (
 		<Portal
 			className="control-menu-nav-item"
-			container={nav?.firstElementChild}
+			container={li ? li : container}
 			elementId="headerKebab"
 			position="before"
 		>
