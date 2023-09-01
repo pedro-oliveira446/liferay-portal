@@ -6,6 +6,7 @@
 package com.liferay.list.type.service.impl;
 
 import com.liferay.list.type.exception.ListTypeDefinitionNameException;
+import com.liferay.list.type.exception.ListTypeDefinitionSystemException;
 import com.liferay.list.type.exception.RequiredListTypeDefinitionException;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
@@ -13,6 +14,7 @@ import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.list.type.service.base.ListTypeDefinitionLocalServiceBaseImpl;
 import com.liferay.list.type.service.persistence.ListTypeEntryPersistence;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.system.util.SystemUtil;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -71,6 +73,7 @@ public class ListTypeDefinitionLocalServiceImpl
 			List<ListTypeEntry> listTypeEntries)
 		throws PortalException {
 
+		_validateBundleNamespace(system);
 		_validateName(nameMap, LocaleUtil.getSiteDefault());
 
 		ListTypeDefinition listTypeDefinition =
@@ -101,6 +104,8 @@ public class ListTypeDefinitionLocalServiceImpl
 		if (count > 0) {
 			throw new RequiredListTypeDefinitionException();
 		}
+
+		_validateBundleNamespace(listTypeDefinition.isSystem());
 
 		_resourceLocalService.deleteResource(
 			listTypeDefinition, ResourceConstants.SCOPE_INDIVIDUAL);
@@ -140,6 +145,8 @@ public class ListTypeDefinitionLocalServiceImpl
 		ListTypeDefinition listTypeDefinition =
 			listTypeDefinitionPersistence.findByPrimaryKey(
 				listTypeDefinitionId);
+
+		_validateBundleNamespace(listTypeDefinition.isSystem());
 
 		listTypeDefinition.setExternalReferenceCode(externalReferenceCode);
 		listTypeDefinition.setNameMap(nameMap);
@@ -231,6 +238,15 @@ public class ListTypeDefinitionLocalServiceImpl
 		for (ListTypeEntry listTypeEntry : existingListTypeEntries) {
 			_listTypeEntryLocalService.deleteListTypeEntry(
 				listTypeEntry.getListTypeEntryId());
+		}
+	}
+
+	private void _validateBundleNamespace(boolean system)
+		throws PortalException {
+
+		if (system && !SystemUtil.allowManageSystemEntities()) {
+			throw new ListTypeDefinitionSystemException(
+				"Only allowed bundles can create system picklists");
 		}
 	}
 
