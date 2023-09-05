@@ -765,7 +765,7 @@ public class ObjectFieldLocalServiceTest {
 			ObjectFieldSystemException.class,
 			"Only allowed bundles can create system object fields",
 			() -> _objectFieldLocalService.addSystemObjectField(
-				TestPropsValues.getUserId(),
+				TestPropsValues.getUserId(), 0,
 				objectDefinition.getObjectDefinitionId(),
 				ObjectFieldConstants.BUSINESS_TYPE_TEXT,
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
