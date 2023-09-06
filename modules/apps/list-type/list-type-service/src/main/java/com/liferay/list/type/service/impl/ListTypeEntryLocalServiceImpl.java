@@ -14,7 +14,7 @@ import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.base.ListTypeEntryLocalServiceBaseImpl;
 import com.liferay.list.type.service.persistence.ListTypeDefinitionPersistence;
-import com.liferay.object.system.util.SystemUtil;
+import com.liferay.object.system.util.SystemObjectDefinitionsUtil;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
@@ -175,7 +175,8 @@ public class ListTypeEntryLocalServiceImpl
 		listTypeEntry.setNameMap(nameMap);
 
 		if (listTypeDefinition.isSystem() &&
-			!SystemUtil.allowManageSystemEntities()) {
+			!SystemObjectDefinitionsUtil.
+				isAllowedManageSystemObjectDefinitions()) {
 
 			return listTypeEntryPersistence.update(listTypeEntry);
 		}
@@ -198,7 +199,8 @@ public class ListTypeEntryLocalServiceImpl
 				listTypeDefinitionId);
 
 		if (listTypeDefinition.isSystem() &&
-			!SystemUtil.allowManageSystemEntities()) {
+			!SystemObjectDefinitionsUtil.
+				isAllowedManageSystemObjectDefinitions()) {
 
 			throw new ListTypeDefinitionSystemException(
 				"Only allowed bundles can " + messageType +

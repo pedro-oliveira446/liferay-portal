@@ -14,7 +14,7 @@ import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.list.type.service.base.ListTypeDefinitionLocalServiceBaseImpl;
 import com.liferay.list.type.service.persistence.ListTypeEntryPersistence;
 import com.liferay.object.service.ObjectFieldLocalService;
-import com.liferay.object.system.util.SystemUtil;
+import com.liferay.object.system.util.SystemObjectDefinitionsUtil;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -147,7 +147,8 @@ public class ListTypeDefinitionLocalServiceImpl
 				listTypeDefinitionId);
 
 		if (!listTypeDefinition.isSystem() ||
-			SystemUtil.allowManageSystemEntities()) {
+			SystemObjectDefinitionsUtil.
+				isAllowedManageSystemObjectDefinitions()) {
 
 			listTypeDefinition.setExternalReferenceCode(externalReferenceCode);
 		}
@@ -247,7 +248,10 @@ public class ListTypeDefinitionLocalServiceImpl
 	private void _validateBundleNamespace(String messageType, boolean system)
 		throws PortalException {
 
-		if (system && !SystemUtil.allowManageSystemEntities()) {
+		if (system &&
+			!SystemObjectDefinitionsUtil.
+				isAllowedManageSystemObjectDefinitions()) {
+
 			throw new ListTypeDefinitionSystemException(
 				"Only allowed bundles can " + messageType +
 					" system picklists");
