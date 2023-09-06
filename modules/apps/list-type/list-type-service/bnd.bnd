@@ -1,6 +1,7 @@
 Bundle-Name: Liferay List Type Service
 Bundle-SymbolicName: com.liferay.list.type.service
 Bundle-Version: 1.0.39
+Liferay-Client-Extension-Batch: com/liferay/list/type/internal/batch
 Liferay-Require-SchemaVersion: 1.3.0
 Liferay-Service: true
 -dsannotations-options: inherit

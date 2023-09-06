@@ -13,8 +13,8 @@ import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.list.type.service.base.ListTypeDefinitionLocalServiceBaseImpl;
 import com.liferay.list.type.service.persistence.ListTypeEntryPersistence;
+import com.liferay.list.type.system.util.ListTypeDefinitionManagementChecker;
 import com.liferay.object.service.ObjectFieldLocalService;
-import com.liferay.object.system.util.SystemObjectDefinitionsUtil;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -147,8 +147,7 @@ public class ListTypeDefinitionLocalServiceImpl
 				listTypeDefinitionId);
 
 		if (!listTypeDefinition.isSystem() ||
-			SystemObjectDefinitionsUtil.
-				isAllowedManageSystemObjectDefinitions()) {
+			ListTypeDefinitionManagementChecker.isInvokerBundleAllowed()) {
 
 			listTypeDefinition.setExternalReferenceCode(externalReferenceCode);
 		}
@@ -249,8 +248,7 @@ public class ListTypeDefinitionLocalServiceImpl
 		throws PortalException {
 
 		if (system &&
-			!SystemObjectDefinitionsUtil.
-				isAllowedManageSystemObjectDefinitions()) {
+			!ListTypeDefinitionManagementChecker.isInvokerBundleAllowed()) {
 
 			throw new ListTypeDefinitionSystemException(
 				"Only allowed bundles can " + messageType +
