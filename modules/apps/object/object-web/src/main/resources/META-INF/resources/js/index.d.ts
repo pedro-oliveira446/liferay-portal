@@ -341,6 +341,7 @@ interface ObjectValidation {
 	}[];
 	outputType?: string;
 	script: string;
+	system?: boolean;
 }
 
 interface PickListItem {
