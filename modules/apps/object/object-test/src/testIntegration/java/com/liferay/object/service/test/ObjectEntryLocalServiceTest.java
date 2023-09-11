@@ -2378,7 +2378,7 @@ public class ObjectEntryLocalServiceTest {
 			_objectDefinition.getObjectDefinitionId(), true, engine,
 			errorLabelMap,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-			outputType, script, objectValidationRuleSettings);
+			outputType, script, false, objectValidationRuleSettings);
 	}
 
 	private ObjectEntry _addOrUpdateObjectEntry(
