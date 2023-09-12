@@ -52,6 +52,7 @@ import com.liferay.object.service.ObjectViewService;
 import com.liferay.object.system.JaxRsApplicationDescriptor;
 import com.liferay.object.system.SystemObjectDefinitionManager;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
+import com.liferay.object.system.util.SystemUtil;
 import com.liferay.object.util.comparator.ObjectFieldCreateDateComparator;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -624,8 +625,35 @@ public class ObjectDefinitionResourceImpl
 			objectDefinition.getObjectValidationRules();
 
 		if (objectValidationRules != null) {
-			_objectValidationRuleLocalService.deleteObjectValidationRules(
-				objectDefinitionId);
+			List<com.liferay.object.model.ObjectValidationRule>
+				serviceBuilderObjectValidationRules = new ArrayList<>(
+					_objectValidationRuleLocalService.getObjectValidationRules(
+						objectDefinitionId));
+
+			if (serviceBuilderObjectDefinition.isModifiable() &&
+				serviceBuilderObjectDefinition.isSystem() &&
+				SystemUtil.allowManageSystemEntities()) {
+
+				serviceBuilderObjectValidationRules.removeIf(
+					objectValidationRule -> !GetterUtil.getBoolean(
+						objectValidationRule.getSystem()));
+			}
+			else {
+				serviceBuilderObjectValidationRules.removeIf(
+					objectValidationRule -> GetterUtil.getBoolean(
+						objectValidationRule.getSystem()));
+			}
+
+			if (!serviceBuilderObjectValidationRules.isEmpty()) {
+				for (com.liferay.object.model.ObjectValidationRule
+						serviceBuilderObjectValidationRule :
+							serviceBuilderObjectValidationRules) {
+
+					_objectValidationRuleLocalService.
+						deleteObjectValidationRule(
+							serviceBuilderObjectValidationRule);
+				}
+			}
 		}
 
 		ObjectView[] objectViews = objectDefinition.getObjectViews();
