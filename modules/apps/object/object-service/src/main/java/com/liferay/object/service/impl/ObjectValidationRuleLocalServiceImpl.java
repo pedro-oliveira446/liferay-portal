@@ -15,6 +15,7 @@ import com.liferay.object.exception.ObjectValidationRuleOutputTypeException;
 import com.liferay.object.exception.ObjectValidationRuleScriptException;
 import com.liferay.object.exception.ObjectValidationRuleSettingNameException;
 import com.liferay.object.exception.ObjectValidationRuleSettingValueException;
+import com.liferay.object.exception.ObjectValidationRuleSystemException;
 import com.liferay.object.internal.action.util.ObjectEntryVariablesUtil;
 import com.liferay.object.internal.validation.rule.FunctionObjectValidationRuleEngineImpl;
 import com.liferay.object.model.ObjectDefinition;
@@ -29,6 +30,7 @@ import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
 import com.liferay.object.service.persistence.ObjectFieldPersistence;
 import com.liferay.object.service.persistence.ObjectValidationRuleSettingPersistence;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
+import com.liferay.object.system.util.SystemUtil;
 import com.liferay.object.validation.rule.ObjectValidationRuleEngine;
 import com.liferay.object.validation.rule.ObjectValidationRuleEngineRegistry;
 import com.liferay.object.validation.rule.ObjectValidationRuleResult;
@@ -135,7 +137,10 @@ public class ObjectValidationRuleLocalServiceImpl
 	@Override
 	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public ObjectValidationRule deleteObjectValidationRule(
-		ObjectValidationRule objectValidationRule) {
+			ObjectValidationRule objectValidationRule)
+		throws PortalException {
+
+		_validateInvokerBundle("delete", objectValidationRule.isSystem());
 
 		objectValidationRule = objectValidationRulePersistence.remove(
 			objectValidationRule);
@@ -557,6 +562,16 @@ public class ObjectValidationRuleLocalServiceImpl
 						objectValidationRuleSetting.getName(),
 						objectValidationRuleSetting.getValue());
 			}
+		}
+	}
+
+	private void _validateInvokerBundle(String messageType, boolean system)
+		throws PortalException {
+
+		if (system && !SystemUtil.allowManageSystemEntities()) {
+			throw new ObjectValidationRuleSystemException(
+				"Only allowed bundles can " + messageType +
+					" system object validations");
 		}
 	}
 
