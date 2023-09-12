@@ -87,6 +87,8 @@ public class ObjectValidationRuleLocalServiceImpl
 			List<ObjectValidationRuleSetting> objectValidationRuleSettings)
 		throws PortalException {
 
+		_validateInvokerBundle("create", system);
+
 		User user = _userLocalService.getUser(userId);
 
 		_validate(
@@ -252,6 +254,8 @@ public class ObjectValidationRuleLocalServiceImpl
 		ObjectValidationRule objectValidationRule =
 			objectValidationRulePersistence.findByPrimaryKey(
 				objectValidationRuleId);
+
+		_validateInvokerBundle("edit", objectValidationRule.isSystem());
 
 		_validate(
 			objectValidationRule.getCompanyId(), engine, nameMap, outputType,
