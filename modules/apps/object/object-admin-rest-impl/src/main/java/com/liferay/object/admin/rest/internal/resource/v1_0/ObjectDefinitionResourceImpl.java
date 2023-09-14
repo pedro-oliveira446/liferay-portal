@@ -66,6 +66,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -621,40 +622,50 @@ public class ObjectDefinitionResourceImpl
 			_getAccountEntryRestrictedObjectRelationshipsNames(
 				serviceBuilderObjectDefinition, objectRelationships);
 
-		ObjectValidationRule[] objectValidationRules =
-			objectDefinition.getObjectValidationRules();
+		List<ObjectValidationRule> objectValidationRules = ListUtil.fromArray(
+			objectDefinition.getObjectValidationRules());
 
-		if (objectValidationRules != null) {
-			List<com.liferay.object.model.ObjectValidationRule>
-				serviceBuilderObjectValidationRules = new ArrayList<>(
-					_objectValidationRuleLocalService.getObjectValidationRules(
-						objectDefinitionId));
+		List<com.liferay.object.model.ObjectValidationRule>
+			serviceBuilderObjectValidationRules = new ArrayList<>(
+			_objectValidationRuleLocalService.getObjectValidationRules(
+				objectDefinitionId));
 
-			if (serviceBuilderObjectDefinition.isModifiable() &&
-				serviceBuilderObjectDefinition.isSystem() &&
-				SystemUtil.allowManageSystemEntities()) {
 
-				serviceBuilderObjectValidationRules.removeIf(
-					objectValidationRule -> !GetterUtil.getBoolean(
-						objectValidationRule.getSystem()));
-			}
-			else {
-				serviceBuilderObjectValidationRules.removeIf(
-					objectValidationRule -> GetterUtil.getBoolean(
-						objectValidationRule.getSystem()));
-			}
+		if (serviceBuilderObjectDefinition.isModifiable() &&
+			serviceBuilderObjectDefinition.isSystem() &&
+			SystemUtil.allowManageSystemEntities()) {
 
-			if (!serviceBuilderObjectValidationRules.isEmpty()) {
-				for (com.liferay.object.model.ObjectValidationRule
-						serviceBuilderObjectValidationRule :
-							serviceBuilderObjectValidationRules) {
+			objectValidationRules.removeIf(
+				objectValidationRule -> !GetterUtil.getBoolean(
+					objectValidationRule.getSystem()));
 
-					_objectValidationRuleLocalService.
-						deleteObjectValidationRule(
-							serviceBuilderObjectValidationRule);
-				}
-			}
+			serviceBuilderObjectValidationRules.removeIf(
+				serviceBuilderObjectValidationRule -> !GetterUtil.getBoolean(
+					serviceBuilderObjectValidationRule.getSystem()));
+		} else {
+			objectValidationRules.removeIf(
+				objectValidationRule -> GetterUtil.getBoolean(
+					objectValidationRule.getSystem()));
+
+			serviceBuilderObjectValidationRules.removeIf(
+				serviceBuilderObjectValidationRule -> GetterUtil.getBoolean(
+					serviceBuilderObjectValidationRule.getSystem()));
 		}
+
+		for (ObjectValidationRule objectValidationRule:objectValidationRules){
+			_objectValidationRuleLocalService.addOrUpdateObjectValidationRule(objectValidationRule.getExternalReferenceCode(),objectValidationRule.getId(),objectValidationRule.)
+
+		}
+
+		for (com.liferay.object.model.ObjectValidationRule
+			serviceBuilderObjectValidationRule :
+			serviceBuilderObjectValidationRules) {
+
+			_objectValidationRuleLocalService.
+				deleteObjectValidationRule(
+					serviceBuilderObjectValidationRule);
+		}
+
 
 		ObjectView[] objectViews = objectDefinition.getObjectViews();
 
