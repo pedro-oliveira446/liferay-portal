@@ -193,7 +193,8 @@ public class ObjectValidationRuleResourceImpl
 
 		return _toObjectValidationRule(
 			_objectValidationRuleService.addObjectValidationRule(
-				null, objectDefinitionId,
+				objectValidationRule.getExternalReferenceCode(),
+				objectDefinitionId,
 				GetterUtil.getBoolean(objectValidationRule.getActive()),
 				objectValidationRule.getEngine(),
 				LocalizedMapUtil.getLocalizedMap(
@@ -232,7 +233,8 @@ public class ObjectValidationRuleResourceImpl
 
 		return _toObjectValidationRule(
 			_objectValidationRuleService.updateObjectValidationRule(
-				null, objectValidationRuleId, objectValidationRule.getActive(),
+				objectValidationRule.getExternalReferenceCode(),
+				objectValidationRuleId, objectValidationRule.getActive(),
 				objectValidationRule.getEngine(),
 				LocalizedMapUtil.getLocalizedMap(
 					objectValidationRule.getErrorLabel()),
