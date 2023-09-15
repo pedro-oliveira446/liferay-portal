@@ -1,0 +1,53 @@
+{
+	"actions": {
+		"createBatch": {
+			"href": "/o/headless-admin-list-type/v1.0/import-task/com.liferay.headless.admin.list.type.dto.v1_0.ListTypeDefinition",
+			"method": "POST"
+		}
+	},
+	"configuration": {
+		"className": "com.liferay.headless.admin.list.type.dto.v1_0.ListTypeDefinition",
+		"companyId": 0,
+		"parameters": {
+			"containsHeaders": "true",
+			"createStrategy": "UPSERT",
+			"importStrategy": "ON_ERROR_FAIL",
+			"taskItemDelegateName": "DEFAULT",
+			"updateStrategy": "UPDATE"
+		},
+		"userId": 0,
+		"version": "v1.0"
+	},
+	"items": [
+		{
+			"externalReferenceCode": "L_PICKLIST",
+			"id": 33843,
+			"listTypeEntries": [
+				{
+					"externalReferenceCode": "opt1Erc",
+					"key": "opt1",
+					"name": "opt11",
+					"name_i18n": {
+						"en-US": "opt11"
+					},
+					"type": ""
+				},
+				{
+					"externalReferenceCode": "opt2Erc",
+					"id": 33845,
+					"key": "opt2",
+					"name": "opt22",
+					"name_i18n": {
+						"en-US": "opt22"
+					},
+					"type": ""
+				}
+			],
+			"name": "PICKLISTSystem",
+			"name_i18n": {
+				"en-US": "PICKLISTSystem"
+			},
+			"system": true
+		}
+	]
+}
