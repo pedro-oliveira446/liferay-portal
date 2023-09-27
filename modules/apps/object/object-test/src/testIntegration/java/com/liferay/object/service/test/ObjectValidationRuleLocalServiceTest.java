@@ -28,6 +28,7 @@ import com.liferay.object.service.ObjectValidationRuleLocalService;
 import com.liferay.object.service.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.validation.rule.setting.builder.ObjectValidationRuleSettingBuilder;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -271,16 +272,8 @@ public class ObjectValidationRuleLocalServiceTest {
 		ObjectValidationRule objectValidationRule = _addObjectValidationRule(
 			ObjectValidationRuleConstants.ENGINE_TYPE_DDM, _VALID_DDM_SCRIPT);
 
-		Assert.assertNotNull(
-			_objectValidationRuleLocalService.fetchObjectValidationRule(
-				objectValidationRule.getObjectValidationRuleId()));
-
-		_objectValidationRuleLocalService.deleteObjectValidationRule(
+		_testDeleteObjectValidationRule(
 			objectValidationRule.getObjectValidationRuleId());
-
-		Assert.assertNull(
-			_objectValidationRuleLocalService.fetchObjectValidationRule(
-				objectValidationRule.getObjectValidationRuleId()));
 
 		ObjectValidationRule systemObjectValidationRule =
 			_addObjectValidationRule(
@@ -296,16 +289,8 @@ public class ObjectValidationRuleLocalServiceTest {
 			() -> _objectValidationRuleLocalService.deleteObjectValidationRule(
 				systemObjectValidationRule.getObjectValidationRuleId()));
 
-		Assert.assertNotNull(
-			_objectValidationRuleLocalService.fetchObjectValidationRule(
-				systemObjectValidationRule.getObjectValidationRuleId()));
-
-		_objectValidationRuleLocalService.deleteObjectValidationRule(
+		_testDeleteObjectValidationRule(
 			systemObjectValidationRule.getObjectValidationRuleId());
-
-		Assert.assertNull(
-			_objectValidationRuleLocalService.fetchObjectValidationRule(
-				systemObjectValidationRule.getObjectValidationRuleId()));
 	}
 
 	@Test
@@ -477,6 +462,21 @@ public class ObjectValidationRuleLocalServiceTest {
 				}
 			}
 		}
+	}
+
+	private void _testDeleteObjectValidationRule(long objectValidationRuleId)
+		throws PortalException {
+
+		Assert.assertNotNull(
+			_objectValidationRuleLocalService.fetchObjectValidationRule(
+				objectValidationRuleId));
+
+		_objectValidationRuleLocalService.deleteObjectValidationRule(
+			objectValidationRuleId);
+
+		Assert.assertNull(
+			_objectValidationRuleLocalService.fetchObjectValidationRule(
+				objectValidationRuleId));
 	}
 
 	private static final String _VALID_DDM_SCRIPT =
