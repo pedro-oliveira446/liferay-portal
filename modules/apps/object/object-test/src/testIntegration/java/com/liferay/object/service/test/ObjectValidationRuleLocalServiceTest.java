@@ -360,13 +360,25 @@ public class ObjectValidationRuleLocalServiceTest {
 	private ObjectValidationRule _addObjectValidationRule(
 			String engine, Map<Locale, String> errorLabelMap,
 			Map<Locale, String> nameLabelMap, String outputType, String script,
+			boolean system,
 			List<ObjectValidationRuleSetting> objectValidationRuleSettings)
 		throws Exception {
 
 		return _objectValidationRuleLocalService.addObjectValidationRule(
 			TestPropsValues.getUserId(),
 			_objectDefinition.getObjectDefinitionId(), true, engine,
-			errorLabelMap, nameLabelMap, outputType, script, false,
+			errorLabelMap, nameLabelMap, outputType, script, system,
+			objectValidationRuleSettings);
+	}
+
+	private ObjectValidationRule _addObjectValidationRule(
+			String engine, Map<Locale, String> errorLabelMap,
+			Map<Locale, String> nameLabelMap, String outputType, String script,
+			List<ObjectValidationRuleSetting> objectValidationRuleSettings)
+		throws Exception {
+
+		return _addObjectValidationRule(
+			engine, errorLabelMap, nameLabelMap, outputType, script, false,
 			objectValidationRuleSettings);
 	}
 
