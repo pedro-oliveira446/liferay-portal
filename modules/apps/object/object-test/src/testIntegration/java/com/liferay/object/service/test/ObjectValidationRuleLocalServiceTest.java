@@ -15,6 +15,7 @@ import com.liferay.object.exception.ObjectValidationRuleOutputTypeException;
 import com.liferay.object.exception.ObjectValidationRuleScriptException;
 import com.liferay.object.exception.ObjectValidationRuleSettingNameException;
 import com.liferay.object.exception.ObjectValidationRuleSettingValueException;
+import com.liferay.object.exception.ObjectValidationRuleSystemException;
 import com.liferay.object.field.builder.DateObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.model.ObjectDefinition;
@@ -116,6 +117,16 @@ public class ObjectValidationRuleLocalServiceTest {
 				ObjectValidationRuleConstants.ENGINE_TYPE_DDM,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				null, _VALID_DDM_SCRIPT));
+
+		AssertUtils.assertFailure(
+			ObjectValidationRuleSystemException.class, false,
+			"Only allowed bundles can create system object validation rules",
+			() -> _addObjectValidationRule(
+				ObjectValidationRuleConstants.ENGINE_TYPE_DDM,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				RandomTestUtil.randomString(), _VALID_DDM_SCRIPT, true,
+				Collections.emptyList()));
 
 		Map<Locale, String> errorLabelMap = LocalizedMapUtil.getLocalizedMap(
 			RandomTestUtil.randomString());
