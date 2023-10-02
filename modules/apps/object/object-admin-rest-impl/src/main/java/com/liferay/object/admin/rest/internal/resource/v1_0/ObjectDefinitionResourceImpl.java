@@ -247,12 +247,6 @@ public class ObjectDefinitionResourceImpl
 			throw new UnsupportedOperationException();
 		}
 
-		if (Validator.isNotNull(objectDefinition.getModifiable()) &&
-			!FeatureFlagManagerUtil.isEnabled("LPS-167253")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		if (Validator.isNotNull(
 				objectDefinition.getObjectFolderExternalReferenceCode()) &&
 			!FeatureFlagManagerUtil.isEnabled("LPS-148856")) {
@@ -271,9 +265,7 @@ public class ObjectDefinitionResourceImpl
 		com.liferay.object.model.ObjectDefinition
 			serviceBuilderObjectDefinition;
 
-		if (GetterUtil.getBoolean(objectDefinition.getSystem()) &&
-			FeatureFlagManagerUtil.isEnabled("LPS-167253")) {
-
+		if (GetterUtil.getBoolean(objectDefinition.getSystem())) {
 			serviceBuilderObjectDefinition =
 				_objectDefinitionService.addSystemObjectDefinition(
 					objectDefinition.getExternalReferenceCode(),
@@ -402,8 +394,7 @@ public class ObjectDefinitionResourceImpl
 
 		Status status = objectDefinition.getStatus();
 
-		if (FeatureFlagManagerUtil.isEnabled("LPS-167253") &&
-			(status != null) &&
+		if ((status != null) &&
 			(status.getCode() == WorkflowConstants.STATUS_APPROVED)) {
 
 			postObjectDefinitionPublish(
@@ -429,9 +420,7 @@ public class ObjectDefinitionResourceImpl
 				_objectDefinitionService.getObjectDefinition(
 					objectDefinitionId);
 
-		if (GetterUtil.getBoolean(serviceBuilderObjectDefinition.getSystem()) &&
-			FeatureFlagManagerUtil.isEnabled("LPS-167253")) {
-
+		if (GetterUtil.getBoolean(serviceBuilderObjectDefinition.getSystem())) {
 			return _toObjectDefinition(
 				_objectDefinitionService.publishSystemObjectDefinition(
 					objectDefinitionId));
@@ -451,12 +440,6 @@ public class ObjectDefinitionResourceImpl
 
 		if (Validator.isNotNull(objectDefinition.getEnableObjectEntryDraft()) &&
 			!FeatureFlagManagerUtil.isEnabled("LPS-181663")) {
-
-			throw new UnsupportedOperationException();
-		}
-
-		if (Validator.isNotNull(objectDefinition.getModifiable()) &&
-			!FeatureFlagManagerUtil.isEnabled("LPS-167253")) {
 
 			throw new UnsupportedOperationException();
 		}
@@ -1148,11 +1131,7 @@ public class ObjectDefinitionResourceImpl
 				id = objectDefinition.getObjectDefinitionId();
 				label = LocalizedMapUtil.getLanguageIdMap(
 					objectDefinition.getLabelMap());
-
-				if (FeatureFlagManagerUtil.isEnabled("LPS-167253")) {
-					modifiable = objectDefinition.getModifiable();
-				}
-
+				modifiable = objectDefinition.getModifiable();
 				name = objectDefinition.getShortName();
 				objectActions = transformToArray(
 					_objectActionLocalService.getObjectActions(
