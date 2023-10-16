@@ -1452,8 +1452,11 @@ public class ObjectFieldLocalServiceImpl
 		}
 
 		for (ObjectRelationship objectRelationship :
-				_objectRelationshipPersistence.findByObjectDefinitionId2(
-					objectDefinition.getObjectDefinitionId())) {
+				ListUtil.concat(
+					_objectRelationshipPersistence.findByObjectDefinitionId1(
+						objectDefinition.getObjectDefinitionId()),
+					_objectRelationshipPersistence.findByObjectDefinitionId2(
+						objectDefinition.getObjectDefinitionId()))) {
 
 			if (!StringUtil.equals(name, objectRelationship.getName())) {
 				return;
