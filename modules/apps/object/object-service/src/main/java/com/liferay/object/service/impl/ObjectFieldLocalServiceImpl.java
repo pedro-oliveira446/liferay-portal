@@ -1450,6 +1450,18 @@ public class ObjectFieldLocalServiceImpl
 
 			throw new ObjectFieldNameException.MustNotBeDuplicate(name);
 		}
+
+		for (ObjectRelationship objectRelationship :
+				_objectRelationshipPersistence.findByObjectDefinitionId2(
+					objectDefinition.getObjectDefinitionId())) {
+
+			if (!StringUtil.equals(name, objectRelationship.getName())) {
+				return;
+			}
+
+			throw new ObjectFieldNameException.
+				MustNotBeEqualsExistingRelationship();
+		}
 	}
 
 	private void _validateObjectRelationshipDeletionType(
