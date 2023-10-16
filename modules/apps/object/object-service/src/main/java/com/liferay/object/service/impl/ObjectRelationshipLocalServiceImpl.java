@@ -913,7 +913,7 @@ public class ObjectRelationshipLocalServiceImpl
 
 		_validateInvokerBundle(
 			"Only allowed bundles can add system object relationships", system);
-		_validateName(objectDefinitionId1, name);
+		_validateName(objectDefinitionId1, objectDefinitionId2, name);
 
 		ObjectDefinition objectDefinition1 =
 			_objectDefinitionPersistence.findByPrimaryKey(objectDefinitionId1);
@@ -1166,7 +1166,8 @@ public class ObjectRelationshipLocalServiceImpl
 		throw new ObjectRelationshipSystemException(message);
 	}
 
-	private void _validateName(long objectDefinitionId1, String name)
+	private void _validateName(
+			long objectDefinitionId1, long objectDefinitionId2, String name)
 		throws PortalException {
 
 		if (Validator.isNull(name)) {
@@ -1198,6 +1199,24 @@ public class ObjectRelationshipLocalServiceImpl
 		if (count > 0) {
 			throw new DuplicateObjectRelationshipException(
 				"Duplicate name " + name);
+		}
+
+		ObjectField objectField1 = _objectFieldLocalService.fetchObjectField(
+			objectDefinitionId1, name);
+
+		if (objectField1 != null) {
+			throw new ObjectRelationshipNameException(
+				"The Object Relationship name cannot be the same as an " +
+					"existing object field in the object definition");
+		}
+
+		ObjectField objectField2 = _objectFieldLocalService.fetchObjectField(
+			objectDefinitionId2, name);
+
+		if (objectField2 != null) {
+			throw new ObjectRelationshipNameException(
+				"The Object Relationship name cannot be the same as an " +
+					"existing object field in the object definition");
 		}
 	}
 
