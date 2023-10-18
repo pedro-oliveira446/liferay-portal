@@ -1201,6 +1201,25 @@ public class ObjectRelationshipLocalServiceImpl
 			throw new DuplicateObjectRelationshipException(
 				"Duplicate name " + name);
 		}
+
+		for (ObjectDefinition objectDefinition :
+				ListUtil.fromArray(objectDefinition1, objectDefinition2)) {
+
+			ObjectField objectField = _objectFieldLocalService.fetchObjectField(
+				objectDefinition.getObjectDefinitionId(), name);
+
+			if (objectField == null) {
+				continue;
+			}
+
+			throw new ObjectRelationshipNameException(
+				StringBundler.concat(
+					"There is already a field with this name in the ",
+					objectDefinition.getShortName(),
+					" object definition. Object fields and object ",
+					"relationships can’t have the same name. Please, choose ",
+					"another name."));
+		}
 	}
 
 	private void _validateObjectEntryId(
