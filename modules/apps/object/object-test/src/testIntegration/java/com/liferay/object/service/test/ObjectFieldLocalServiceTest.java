@@ -890,6 +890,47 @@ public class ObjectFieldLocalServiceTest {
 					relationshipObjectFieldId
 				).build()));
 
+		long finalObjectDefinitionId = objectDefinition.getObjectDefinitionId();
+		long finalRelatedObjectDefinitionId =
+			relatedObjectDefinition.getObjectDefinitionId();
+
+		AssertUtils.assertFailure(
+			ObjectFieldNameException.
+				MustNotBeEqualsToExistingObjectRelationshipName.class,
+			StringBundler.concat(
+				"There is already a relationship with this name in the ",
+				"current ", objectDefinition.getShortName(),
+				" object definition. Object fields and object relationships ",
+				"can’t have the same name. Please, choose another name."),
+			() -> _addOrUpdateCustomObjectField(
+				new TextObjectFieldBuilder(
+				).labelMap(
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString())
+				).name(
+					"relationship"
+				).objectDefinitionId(
+					finalObjectDefinitionId
+				).build()));
+		AssertUtils.assertFailure(
+			ObjectFieldNameException.
+				MustNotBeEqualsToExistingObjectRelationshipName.class,
+			StringBundler.concat(
+				"There is already a relationship with this name in the ",
+				"related ", objectDefinition.getShortName(),
+				" object definition. Object fields and object relationships ",
+				"can’t have the same name. Please, choose another name."),
+			() -> _addOrUpdateCustomObjectField(
+				new TextObjectFieldBuilder(
+				).labelMap(
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString())
+				).name(
+					"relationship"
+				).objectDefinitionId(
+					finalRelatedObjectDefinitionId
+				).build()));
+
 		_objectRelationshipLocalService.deleteObjectRelationship(
 			objectRelationship);
 
