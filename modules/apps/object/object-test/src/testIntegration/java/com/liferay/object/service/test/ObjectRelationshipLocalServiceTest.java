@@ -209,6 +209,36 @@ public class ObjectRelationshipLocalServiceTest {
 				"objectFieldName2", false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY));
 		AssertUtils.assertFailure(
+			ObjectRelationshipNameException.class,
+			StringBundler.concat(
+				"There is already a field with this name in the ",
+				_objectDefinition1.getShortName(),
+				" object definition. Object fields and object relationships ",
+				"can’t have the same name. Please, choose another name."),
+			() -> _objectRelationshipLocalService.addObjectRelationship(
+				TestPropsValues.getUserId(),
+				_objectDefinition2.getObjectDefinitionId(),
+				_objectDefinition1.getObjectDefinitionId(), 0,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				"objectFieldName1", false,
+				ObjectRelationshipConstants.TYPE_MANY_TO_MANY));
+		AssertUtils.assertFailure(
+			ObjectRelationshipNameException.class,
+			StringBundler.concat(
+				"There is already a field with this name in the ",
+				_objectDefinition2.getShortName(),
+				" object definition. Object fields and object relationships ",
+				"can’t have the same name. Please, choose another name."),
+			() -> _objectRelationshipLocalService.addObjectRelationship(
+				TestPropsValues.getUserId(),
+				_objectDefinition2.getObjectDefinitionId(),
+				_objectDefinition1.getObjectDefinitionId(), 0,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				"objectFieldName2", false,
+				ObjectRelationshipConstants.TYPE_MANY_TO_MANY));
+		AssertUtils.assertFailure(
 			ObjectRelationshipParameterObjectFieldIdException.class,
 			"Object definition " + _objectDefinition1.getName() +
 				" does not allow a parameter object field ID",
