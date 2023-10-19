@@ -934,6 +934,52 @@ public class ObjectFieldLocalServiceTest {
 		_objectRelationshipLocalService.deleteObjectRelationship(
 			objectRelationship);
 
+		_objectRelationshipLocalService.addObjectRelationship(
+			TestPropsValues.getUserId(),
+			objectDefinition.getObjectDefinitionId(),
+			relatedObjectDefinition.getObjectDefinitionId(), 0,
+			ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			"relationship", false,
+			ObjectRelationshipConstants.TYPE_MANY_TO_MANY);
+
+		AssertUtils.assertFailure(
+			ObjectFieldNameException.
+				MustNotBeEqualsToExistingObjectRelationshipName.class,
+			StringBundler.concat(
+				"There is already a relationship with this name in the ",
+				"current ", objectDefinition.getShortName(),
+				" object definition. Object fields and object relationships ",
+				"can’t have the same name. Please, choose another name."),
+			() -> _addOrUpdateCustomObjectField(
+				new TextObjectFieldBuilder(
+				).labelMap(
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString())
+				).name(
+					"relationship"
+				).objectDefinitionId(
+					finalObjectDefinitionId
+				).build()));
+		AssertUtils.assertFailure(
+			ObjectFieldNameException.
+				MustNotBeEqualsToExistingObjectRelationshipName.class,
+			StringBundler.concat(
+				"There is already a relationship with this name in the ",
+				"related ", objectDefinition.getShortName(),
+				" object definition. Object fields and object relationships ",
+				"can’t have the same name. Please, choose another name."),
+			() -> _addOrUpdateCustomObjectField(
+				new TextObjectFieldBuilder(
+				).labelMap(
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString())
+				).name(
+					"relationship"
+				).objectDefinitionId(
+					finalRelatedObjectDefinitionId
+				).build()));
+
 		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
 		_objectDefinitionLocalService.deleteObjectDefinition(
 			relatedObjectDefinition);
