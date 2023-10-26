@@ -13,6 +13,7 @@ import com.liferay.object.exception.ObjectValidationRuleEngineException;
 import com.liferay.object.exception.ObjectValidationRuleNameException;
 import com.liferay.object.exception.ObjectValidationRuleOutputTypeException;
 import com.liferay.object.exception.ObjectValidationRuleScriptException;
+import com.liferay.object.exception.ObjectValidationRuleSettingCountException;
 import com.liferay.object.exception.ObjectValidationRuleSettingNameException;
 import com.liferay.object.exception.ObjectValidationRuleSettingValueException;
 import com.liferay.object.field.builder.DateObjectFieldBuilder;
@@ -26,6 +27,7 @@ import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectValidationRuleLocalService;
 import com.liferay.object.service.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.validation.rule.setting.builder.ObjectValidationRuleSettingBuilder;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -283,6 +285,38 @@ public class ObjectValidationRuleLocalServiceTest {
 	@Test
 	public void testUpdateObjectValidationRule() throws Exception {
 		ObjectValidationRule objectValidationRule = _addObjectValidationRule(
+			ObjectValidationRuleConstants.ENGINE_TYPE_COMPOSITE_KEY, "");
+
+		ObjectField textObjectField = _objectFieldLocalService.fetchObjectField(
+			_objectDefinition.getObjectDefinitionId(), "textObjectField");
+
+		long objectValidationRuleIdFinal =
+			objectValidationRule.getObjectValidationRuleId();
+		String objectValidationRuleName = RandomTestUtil.randomString();
+
+		AssertUtils.assertFailure(
+			ObjectValidationRuleSettingCountException.class,
+			StringBundler.concat(
+				"The ", objectValidationRuleName,
+				" Unique Composite Key must have at least two Object Fields ",
+				"to compose the Object Validation Rule"),
+			() -> _objectValidationRuleLocalService.updateObjectValidationRule(
+				StringPool.BLANK, objectValidationRuleIdFinal, true,
+				ObjectValidationRuleConstants.ENGINE_TYPE_COMPOSITE_KEY,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				LocalizedMapUtil.getLocalizedMap(objectValidationRuleName),
+				ObjectValidationRuleConstants.OUTPUT_TYPE_FULL_VALIDATION,
+				_VALID_DDM_SCRIPT,
+				Collections.singletonList(
+					new ObjectValidationRuleSettingBuilder(
+					).name(
+						ObjectValidationRuleSettingConstants.
+							NAME_COMPOSITE_KEY_OBJECT_FIELD_ID
+					).value(
+						String.valueOf(textObjectField.getObjectFieldId())
+					).build())));
+
+		objectValidationRule = _addObjectValidationRule(
 			ObjectValidationRuleConstants.ENGINE_TYPE_DDM, _VALID_DDM_SCRIPT);
 
 		long randomId = RandomTestUtil.randomLong();
@@ -299,9 +333,6 @@ public class ObjectValidationRuleLocalServiceTest {
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectValidationRuleConstants.OUTPUT_TYPE_FULL_VALIDATION,
 				_VALID_DDM_SCRIPT, Collections.emptyList()));
-
-		ObjectField textObjectField = _objectFieldLocalService.fetchObjectField(
-			_objectDefinition.getObjectDefinitionId(), "textObjectField");
 
 		objectValidationRule =
 			_objectValidationRuleLocalService.updateObjectValidationRule(
