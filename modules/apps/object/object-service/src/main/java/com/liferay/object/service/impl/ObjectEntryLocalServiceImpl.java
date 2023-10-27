@@ -833,23 +833,19 @@ public class ObjectEntryLocalServiceImpl
 			).eq(
 				dynamicObjectDefinitionTable.getPrimaryKeyColumn()
 			)
-		);
-
-		if (!StringUtil.equals(objectDefinition.getScope(), "site")) {
-			joinStep.where(predicate);
-
-			return dslQueryCount(joinStep);
-		}
-
-		joinStep.innerJoinON(
+		).innerJoinON(
 			ObjectEntryTable.INSTANCE,
 			ObjectEntryTable.INSTANCE.objectEntryId.eq(
 				dynamicObjectDefinitionTable.getPrimaryKeyColumn())
-		).where(
-			predicate.and(ObjectEntryTable.INSTANCE.groupId.eq(groupId))
 		);
 
-		return dslQueryCount(joinStep);
+		if (!StringUtil.equals(objectDefinition.getScope(), "site")) {
+			return dslQueryCount(joinStep.where(predicate));
+		}
+
+		return dslQueryCount(
+			joinStep.where(
+				predicate.and(ObjectEntryTable.INSTANCE.groupId.eq(groupId))));
 	}
 
 	@Override
