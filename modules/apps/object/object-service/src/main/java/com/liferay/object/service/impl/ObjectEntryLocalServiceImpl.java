@@ -148,8 +148,6 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
-import com.liferay.portal.kernel.transaction.Propagation;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -812,7 +810,7 @@ public class ObjectEntryLocalServiceImpl
 		return objectEntryPersistence.countByG_ODI(groupId, objectDefinitionId);
 	}
 
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Override
 	public long getObjectEntriesCount(
 			long groupId, ObjectDefinition objectDefinition,
 			Predicate predicate)
@@ -842,7 +840,7 @@ public class ObjectEntryLocalServiceImpl
 
 			return dslQueryCount(joinStep);
 		}
-		
+
 		joinStep.innerJoinON(
 			ObjectEntryTable.INSTANCE,
 			ObjectEntryTable.INSTANCE.objectEntryId.eq(
