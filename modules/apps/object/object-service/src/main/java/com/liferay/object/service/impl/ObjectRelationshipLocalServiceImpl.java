@@ -1225,17 +1225,44 @@ public class ObjectRelationshipLocalServiceImpl
 			ObjectField objectField = _objectFieldLocalService.fetchObjectField(
 				objectDefinition.getObjectDefinitionId(), name);
 
-			if (objectField == null) {
+			if (objectField != null) {
+				throw new ObjectRelationshipNameException(
+					StringBundler.concat(
+						"There is already a field with this name in the ",
+						objectDefinition.getShortName(), " object definition. ",
+						"Object fields and object relationships cannot have ",
+						"the same name. Please, choose another name."));
+			}
+
+			ObjectRelationship objectRelationship =
+				objectRelationshipLocalService.
+					fetchObjectRelationshipByObjectDefinitionId(
+						objectDefinition.getObjectDefinitionId(), name);
+
+			if (objectRelationship == null) {
 				continue;
+			}
+
+			String objectDefinitionShortName = objectDefinition.getShortName();
+
+			if (objectDefinition.getObjectDefinitionId() !=
+					objectRelationship.getObjectDefinitionId1()) {
+
+				ObjectDefinition objectDefinitionParent =
+					_objectDefinitionPersistence.findByPrimaryKey(
+						objectRelationship.getObjectDefinitionId1());
+
+				objectDefinitionShortName =
+					objectDefinitionParent.getShortName();
 			}
 
 			throw new ObjectRelationshipNameException(
 				StringBundler.concat(
-					"There is already a field with this name in the ",
-					objectDefinition.getShortName(),
-					" object definition. Object fields and object ",
-					"relationships can’t have the same name. Please, choose ",
-					"another name."));
+					"There is already a relationship with this name in the ",
+					objectDefinitionShortName,
+					" object definition. Parent and child objects definition ",
+					"cannot have object relationships with the same name. ",
+					"Please, choose another name."));
 		}
 	}
 
