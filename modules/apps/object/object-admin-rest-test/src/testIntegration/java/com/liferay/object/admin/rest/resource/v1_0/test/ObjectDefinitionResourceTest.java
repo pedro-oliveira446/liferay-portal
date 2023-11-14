@@ -325,27 +325,13 @@ public class ObjectDefinitionResourceTest
 		ObjectDefinition randomModifiableSystemObjectDefinition =
 			_addObjectDefinition(_randomModifiableSystemObjectDefinition());
 
-		ObjectValidationRule customObjectValidationRule =
-			(ObjectValidationRule)ArrayUtil.getValue(
-				randomModifiableSystemObjectDefinition.
-					getObjectValidationRules(),
-				0);
-
-		com.liferay.object.model.ObjectField objectField =
-			_objectFieldLocalService.fetchObjectField(
-				randomModifiableSystemObjectDefinition.getId(),
-				"customObjectField");
-
-		String objectFieldExternalReferenceCode =
-			objectField.getExternalReferenceCode();
-
 		ObjectValidationRuleSetting[] updatedObjectValidationRuleSettings = {
 			new ObjectValidationRuleSetting() {
 				{
 					name =
 						ObjectValidationRuleSettingConstants.
 							NAME_OUTPUT_OBJECT_FIELD_EXTERNAL_REFERENCE_CODE;
-					value = objectFieldExternalReferenceCode;
+					value = "customObjectFieldERC";
 				}
 			}
 		};
@@ -357,8 +343,7 @@ public class ObjectDefinitionResourceTest
 					engine = ObjectValidationRuleConstants.ENGINE_TYPE_GROOVY;
 					errorLabel = Collections.singletonMap(
 						"en_US", RandomTestUtil.randomString());
-					externalReferenceCode =
-						customObjectValidationRule.getExternalReferenceCode();
+					externalReferenceCode = "customObjectValidationRuleERC";
 					name = Collections.singletonMap(
 						"en_US", RandomTestUtil.randomString());
 					objectDefinitionExternalReferenceCode =
@@ -372,12 +357,6 @@ public class ObjectDefinitionResourceTest
 				}
 			};
 
-		ObjectValidationRule systemObjectValidationRule =
-			(ObjectValidationRule)ArrayUtil.getValue(
-				randomModifiableSystemObjectDefinition.
-					getObjectValidationRules(),
-				1);
-
 		ObjectValidationRule updatedSystemObjectValidationRule =
 			new ObjectValidationRule() {
 				{
@@ -385,8 +364,7 @@ public class ObjectDefinitionResourceTest
 					engine = ObjectValidationRuleConstants.ENGINE_TYPE_GROOVY;
 					errorLabel = Collections.singletonMap(
 						"en_US", RandomTestUtil.randomString());
-					externalReferenceCode =
-						systemObjectValidationRule.getExternalReferenceCode();
+					externalReferenceCode = "systemObjectValidationRuleERC";
 					name = Collections.singletonMap(
 						"en_US", RandomTestUtil.randomString());
 					objectDefinitionExternalReferenceCode =
@@ -434,14 +412,13 @@ public class ObjectDefinitionResourceTest
 				randomModifiableSystemObjectDefinition.getId());
 
 		_assertObjectValidationRule(
-			objectFieldExternalReferenceCode, updatedCustomObjectValidationRule,
+			"customObjectFieldERC", updatedCustomObjectValidationRule,
 			(ObjectValidationRule)ArrayUtil.getValue(
 				getObjectDefinition.getObjectValidationRules(), 0));
 
 		try {
 			_assertObjectValidationRule(
-				objectFieldExternalReferenceCode,
-				updatedSystemObjectValidationRule,
+				"customObjectFieldERC", updatedSystemObjectValidationRule,
 				(ObjectValidationRule)ArrayUtil.getValue(
 					getObjectDefinition.getObjectValidationRules(), 1));
 
@@ -776,10 +753,11 @@ public class ObjectDefinitionResourceTest
 					{
 						businessType = BusinessType.TEXT;
 						DBType = ObjectField.DBType.create("String");
+						externalReferenceCode = "customObjectFieldERC";
 						indexed = false;
 						indexedAsKeyword = false;
 						label = Collections.singletonMap(
-							"en_US", "customObjectField");
+							"en-US", RandomTestUtil.randomString());
 						localized = false;
 						name = "customObjectField";
 						readOnly = ReadOnly.FALSE;
@@ -791,10 +769,11 @@ public class ObjectDefinitionResourceTest
 					{
 						businessType = BusinessType.TEXT;
 						DBType = ObjectField.DBType.create("String");
+						externalReferenceCode = StringPool.BLANK;
 						indexed = false;
 						indexedAsKeyword = false;
 						label = Collections.singletonMap(
-							"en_US", "systemObjectField");
+							"en-US", RandomTestUtil.randomString());
 						localized = false;
 						name = "systemObjectField";
 						readOnly = ReadOnly.FALSE;
@@ -811,6 +790,7 @@ public class ObjectDefinitionResourceTest
 						engine = ObjectValidationRuleConstants.ENGINE_TYPE_DDM;
 						errorLabel = Collections.singletonMap(
 							"en-US", RandomTestUtil.randomString());
+						externalReferenceCode = "customObjectValidationRuleERC";
 						name = Collections.singletonMap(
 							"en-US", RandomTestUtil.randomString());
 						objectDefinitionExternalReferenceCode =
@@ -826,6 +806,7 @@ public class ObjectDefinitionResourceTest
 						engine = ObjectValidationRuleConstants.ENGINE_TYPE_DDM;
 						errorLabel = Collections.singletonMap(
 							"en-US", RandomTestUtil.randomString());
+						externalReferenceCode = "systemObjectValidationRuleERC";
 						name = Collections.singletonMap(
 							"en-US", RandomTestUtil.randomString());
 						objectDefinitionExternalReferenceCode =
