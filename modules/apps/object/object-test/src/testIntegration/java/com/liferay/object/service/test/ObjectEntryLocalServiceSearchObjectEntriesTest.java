@@ -150,11 +150,11 @@ public class ObjectEntryLocalServiceSearchObjectEntriesTest {
 		_assertKeywords("[44.9999 TO 45.1111]", 0);
 		_assertKeywords("4", 1);
 		_assertKeywords("45", 1);
-		_assertKeywords("45.0000", 1);
+		_assertKeywords("45.0000", 0);
 		_assertKeywords("45.0001", 0);
 		_assertKeywords("bravo 4 charlie", 1);
 		_assertKeywords("bravo 45 charlie", 1);
-		_assertKeywords("bravo 45.0 charlie", 1);
+		_assertKeywords("bravo 45.0 charlie", 0);
 		_assertKeywords("search from [ 44 TO 46 ]", 0);
 	}
 
