@@ -130,7 +130,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 
 import java.text.DateFormat;
 
@@ -571,8 +570,7 @@ public class DefaultObjectEntryManagerImplTest
 							"picklistObjectFieldName", _addListTypeEntry()
 						).put(
 							"precisionDecimalObjectFieldName",
-							new BigDecimal(
-								0.9876543217654321, MathContext.DECIMAL64)
+							new BigDecimal("0.9876543217654321")
 						).build();
 					}
 				},
@@ -603,8 +601,7 @@ public class DefaultObjectEntryManagerImplTest
 							"picklistObjectFieldName", listTypeEntryKey
 						).put(
 							"precisionDecimalObjectFieldName",
-							new BigDecimal(
-								0.1234567891234567, MathContext.DECIMAL64)
+							new BigDecimal("0.1234567891234567")
 						).put(
 							"richTextObjectFieldName",
 							StringBundler.concat(
@@ -2497,7 +2494,8 @@ public class DefaultObjectEntryManagerImplTest
 								BUSINESS_TYPE_LONG_VALUE_MAX)
 					).put(
 						"precisionDecimalObjectFieldName",
-						new BigDecimal(RandomTestUtil.randomDouble())
+						new BigDecimal(
+							String.valueOf(RandomTestUtil.randomDouble()))
 					).put(
 						"richTextObjectFieldName",
 						StringBundler.concat(
@@ -2520,7 +2518,7 @@ public class DefaultObjectEntryManagerImplTest
 				"longIntegerObjectFieldName", 200L
 			).put(
 				"precisionDecimalObjectFieldName",
-				new BigDecimal(0.8755445767, MathContext.DECIMAL64)
+				new BigDecimal("0.8755445767")
 			).put(
 				"richTextObjectFieldName", "<i>richTextObjectFieldNameValue</i>"
 			).build();
