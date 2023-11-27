@@ -558,7 +558,7 @@ public class ObjectEntryServiceTest {
 
 		ObjectDefinition accountEntryObjectDefinition =
 			_objectDefinitionLocalService.fetchObjectDefinition(
-				TestPropsValues.getCompanyId(), "accountEntry");
+				TestPropsValues.getCompanyId(), "AccountEntry");
 
 		ObjectRelationship objectRelationship =
 			_objectRelationshipLocalService.addObjectRelationship(
