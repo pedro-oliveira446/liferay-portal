@@ -18,6 +18,7 @@ import com.liferay.object.exception.NoSuchObjectEntryException;
 import com.liferay.object.field.attachment.AttachmentManager;
 import com.liferay.object.field.business.type.ObjectFieldBusinessTypeRegistry;
 import com.liferay.object.field.setting.util.ObjectFieldSettingUtil;
+import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
@@ -76,6 +77,7 @@ import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.Base64;
+import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
@@ -101,12 +103,17 @@ import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.ActionUtil;
+import com.liferay.portal.vulcan.util.LocalDateTimeUtil;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
 import java.io.Serializable;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1757,9 +1764,31 @@ public class DefaultObjectEntryManagerImpl
 					objectField.getDBType(),
 					ObjectFieldConstants.DB_TYPE_DATE)) {
 
-				values.put(
-					objectField.getName(),
-					_toDate(locale, String.valueOf(value)));
+				String dateValue = String.valueOf(value);
+
+				if (!StringUtil.equals(objectField.getName(), "createDate") &&
+					!StringUtil.equals(objectField.getName(), "modifiedDate")) {
+
+					String pattern = ObjectFieldUtil.getDateTimePattern(
+						dateValue);
+
+					DateFormat dateFormat =
+						DateFormatFactoryUtil.getSimpleDateFormat(pattern);
+
+					LocalDateTime localDateTime =
+						LocalDateTimeUtil.toLocalDateTime(
+							dateFormat.parse(dateValue));
+
+					LocalDateTime localDate = localDateTime.toLocalDate(
+					).atStartOfDay();
+
+					DateTimeFormatter dateTimeFormatter =
+						DateTimeFormatter.ofPattern(pattern);
+
+					dateValue = localDate.format(dateTimeFormatter);
+				}
+
+				values.put(objectField.getName(), _toDate(locale, dateValue));
 			}
 			else {
 				values.put(objectField.getName(), (Serializable)value);
