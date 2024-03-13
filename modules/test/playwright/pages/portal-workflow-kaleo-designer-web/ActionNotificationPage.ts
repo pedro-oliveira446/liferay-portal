@@ -1,0 +1,60 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import {Locator, Page} from '@playwright/test';
+
+export class ActionNotificationPage {
+	readonly divSectionActionNotification: Locator;
+	readonly inputActionType: Locator;
+	readonly inputNotificationDescription: Locator;
+	readonly inputNotificationName: Locator;
+	readonly inputNotificationTemplate: Locator;
+	readonly inputNotificationTemplateLanguage: Locator;
+	readonly inputNotificationTypeCombo: Locator;
+	readonly inputNotificationTypeEmail: Locator;
+	readonly inputNotificationTypeUser: Locator;
+	readonly inputRecipientType: Locator;
+	readonly inputRoleName: Locator;
+	readonly inputScript: Locator;
+	readonly inputScriptLanguage: Locator;
+	readonly page: Page;
+
+	constructor(page: Page, index: number) {
+		this.divSectionActionNotification = page
+			.getByText(
+				'TypeActionNotificationReassignmentName*DescriptionTemplate LanguageFreeMarkerTex'
+			)
+			.nth(index);
+		this.inputActionType = page.locator('#action-type').nth(index);
+		this.inputNotificationDescription = page
+			.locator('#notificationDescription')
+			.nth(index);
+		this.inputNotificationName = page
+			.locator('#notificationName')
+			.nth(index);
+		this.inputNotificationTemplate = page.locator('#template').nth(index);
+		this.inputNotificationTemplateLanguage = page
+			.locator('#template-language')
+			.nth(index);
+		this.inputNotificationTypeCombo = page
+			.locator('div')
+			.filter({
+				hasText:
+					/^Notification Types\*Press backspace to delete the current row\.$/,
+			})
+			.getByRole('combobox');
+		this.inputNotificationTypeEmail = page.getByRole('checkbox', {
+			name: 'Email',
+		});
+		this.inputNotificationTypeUser = page.getByRole('checkbox', {
+			name: 'User Notification',
+		});
+		this.inputRecipientType = page.locator('#recipient-type').nth(index);
+		this.inputRoleName = page.locator('#role-name');
+		this.inputScriptLanguage = page.locator('#script-language');
+		this.inputScript = page.locator('#nodeScript');
+		this.page = page;
+	}
+}
