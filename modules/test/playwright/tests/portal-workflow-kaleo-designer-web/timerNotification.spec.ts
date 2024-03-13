@@ -4,17 +4,16 @@
  */
 
 import {mergeTests} from '@playwright/test';
+
 import {loginTest} from '../../fixtures/loginTest';
 import {workflowPagesTest} from '../../fixtures/workflowPagesTest';
 
-export const test = mergeTests(
-	loginTest(),
-	workflowPagesTest
-);
+export const test = mergeTests(loginTest(), workflowPagesTest);
 
 test('LPD-16281 can create timer notifications', async ({page,diagramViewPage,workflowDefinitionPage}) => {
     await workflowDefinitionPage.goto();
 	
     await workflowDefinitionPage.clickSingleAproverWorkflowDefinition();
+	
     await diagramViewPage.clickReviewNodeLink();
 });
