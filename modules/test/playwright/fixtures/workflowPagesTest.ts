@@ -8,12 +8,17 @@ import {test} from '@playwright/test';
 import {WorkflowTasksPage} from '../tests/portal-workflow-task-web/pages/WorkflowTasksPage';
 import {WorkflowPage} from '../tests/portal-workflow-web/pages/WorkflowPage';
 import {WorkflowDefinitionPage} from '../pages/portal-workflow-kaleo-designer-web/WorkflowDefinitionPage';
+import {DiagramViewPage} from '../pages/portal-workflow-kaleo-designer-web/DiagramViewPage';
 
 const workflowPagesTest = test.extend<{
+	diagramViewPage: DiagramViewPage;
 	workflowPage: WorkflowPage;
 	workflowDefinitionPage: WorkflowDefinitionPage;
 	workflowTasksPage: WorkflowTasksPage;
 }>({
+	diagramViewPage: async ({page}, use) => {
+		await use(new DiagramViewPage(page));
+	},
 	workflowPage: async ({page}, use) => {
 		await use(new WorkflowPage(page));
 	},

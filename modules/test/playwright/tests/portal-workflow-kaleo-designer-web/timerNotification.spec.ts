@@ -12,8 +12,9 @@ export const test = mergeTests(
 	workflowPagesTest
 );
 
-test('LPD-16281 can create timer notifications', async ({page,workflowDefinitionPage}) => {
+test('LPD-16281 can create timer notifications', async ({page,diagramViewPage,workflowDefinitionPage}) => {
     await workflowDefinitionPage.goto();
 	
     await workflowDefinitionPage.clickSingleAproverWorkflowDefinition();
+    await diagramViewPage.clickReviewNodeLink();
 });
