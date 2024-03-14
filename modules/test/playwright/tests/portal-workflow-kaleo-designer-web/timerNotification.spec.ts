@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {mergeTests} from '@playwright/test';
+import {expect, mergeTests} from '@playwright/test';
 
 import {loginTest} from '../../fixtures/loginTest';
 import {workflowPagesTest} from '../../fixtures/workflowPagesTest';
@@ -32,7 +32,7 @@ const timerNotifications = [
 		recipientType: 'scriptedRecipient',
 		recipientTypeData: {
 			script: 'script' + getRandomInt(),
-			scriptLanguage: 'java',
+			scriptLanguage: 'groovy',
 		},
 		template: 'template1' + getRandomInt(),
 		templateLanguage: 'text',
@@ -42,6 +42,7 @@ const timerNotifications = [
 test('LPD-16281 can create timer notifications', async ({
 	diagramViewPage,
 	nodePropertiesSidebarPage,
+	timerPage,
 	workflowDefinitionPage,
 }) => {
 	await workflowDefinitionPage.goto();
@@ -51,4 +52,23 @@ test('LPD-16281 can create timer notifications', async ({
 	await diagramViewPage.clickReviewNodeLink();
 	
 	await nodePropertiesSidebarPage.createTimerNotification(timerNotifications);
+
+	await diagramViewPage.updateWorkflowDefinition();
+
+	await diagramViewPage.goBack();
+
+	await workflowDefinitionPage.clickSingleAproverWorkflowDefinition();
+	
+	await diagramViewPage.clickReviewNodeLink();
+
+	const timerOption = workflowDefinitionPage.page.getByRole('link', {
+		name: 'Duration: 3 week',
+	});
+
+	await expect(timerOption).toBeVisible();
+
+	await timerOption.click();
+
+	await timerPage.assertActionTimerNotification(0, timerNotifications[0]);
+	await timerPage.assertActionTimerNotification(1, timerNotifications[1]);
 });

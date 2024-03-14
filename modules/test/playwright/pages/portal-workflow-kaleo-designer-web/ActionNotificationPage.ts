@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Locator, Page} from '@playwright/test';
+import {Locator, Page, expect} from '@playwright/test';
 
 export class ActionNotificationPage {
 	readonly divSectionActionNotification: Locator;
@@ -98,6 +98,54 @@ export class ActionNotificationPage {
 			);
 			await this.inputScript.fill(
 				(recipientTypeData as ScriptRecipientType)?.script
+			);
+		}
+	}
+
+	async assertActionTimerNotification(index:number,{
+		notificationDescription,
+		notificationName,
+		recipientType,
+		recipientTypeData,
+		template,
+		templateLanguage,
+	}: Notification) {
+		await expect(this.inputNotificationDescription).toHaveValue(
+			notificationDescription
+		);
+
+		await expect(this.inputNotificationName).toHaveValue(
+			notificationName
+		);
+
+		await expect(this.inputNotificationTemplate).toHaveValue(
+			template + '\n'
+		);
+
+		await expect(this.inputNotificationTemplateLanguage).toHaveValue(
+			templateLanguage
+		);
+
+		await expect(this.page.getByText(/Email/).nth(index)).toBeVisible();
+
+		await expect(
+			this.page.getByText(/User Notification/).nth(index)
+		).toBeVisible();
+
+		await expect(this.inputRecipientType).toHaveValue(
+			recipientType
+		);
+
+		if (recipientType === 'role') {
+			await expect(this.inputRoleName).toHaveValue(
+				(recipientTypeData as RoleRecipientType).roleName
+			);
+		} else if (recipientType === 'scriptedRecipient') {
+			await expect(this.inputScript).toHaveValue(
+				(recipientTypeData as ScriptRecipientType).script + '\n'
+			);
+			await expect(this.inputScriptLanguage).toHaveValue(
+				(recipientTypeData as ScriptRecipientType).scriptLanguage
 			);
 		}
 	}

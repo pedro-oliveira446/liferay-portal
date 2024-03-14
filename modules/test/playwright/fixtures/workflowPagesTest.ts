@@ -7,6 +7,7 @@ import {test} from '@playwright/test';
 
 import {DiagramViewPage} from '../pages/portal-workflow-kaleo-designer-web/DiagramViewPage';
 import {NodePropertiesSidebarPage} from '../pages/portal-workflow-kaleo-designer-web/NodePropertiesSidebarPage';
+import {TimerPage} from '../pages/portal-workflow-kaleo-designer-web/TimerPage';
 import {WorkflowTasksPage} from '../tests/portal-workflow-task-web/pages/WorkflowTasksPage';
 import {WorkflowPage} from '../tests/portal-workflow-web/pages/WorkflowPage';
 import {WorkflowDefinitionPage} from '../pages/portal-workflow-kaleo-designer-web/WorkflowDefinitionPage';
@@ -14,6 +15,7 @@ import {WorkflowDefinitionPage} from '../pages/portal-workflow-kaleo-designer-we
 const workflowPagesTest = test.extend<{
 	diagramViewPage: DiagramViewPage;
 	nodePropertiesSidebarPage: NodePropertiesSidebarPage;
+	timerPage: TimerPage;
 	workflowPage: WorkflowPage;
 	workflowDefinitionPage: WorkflowDefinitionPage;
 	workflowTasksPage: WorkflowTasksPage;
@@ -23,6 +25,9 @@ const workflowPagesTest = test.extend<{
 	},
 	nodePropertiesSidebarPage: async ({page}, use) => {
 		await use(new NodePropertiesSidebarPage(page));
+	},
+	timerPage: async ({page}, use) => {
+		await use(new TimerPage(page));
 	},
 	workflowPage: async ({page}, use) => {
 		await use(new WorkflowPage(page));
