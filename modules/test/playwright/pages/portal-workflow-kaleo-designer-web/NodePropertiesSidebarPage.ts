@@ -4,6 +4,7 @@
  */
 
 import {Locator, Page} from '@playwright/test';
+
 import {getRandomInt} from '../../utils/getRandomInt';
 import {TimerPage} from './TimerPage';
 

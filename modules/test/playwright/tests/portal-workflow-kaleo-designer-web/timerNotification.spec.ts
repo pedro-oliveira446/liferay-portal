@@ -50,7 +50,7 @@ test('LPD-16281 can create timer notifications', async ({
 	await workflowDefinitionPage.clickSingleAproverWorkflowDefinition();
 
 	await diagramViewPage.clickReviewNodeLink();
-	
+
 	await nodePropertiesSidebarPage.createTimerNotification(timerNotifications);
 
 	await diagramViewPage.updateWorkflowDefinition();
@@ -75,6 +75,6 @@ test('LPD-16281 can create timer notifications', async ({
 	// clean up
 
 	await timerPage.deleteAllTimers();
-	
+
 	await diagramViewPage.updateWorkflowDefinition();
 });

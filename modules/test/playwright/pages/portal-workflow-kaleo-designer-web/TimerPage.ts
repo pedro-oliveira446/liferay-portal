@@ -4,6 +4,7 @@
  */
 
 import {Locator, Page} from '@playwright/test';
+
 import {ActionNotificationPage} from './ActionNotificationPage';
 
 export class TimerPage {

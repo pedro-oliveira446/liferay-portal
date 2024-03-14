@@ -92,7 +92,8 @@ export class ActionNotificationPage {
 					name: (recipientTypeData as RoleRecipientType)?.roleName,
 				})
 				.click();
-		} else if (recipientType === 'scriptedRecipient') {
+		}
+		else if (recipientType === 'scriptedRecipient') {
 			await this.inputScriptLanguage.selectOption(
 				(recipientTypeData as ScriptRecipientType)?.scriptLanguage
 			);
@@ -102,21 +103,22 @@ export class ActionNotificationPage {
 		}
 	}
 
-	async assertActionTimerNotification(index:number,{
-		notificationDescription,
-		notificationName,
-		recipientType,
-		recipientTypeData,
-		template,
-		templateLanguage,
-	}: Notification) {
+	async assertActionTimerNotification(
+		index: number,
+		{
+			notificationDescription,
+			notificationName,
+			recipientType,
+			recipientTypeData,
+			template,
+			templateLanguage,
+		}: Notification
+	) {
 		await expect(this.inputNotificationDescription).toHaveValue(
 			notificationDescription
 		);
 
-		await expect(this.inputNotificationName).toHaveValue(
-			notificationName
-		);
+		await expect(this.inputNotificationName).toHaveValue(notificationName);
 
 		await expect(this.inputNotificationTemplate).toHaveValue(
 			template + '\n'
@@ -132,15 +134,14 @@ export class ActionNotificationPage {
 			this.page.getByText(/User Notification/).nth(index)
 		).toBeVisible();
 
-		await expect(this.inputRecipientType).toHaveValue(
-			recipientType
-		);
+		await expect(this.inputRecipientType).toHaveValue(recipientType);
 
 		if (recipientType === 'role') {
 			await expect(this.inputRoleName).toHaveValue(
 				(recipientTypeData as RoleRecipientType).roleName
 			);
-		} else if (recipientType === 'scriptedRecipient') {
+		}
+		else if (recipientType === 'scriptedRecipient') {
 			await expect(this.inputScript).toHaveValue(
 				(recipientTypeData as ScriptRecipientType).script + '\n'
 			);
