@@ -4,8 +4,11 @@
  */
 
 import {Locator, Page} from '@playwright/test';
+import {ActionNotificationPage} from './ActionNotificationPage';
 
 export class TimerPage {
+	actionNotificationPage: ActionNotificationPage;
+	addActionButton: Locator;
 	readonly deleteAllTimersButton: Locator;
 	readonly inputTimerDescription: Locator;
 	readonly inputTimerDuration: Locator;
@@ -32,5 +35,40 @@ export class TimerPage {
 	async deleteAllTimers() {
 		await this.deleteAllTimersButton.click();
 		await this.modalDeleteButton.click();
+	}
+
+	async fillTimerFields(
+		description: string,
+		duration: string,
+		name: string,
+		scale: string
+	) {
+		await this.inputTimerDescription.fill(description);
+		await this.inputTimerDuration.fill(duration);
+		await this.inputTimerName.fill(name);
+		await this.inputTimerRecurrence.uncheck();
+		await this.inputTimerScale.selectOption(scale);
+	}
+
+	async fillTimerActionNotificationFields(
+		index: number,
+		notification: Notification
+	) {
+		this.actionNotificationPage = new ActionNotificationPage(
+			this.page,
+			index
+		);
+
+		await this.actionNotificationPage.fillActionNotificationFields(
+			notification
+		);
+	}
+
+	async addNewAction(index: number) {
+		this.addActionButton = this.page
+			.getByRole('button', {name: 'New Action'})
+			.nth(index);
+
+		await this.addActionButton.click();
 	}
 }

@@ -57,4 +57,48 @@ export class ActionNotificationPage {
 		this.inputScript = page.locator('#nodeScript');
 		this.page = page;
 	}
+
+	async fillActionNotificationFields({
+		notificationDescription,
+		notificationName,
+		notificationTypeEmail,
+		notificationTypeUser,
+		recipientType,
+		recipientTypeData,
+		template,
+		templateLanguage,
+	}: Notification) {
+		await this.inputActionType.selectOption('timerNotifications');
+		await this.inputNotificationDescription.fill(notificationDescription);
+		await this.inputNotificationName.fill(notificationName);
+		await this.inputNotificationTemplate.fill(template);
+		await this.inputNotificationTemplateLanguage.selectOption(
+			templateLanguage
+		);
+		await this.inputNotificationTypeCombo.click();
+		if (notificationTypeEmail) {
+			await this.inputNotificationTypeEmail.check();
+		}
+		if (notificationTypeUser) {
+			await this.inputNotificationTypeUser.check();
+		}
+		await this.divSectionActionNotification.click();
+		await this.inputRecipientType.selectOption(recipientType);
+
+		if (recipientType === 'role') {
+			await this.inputRoleName.click();
+			await this.page
+				.getByRole('menuitem', {
+					name: (recipientTypeData as RoleRecipientType)?.roleName,
+				})
+				.click();
+		} else if (recipientType === 'scriptedRecipient') {
+			await this.inputScriptLanguage.selectOption(
+				(recipientTypeData as ScriptRecipientType)?.scriptLanguage
+			);
+			await this.inputScript.fill(
+				(recipientTypeData as ScriptRecipientType)?.script
+			);
+		}
+	}
 }
