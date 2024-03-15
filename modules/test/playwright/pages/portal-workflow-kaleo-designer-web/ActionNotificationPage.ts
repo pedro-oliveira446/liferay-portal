@@ -92,8 +92,7 @@ export class ActionNotificationPage {
 					name: (recipientTypeData as RoleRecipientType)?.roleName,
 				})
 				.click();
-		}
-		else if (recipientType === 'scriptedRecipient') {
+		} else if (recipientType === 'scriptedRecipient') {
 			await this.inputScriptLanguage.selectOption(
 				(recipientTypeData as ScriptRecipientType)?.scriptLanguage
 			);
@@ -121,7 +120,7 @@ export class ActionNotificationPage {
 		await expect(this.inputNotificationName).toHaveValue(notificationName);
 
 		await expect(this.inputNotificationTemplate).toHaveValue(
-			template + '\n'
+			new RegExp(`^(${template}|${template}\\n?)$`)
 		);
 
 		await expect(this.inputNotificationTemplateLanguage).toHaveValue(
@@ -140,10 +139,10 @@ export class ActionNotificationPage {
 			await expect(this.inputRoleName).toHaveValue(
 				(recipientTypeData as RoleRecipientType).roleName
 			);
-		}
-		else if (recipientType === 'scriptedRecipient') {
+		} else if (recipientType === 'scriptedRecipient') {
+			const script = (recipientTypeData as ScriptRecipientType).script;
 			await expect(this.inputScript).toHaveValue(
-				(recipientTypeData as ScriptRecipientType).script + '\n'
+				new RegExp(`^(${script}|${script}\\n?)$`)
 			);
 			await expect(this.inputScriptLanguage).toHaveValue(
 				(recipientTypeData as ScriptRecipientType).scriptLanguage

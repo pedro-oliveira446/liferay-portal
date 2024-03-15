@@ -42,6 +42,8 @@ const timerNotifications = [
 test('LPD-16281 can create timer notifications', async ({
 	diagramViewPage,
 	nodePropertiesSidebarPage,
+	page,
+	sourceViewPage,
 	timerPage,
 	workflowDefinitionPage,
 }) => {
@@ -53,6 +55,29 @@ test('LPD-16281 can create timer notifications', async ({
 
 	await nodePropertiesSidebarPage.createTimerNotification(timerNotifications);
 
+	await diagramViewPage.clickSourceViewButton();
+
+	await page.waitForTimeout(2500);
+
+	await page
+		.getByText('SourceWrite your definition or import a file.')
+		.click();
+
+	await sourceViewPage.clickDiagramViewButton();
+
+	await diagramViewPage.clickReviewNodeLink();
+
+	const timerOption = workflowDefinitionPage.page.getByRole('link', {
+		name: 'Duration: 3 week',
+	});
+
+	await expect(timerOption).toBeVisible();
+
+	await timerOption.click();
+
+	await timerPage.assertActionTimerNotification(0, timerNotifications[0]);
+	await timerPage.assertActionTimerNotification(1, timerNotifications[1]);
+
 	await diagramViewPage.updateWorkflowDefinition();
 
 	await diagramViewPage.goBack();
@@ -60,10 +85,6 @@ test('LPD-16281 can create timer notifications', async ({
 	await workflowDefinitionPage.clickSingleAproverWorkflowDefinition();
 
 	await diagramViewPage.clickReviewNodeLink();
-
-	const timerOption = workflowDefinitionPage.page.getByRole('link', {
-		name: 'Duration: 3 week',
-	});
 
 	await expect(timerOption).toBeVisible();
 

@@ -11,10 +11,12 @@ import {TimerPage} from '../pages/portal-workflow-kaleo-designer-web/TimerPage';
 import {WorkflowTasksPage} from '../tests/portal-workflow-task-web/pages/WorkflowTasksPage';
 import {WorkflowPage} from '../tests/portal-workflow-web/pages/WorkflowPage';
 import {WorkflowDefinitionPage} from '../pages/portal-workflow-kaleo-designer-web/WorkflowDefinitionPage';
+import { SourceViewPage } from '../pages/portal-workflow-kaleo-designer-web/SourceViewPage';
 
 const workflowPagesTest = test.extend<{
 	diagramViewPage: DiagramViewPage;
 	nodePropertiesSidebarPage: NodePropertiesSidebarPage;
+	sourceViewPage:SourceViewPage;
 	timerPage: TimerPage;
 	workflowPage: WorkflowPage;
 	workflowDefinitionPage: WorkflowDefinitionPage;
@@ -25,6 +27,9 @@ const workflowPagesTest = test.extend<{
 	},
 	nodePropertiesSidebarPage: async ({page}, use) => {
 		await use(new NodePropertiesSidebarPage(page));
+	},
+	sourceViewPage: async ({page}, use) => {
+		await use(new SourceViewPage(page));
 	},
 	timerPage: async ({page}, use) => {
 		await use(new TimerPage(page));

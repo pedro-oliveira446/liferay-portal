@@ -9,10 +9,12 @@ export class DiagramViewPage {
 	readonly backButton: Locator;
 	readonly reviewNodeLink: Locator;
 	readonly updateWorkflowDefinitionButton: Locator;
+	readonly sourceViewButton: Locator;
 
 	constructor(page: Page) {
 		this.backButton = page.getByRole('link', {name: 'Back'});
 		this.reviewNodeLink = page.getByText('review', {exact: true});
+		this.sourceViewButton = page.locator('button[title="Source View"]')
 		this.updateWorkflowDefinitionButton = page.getByRole('button', {
 			name: 'Update',
 		});
@@ -28,5 +30,9 @@ export class DiagramViewPage {
 
 	async updateWorkflowDefinition() {
 		await this.updateWorkflowDefinitionButton.click();
+	}
+
+	async clickSourceViewButton() {
+		await this.sourceViewButton.click();
 	}
 }
