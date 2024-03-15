@@ -14,7 +14,7 @@ export class DiagramViewPage {
 	constructor(page: Page) {
 		this.backButton = page.getByRole('link', {name: 'Back'});
 		this.reviewNodeLink = page.getByText('review', {exact: true});
-		this.sourceViewButton = page.locator('button[title="Source View"]')
+		this.sourceViewButton = page.locator('button[title="Source View"]');
 		this.updateWorkflowDefinitionButton = page.getByRole('button', {
 			name: 'Update',
 		});

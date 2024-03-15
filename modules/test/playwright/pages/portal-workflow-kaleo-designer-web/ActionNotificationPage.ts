@@ -92,7 +92,8 @@ export class ActionNotificationPage {
 					name: (recipientTypeData as RoleRecipientType)?.roleName,
 				})
 				.click();
-		} else if (recipientType === 'scriptedRecipient') {
+		}
+		else if (recipientType === 'scriptedRecipient') {
 			await this.inputScriptLanguage.selectOption(
 				(recipientTypeData as ScriptRecipientType)?.scriptLanguage
 			);
@@ -139,7 +140,8 @@ export class ActionNotificationPage {
 			await expect(this.inputRoleName).toHaveValue(
 				(recipientTypeData as RoleRecipientType).roleName
 			);
-		} else if (recipientType === 'scriptedRecipient') {
+		}
+		else if (recipientType === 'scriptedRecipient') {
 			const script = (recipientTypeData as ScriptRecipientType).script;
 			await expect(this.inputScript).toHaveValue(
 				new RegExp(`^(${script}|${script}\\n?)$`)
