@@ -7,22 +7,22 @@ import {Locator, Page} from '@playwright/test';
 
 import {ApplicationsMenuPage} from '../product-navigation-applications-menu/ApplicationsMenuPage';
 
-export class WorkflowDefinitionPage {
-	readonly page: Page;
+export class ProcessBuilderPage {
 	readonly applicationsMenuPage: ApplicationsMenuPage;
-	readonly singleAproverWorkflowDefinitionLink: Locator;
+	readonly page: Page;
 
 	constructor(page: Page) {
 		this.applicationsMenuPage = new ApplicationsMenuPage(page);
 		this.page = page;
-		this.singleAproverWorkflowDefinitionLink = page.getByRole('link', {
-			exact: true,
-			name: 'Single Approver',
-		});
 	}
 
-	async clickSingleAproverWorkflowDefinition() {
-		await this.singleAproverWorkflowDefinitionLink.click();
+	async clickCopyOfSingleAproverWorkflowDefinition(name: string) {
+		await this.page
+			.getByRole('link', {
+				exact: true,
+				name,
+			})
+			.click();
 	}
 
 	async goto() {

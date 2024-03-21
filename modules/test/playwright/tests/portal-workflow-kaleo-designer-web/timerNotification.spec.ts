@@ -5,11 +5,12 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
+import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {workflowPagesTest} from '../../fixtures/workflowPagesTest';
 import {getRandomInt} from '../../utils/getRandomInt';
 
-export const test = mergeTests(loginTest(), workflowPagesTest);
+export const test = mergeTests(apiHelpersTest, loginTest(), workflowPagesTest);
 
 const timerNotifications = [
 	{
@@ -40,16 +41,32 @@ const timerNotifications = [
 ] as Notification[];
 
 test('LPD-16281 can create timer notifications', async ({
+	apiHelpers,
 	diagramViewPage,
 	nodePropertiesSidebarPage,
 	page,
+	processBuilderPage,
 	sourceViewPage,
 	timerPage,
-	workflowDefinitionPage,
 }) => {
-	await workflowDefinitionPage.goto();
+	const singleApproverWorkflowDefinition =
+		await apiHelpers.headlessAdminWorkflow.getWorkflowDefinitionByName(
+			'Single Approver'
+		);
 
-	await workflowDefinitionPage.clickSingleAproverWorkflowDefinition();
+	const workflowDefinitionName = 'Copy of Single Approver' + getRandomInt();
+
+	const workflowDefinition =
+		await apiHelpers.headlessAdminWorkflow.postWorkflowDefinitionSave(
+			workflowDefinitionName,
+			singleApproverWorkflowDefinition
+		);
+
+	await processBuilderPage.goto();
+
+	await processBuilderPage.clickCopyOfSingleAproverWorkflowDefinition(
+		workflowDefinitionName
+	);
 
 	await diagramViewPage.clickReviewNodeLink();
 
@@ -67,7 +84,7 @@ test('LPD-16281 can create timer notifications', async ({
 
 	await diagramViewPage.clickReviewNodeLink();
 
-	const timerOption = workflowDefinitionPage.page.getByRole('link', {
+	const timerOption = processBuilderPage.page.getByRole('link', {
 		name: 'Duration: 3 week',
 	});
 
@@ -78,11 +95,13 @@ test('LPD-16281 can create timer notifications', async ({
 	await timerPage.assertActionTimerNotification(0, timerNotifications[0]);
 	await timerPage.assertActionTimerNotification(1, timerNotifications[1]);
 
-	await diagramViewPage.updateWorkflowDefinition();
+	await diagramViewPage.saveWorkflowDefinition();
 
 	await diagramViewPage.goBack();
 
-	await workflowDefinitionPage.clickSingleAproverWorkflowDefinition();
+	await processBuilderPage.clickCopyOfSingleAproverWorkflowDefinition(
+		workflowDefinitionName
+	);
 
 	await diagramViewPage.clickReviewNodeLink();
 
@@ -95,7 +114,7 @@ test('LPD-16281 can create timer notifications', async ({
 
 	// clean up
 
-	await timerPage.deleteAllTimers();
-
-	await diagramViewPage.updateWorkflowDefinition();
+	await apiHelpers.headlessAdminWorkflow.deleteWorkflowDefinition(
+		workflowDefinition.id
+	);
 });

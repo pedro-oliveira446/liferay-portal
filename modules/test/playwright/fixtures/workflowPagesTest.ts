@@ -7,19 +7,19 @@ import {test} from '@playwright/test';
 
 import {DiagramViewPage} from '../pages/portal-workflow-kaleo-designer-web/DiagramViewPage';
 import {NodePropertiesSidebarPage} from '../pages/portal-workflow-kaleo-designer-web/NodePropertiesSidebarPage';
+import {ProcessBuilderPage} from '../pages/portal-workflow-kaleo-designer-web/ProcessBuilderPage';
 import {SourceViewPage} from '../pages/portal-workflow-kaleo-designer-web/SourceViewPage';
 import {TimerPage} from '../pages/portal-workflow-kaleo-designer-web/TimerPage';
 import {WorkflowTasksPage} from '../tests/portal-workflow-task-web/pages/WorkflowTasksPage';
 import {WorkflowPage} from '../tests/portal-workflow-web/pages/WorkflowPage';
-import {WorkflowDefinitionPage} from '../pages/portal-workflow-kaleo-designer-web/WorkflowDefinitionPage';
 
 const workflowPagesTest = test.extend<{
 	diagramViewPage: DiagramViewPage;
 	nodePropertiesSidebarPage: NodePropertiesSidebarPage;
+	processBuilderPage: ProcessBuilderPage;
 	sourceViewPage: SourceViewPage;
 	timerPage: TimerPage;
 	workflowPage: WorkflowPage;
-	workflowDefinitionPage: WorkflowDefinitionPage;
 	workflowTasksPage: WorkflowTasksPage;
 }>({
 	diagramViewPage: async ({page}, use) => {
@@ -27,6 +27,9 @@ const workflowPagesTest = test.extend<{
 	},
 	nodePropertiesSidebarPage: async ({page}, use) => {
 		await use(new NodePropertiesSidebarPage(page));
+	},
+	processBuilderPage: async ({page}, use) => {
+		await use(new ProcessBuilderPage(page));
 	},
 	sourceViewPage: async ({page}, use) => {
 		await use(new SourceViewPage(page));
@@ -36,9 +39,6 @@ const workflowPagesTest = test.extend<{
 	},
 	workflowPage: async ({page}, use) => {
 		await use(new WorkflowPage(page));
-	},
-	workflowDefinitionPage: async ({page}, use) => {
-		await use(new WorkflowDefinitionPage(page));
 	},
 	workflowTasksPage: async ({page}, use) => {
 		await use(new WorkflowTasksPage(page));
