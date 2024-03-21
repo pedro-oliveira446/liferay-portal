@@ -21,3 +21,12 @@ interface ScriptRecipientType {
 	script: string;
 	scriptLanguage: string;
 }
+
+interface WorkflowDefinition {
+	active: true;
+	content: string;
+	id?: number;
+	name: string;
+	title_i18n: DataObject;
+	version: string;
+}
