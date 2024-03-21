@@ -92,8 +92,7 @@ test('LPD-16281 can create timer notifications', async ({
 
 	await timerOption.click();
 
-	await timerPage.assertActionTimerNotification(0, timerNotifications[0]);
-	await timerPage.assertActionTimerNotification(1, timerNotifications[1]);
+	await timerPage.assertActionTimerNotifications(timerNotifications);
 
 	await diagramViewPage.saveWorkflowDefinition();
 
@@ -109,8 +108,7 @@ test('LPD-16281 can create timer notifications', async ({
 
 	await timerOption.click();
 
-	await timerPage.assertActionTimerNotification(0, timerNotifications[0]);
-	await timerPage.assertActionTimerNotification(1, timerNotifications[1]);
+	await timerPage.assertActionTimerNotifications(timerNotifications);
 
 	// clean up
 

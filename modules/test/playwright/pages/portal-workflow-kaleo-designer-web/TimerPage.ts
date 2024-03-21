@@ -73,18 +73,17 @@ export class TimerPage {
 		await this.addActionButton.click();
 	}
 
-	async assertActionTimerNotification(
-		index: number,
-		notification: Notification
-	) {
-		this.actionNotificationPage = new ActionNotificationPage(
-			this.page,
-			index
-		);
+	async assertActionTimerNotifications(notifications: Notification[]) {
+		for (let index = 0; index < notifications.length; index++) {
+			this.actionNotificationPage = new ActionNotificationPage(
+				this.page,
+				index
+			);
 
-		await this.actionNotificationPage.assertActionTimerNotification(
-			index,
-			notification
-		);
+			await this.actionNotificationPage.assertActionTimerNotification(
+				index,
+				notifications[index]
+			);
+		}
 	}
 }
