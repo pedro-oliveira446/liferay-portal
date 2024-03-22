@@ -58,51 +58,6 @@ export class ActionNotificationPage {
 		this.page = page;
 	}
 
-	async fillActionNotificationFields({
-		notificationDescription,
-		notificationName,
-		notificationTypeEmail,
-		notificationTypeUser,
-		recipientType,
-		recipientTypeData,
-		template,
-		templateLanguage,
-	}: Notification) {
-		await this.inputActionType.selectOption('timerNotifications');
-		await this.inputNotificationDescription.fill(notificationDescription);
-		await this.inputNotificationName.fill(notificationName);
-		await this.inputNotificationTemplate.fill(template);
-		await this.inputNotificationTemplateLanguage.selectOption(
-			templateLanguage
-		);
-		await this.inputNotificationTypeCombo.click();
-		if (notificationTypeEmail) {
-			await this.inputNotificationTypeEmail.check();
-		}
-		if (notificationTypeUser) {
-			await this.inputNotificationTypeUser.check();
-		}
-		await this.divSectionActionNotification.click();
-		await this.inputRecipientType.selectOption(recipientType);
-
-		if (recipientType === 'role') {
-			await this.inputRoleName.click();
-			await this.page
-				.getByRole('menuitem', {
-					name: (recipientTypeData as RoleRecipientType)?.roleName,
-				})
-				.click();
-		}
-		else if (recipientType === 'scriptedRecipient') {
-			await this.inputScriptLanguage.selectOption(
-				(recipientTypeData as ScriptRecipientType)?.scriptLanguage
-			);
-			await this.inputScript.fill(
-				(recipientTypeData as ScriptRecipientType)?.script
-			);
-		}
-	}
-
 	async assertActionTimerNotification(
 		index: number,
 		{
@@ -140,14 +95,57 @@ export class ActionNotificationPage {
 			await expect(this.inputRoleName).toHaveValue(
 				(recipientTypeData as RoleRecipientType).roleName
 			);
-		}
-		else if (recipientType === 'scriptedRecipient') {
+		} else if (recipientType === 'scriptedRecipient') {
 			const script = (recipientTypeData as ScriptRecipientType).script;
 			await expect(this.inputScript).toHaveValue(
 				new RegExp(`^(${script}|${script}\\n?)$`)
 			);
 			await expect(this.inputScriptLanguage).toHaveValue(
 				(recipientTypeData as ScriptRecipientType).scriptLanguage
+			);
+		}
+	}
+
+	async fillActionNotificationFields({
+		notificationDescription,
+		notificationName,
+		notificationTypeEmail,
+		notificationTypeUser,
+		recipientType,
+		recipientTypeData,
+		template,
+		templateLanguage,
+	}: Notification) {
+		await this.inputActionType.selectOption('timerNotifications');
+		await this.inputNotificationDescription.fill(notificationDescription);
+		await this.inputNotificationName.fill(notificationName);
+		await this.inputNotificationTemplate.fill(template);
+		await this.inputNotificationTemplateLanguage.selectOption(
+			templateLanguage
+		);
+		await this.inputNotificationTypeCombo.click();
+		if (notificationTypeEmail) {
+			await this.inputNotificationTypeEmail.check();
+		}
+		if (notificationTypeUser) {
+			await this.inputNotificationTypeUser.check();
+		}
+		await this.divSectionActionNotification.click();
+		await this.inputRecipientType.selectOption(recipientType);
+
+		if (recipientType === 'role') {
+			await this.inputRoleName.click();
+			await this.page
+				.getByRole('menuitem', {
+					name: (recipientTypeData as RoleRecipientType)?.roleName,
+				})
+				.click();
+		} else if (recipientType === 'scriptedRecipient') {
+			await this.inputScriptLanguage.selectOption(
+				(recipientTypeData as ScriptRecipientType)?.scriptLanguage
+			);
+			await this.inputScript.fill(
+				(recipientTypeData as ScriptRecipientType)?.script
 			);
 		}
 	}

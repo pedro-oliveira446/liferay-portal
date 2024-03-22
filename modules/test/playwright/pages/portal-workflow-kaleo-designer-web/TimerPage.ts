@@ -33,38 +33,6 @@ export class TimerPage {
 		this.page = page;
 	}
 
-	async deleteAllTimers() {
-		await this.deleteAllTimersButton.click();
-		await this.modalDeleteButton.click();
-	}
-
-	async fillTimerFields(
-		description: string,
-		duration: string,
-		name: string,
-		scale: string
-	) {
-		await this.inputTimerDescription.fill(description);
-		await this.inputTimerDuration.fill(duration);
-		await this.inputTimerName.fill(name);
-		await this.inputTimerRecurrence.uncheck();
-		await this.inputTimerScale.selectOption(scale);
-	}
-
-	async fillTimerActionNotificationFields(
-		index: number,
-		notification: Notification
-	) {
-		this.actionNotificationPage = new ActionNotificationPage(
-			this.page,
-			index
-		);
-
-		await this.actionNotificationPage.fillActionNotificationFields(
-			notification
-		);
-	}
-
 	async addNewAction(index: number) {
 		this.addActionButton = this.page
 			.getByRole('button', {name: 'New Action'})
@@ -85,5 +53,37 @@ export class TimerPage {
 				notifications[index]
 			);
 		}
+	}
+
+	async deleteAllTimers() {
+		await this.deleteAllTimersButton.click();
+		await this.modalDeleteButton.click();
+	}
+
+	async fillTimerActionNotificationFields(
+		index: number,
+		notification: Notification
+	) {
+		this.actionNotificationPage = new ActionNotificationPage(
+			this.page,
+			index
+		);
+
+		await this.actionNotificationPage.fillActionNotificationFields(
+			notification
+		);
+	}
+
+	async fillTimerFields(
+		description: string,
+		duration: string,
+		name: string,
+		scale: string
+	) {
+		await this.inputTimerDescription.fill(description);
+		await this.inputTimerDuration.fill(duration);
+		await this.inputTimerName.fill(name);
+		await this.inputTimerRecurrence.uncheck();
+		await this.inputTimerScale.selectOption(scale);
 	}
 }
