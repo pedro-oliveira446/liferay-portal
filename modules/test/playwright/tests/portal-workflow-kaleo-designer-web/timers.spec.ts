@@ -116,3 +116,52 @@ test('LPD-16281 can create timer notifications', async ({
 		workflowDefinition.id
 	);
 });
+
+const roleTypes = [
+	{
+		autocreate:false,
+		roleName: 'Account Manager',
+		roleType: 'Organization',
+	},
+	{
+		autocreate:true,
+		roleName: 'Administrator',
+		roleType: 'Regular',
+	},
+] as RoleType[];
+
+test('LPD-21221 can create timer reassignments role type reassignment type', async ({
+	apiHelpers,
+	diagramViewPage,
+	nodePropertiesSidebarPage,
+	processBuilderPage,
+}) => {
+	const singleApproverWorkflowDefinition =
+		await apiHelpers.headlessAdminWorkflow.getWorkflowDefinitionByName(
+			'Single Approver'
+		);
+
+	const workflowDefinitionName = 'Copy of Single Approver' + getRandomInt();
+
+	const workflowDefinition =
+		await apiHelpers.headlessAdminWorkflow.postWorkflowDefinitionSave(
+			workflowDefinitionName,
+			singleApproverWorkflowDefinition
+		);
+
+	await processBuilderPage.goto();
+
+	await processBuilderPage.clickCopyOfSingleAproverWorkflowDefinition(
+		workflowDefinitionName
+	);
+
+	await diagramViewPage.clickReviewNodeLink();
+
+	await nodePropertiesSidebarPage.createTimerReassignmentRoleType(roleTypes);
+
+	// clean up
+
+	await apiHelpers.headlessAdminWorkflow.deleteWorkflowDefinition(
+		workflowDefinition.id
+	);
+});

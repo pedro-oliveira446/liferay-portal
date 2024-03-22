@@ -13,8 +13,19 @@ interface Notification {
 	templateLanguage: string;
 }
 
+interface Reassignment {
+	reassignmentType: string;
+	reassignmentTypeData: RoleType[];
+}
+
 interface RoleRecipientType {
 	roleName: string;
+}
+
+interface RoleType {
+	autocreate:boolean;
+	roleName: string;
+	roleType: string;
 }
 
 interface ScriptRecipientType {
