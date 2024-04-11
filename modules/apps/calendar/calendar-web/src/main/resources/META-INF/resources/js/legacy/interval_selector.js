@@ -71,21 +71,6 @@ AUI.add(
 					const instance = this;
 
 					instance._setEndTime();
-
-					const endDateValue = instance._endDate.valueOf();
-
-					if (
-						instance._validDate &&
-						instance._startDate.valueOf() >= endDateValue
-					) {
-						instance._startDate = new Date(
-							endDateValue - instance._duration
-						);
-
-						instance._setStartDatePickerDate();
-						instance._setStartTimePickerTime();
-					}
-
 					instance._setDuration();
 					instance._validate();
 				},
