@@ -21,7 +21,7 @@ export async function getEmailNotificationRoles(baseResourceURL: string) {
 		}).toString()
 	);
 
-	const json = (await response.json())
+	const json = await response.json();
 
 	const accountRoles = json.accountRoles as Role[];
 
@@ -51,19 +51,19 @@ export async function getEmailNotificationRoles(baseResourceURL: string) {
 		value: 'regularRolesList',
 	} as MultiSelectItem;
 
-	return [accountRolesGroup,regularRolesGroup];
+	return [accountRolesGroup, regularRolesGroup];
 }
 
 export function getChecked(
 	rolesNamesList: EmailNotificationRecipients[],
 	baseRoleList: MultiSelectItem[]
 ) {
-
 	return baseRoleList.map((baseRole) => {
 		return {
-			...baseRole, children: getCheckedChildren(rolesNamesList,baseRole.children)
-		}
-	})
+			...baseRole,
+			children: getCheckedChildren(rolesNamesList, baseRole.children),
+		};
+	});
 }
 
 export function getCheckedChildren(

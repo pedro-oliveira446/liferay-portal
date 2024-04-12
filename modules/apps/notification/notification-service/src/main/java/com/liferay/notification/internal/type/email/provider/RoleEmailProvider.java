@@ -51,7 +51,8 @@ public class RoleEmailProvider implements EmailProvider {
 		ObjectFieldLocalService objectFieldLocalService,
 		OrganizationLocalService organizationLocalService,
 		RoleLocalService roleLocalService,
-		UserGroupRoleLocalService userGroupRoleLocalService,  UserLocalService userLocalService) {
+		UserGroupRoleLocalService userGroupRoleLocalService,
+		UserLocalService userLocalService) {
 
 		_accountEntryLocalService = accountEntryLocalService;
 		_accountEntryOrganizationRelLocalService =
@@ -160,31 +161,31 @@ public class RoleEmailProvider implements EmailProvider {
 				continue;
 			}
 
-			if(role.getType() == RoleConstants.TYPE_ORGANIZATION ||
-			   role.getType() == RoleConstants.TYPE_ACCOUNT){
+			if ((role.getType() == RoleConstants.TYPE_ORGANIZATION) ||
+				(role.getType() == RoleConstants.TYPE_ACCOUNT)) {
+
 				for (long groupId : groupIdsMap.get(role.getType())) {
 					for (UserGroupRole userGroupRole :
-						_userGroupRoleLocalService.
-							getUserGroupRolesByGroupAndRole(
-								groupId, role.getRoleId())) {
+							_userGroupRoleLocalService.
+								getUserGroupRolesByGroupAndRole(
+									groupId, role.getRoleId())) {
 
 						User user = userGroupRole.getUser();
 
 						emailAddresses.add(user.getEmailAddress());
 					}
 				}
-			} else {
-
+			}
+			else {
 				List<User> inheritedRoleUsers =
 					_userLocalService.getInheritedRoleUsers(
-						role.getRoleId(), QueryUtil.ALL_POS,
-						QueryUtil.ALL_POS, null);
+						role.getRoleId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+						null);
 
-				for (User user : inheritedRoleUsers){
+				for (User user : inheritedRoleUsers) {
 					emailAddresses.add(user.getEmailAddress());
 				}
 			}
-
 		}
 
 		return StringUtil.merge(emailAddresses);

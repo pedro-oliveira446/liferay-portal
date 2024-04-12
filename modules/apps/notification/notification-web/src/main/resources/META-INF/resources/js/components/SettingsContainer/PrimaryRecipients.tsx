@@ -84,9 +84,7 @@ export function PrimaryRecipient({
 				? toRolesList
 				: emailNotificationRoles;
 
-			setToRolesList(
-				getChecked(recipient.to,baseRoleList)
-			);
+			setToRolesList(getChecked(recipient.to, baseRoleList));
 
 			return;
 		}

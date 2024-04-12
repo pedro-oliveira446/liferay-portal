@@ -68,12 +68,15 @@ public class GetEmailNotificationRolesMVCResourceCommand
 
 			if (role.getType() == RoleConstants.TYPE_ACCOUNT) {
 				accountRolesJSONArray.put(roleJSONObject);
-			} else if (role.getType() == RoleConstants.TYPE_ORGANIZATION){
+			}
+			else if (role.getType() == RoleConstants.TYPE_ORGANIZATION) {
 				organizationRolesJSONArray.put(roleJSONObject);
-			} else {
-				if(StringUtil.equals(role.getName(),"Guest")) {
+			}
+			else {
+				if (StringUtil.equals(role.getName(), "Guest")) {
 					continue;
 				}
+
 				regularRolesJSONArray.put(roleJSONObject);
 			}
 		}

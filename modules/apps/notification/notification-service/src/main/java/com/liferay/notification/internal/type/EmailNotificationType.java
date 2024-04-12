@@ -469,7 +469,7 @@ public class EmailNotificationType extends BaseNotificationType {
 				_accountEntryOrganizationRelLocalService,
 				_objectDefinitionLocalService, _objectFieldLocalService,
 				_organizationLocalService, _roleLocalService,
-				_userGroupRoleLocalService,_userLocalService));
+				_userGroupRoleLocalService, _userLocalService));
 	}
 
 	private void _addFileAttachments(
