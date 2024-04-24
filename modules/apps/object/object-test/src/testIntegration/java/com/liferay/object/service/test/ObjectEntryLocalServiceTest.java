@@ -55,6 +55,8 @@ import com.liferay.object.model.ObjectStateFlow;
 import com.liferay.object.model.ObjectStateTransition;
 import com.liferay.object.model.ObjectValidationRule;
 import com.liferay.object.model.ObjectValidationRuleSetting;
+import com.liferay.object.scope.CompanyScoped;
+import com.liferay.object.scope.ObjectDefinitionScoped;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
@@ -70,6 +72,7 @@ import com.liferay.object.test.util.TreeTestUtil;
 import com.liferay.object.tree.Node;
 import com.liferay.object.tree.Tree;
 import com.liferay.object.tree.TreeFactory;
+import com.liferay.object.validation.rule.ObjectValidationRuleEngine;
 import com.liferay.object.validation.rule.ObjectValidationRuleResult;
 import com.liferay.object.validation.rule.setting.builder.ObjectValidationRuleSettingBuilder;
 import com.liferay.petra.sql.dsl.Column;
@@ -120,6 +123,7 @@ import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.JavaDetector;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
@@ -129,6 +133,7 @@ import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
@@ -180,6 +185,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -3219,6 +3229,83 @@ public class ObjectEntryLocalServiceTest {
 	}
 
 	@Test
+	public void testUpdateObjectEntryWithJavaDelegateObjectValidationRule()
+		throws Exception {
+
+		String key =
+			ObjectValidationRuleConstants.ENGINE_TYPE_JAVA_DELEGATE_PREFIX +
+				RandomTestUtil.randomString();
+
+		ObjectValidationRuleEngine objectValidationRuleEngine =
+			new TestObjectValidationRuleEngine(
+				TestPropsValues.getCompanyId(),
+				Collections.singletonList(_objectDefinition.getName()), key);
+
+		Bundle bundle = FrameworkUtil.getBundle(
+			ObjectEntryLocalServiceTest.class);
+
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		ServiceRegistration<ObjectValidationRuleEngine>
+			objectValidationRuleEngineServiceRegistration =
+				bundleContext.registerService(
+					ObjectValidationRuleEngine.class,
+					objectValidationRuleEngine, null);
+
+		ObjectValidationRule objectValidationRule = _addObjectValidationRule(
+			key,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			"");
+
+		ObjectEntry objectEntry = _addObjectEntry(
+			HashMapBuilder.<String, Serializable>put(
+				"emailAddressRequired", "bob@liferay.com"
+			).put(
+				"listTypeEntryKeyRequired", "listTypeEntryKey1"
+			).build());
+
+		try {
+			_objectEntryLocalService.updateObjectEntry(
+				TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
+				HashMapBuilder.<String, Serializable>put(
+					"emailAddressRequired", "john@liferay.com"
+				).put(
+					"listTypeEntryKeyRequired", "listTypeEntryKey2"
+				).build(),
+				ServiceContextTestUtil.getServiceContext());
+
+			Assert.fail();
+		}
+		catch (ModelListenerException modelListenerException) {
+			ObjectValidationRuleEngineException
+				objectValidationRuleEngineException =
+					(ObjectValidationRuleEngineException)
+						modelListenerException.getCause();
+
+			List<ObjectValidationRuleResult> objectValidationRuleResults =
+				objectValidationRuleEngineException.
+					getObjectValidationRuleResults();
+
+			Assert.assertEquals(
+				objectValidationRuleResults.toString(), 1,
+				objectValidationRuleResults.size());
+
+			_assertObjectValidationRuleResult(
+				objectValidationRule.getErrorLabel(LocaleUtil.getDefault()),
+				null, objectValidationRuleResults.get(0));
+		}
+
+		_objectValidationRuleLocalService.deleteObjectValidationRule(
+			objectValidationRule);
+
+		if (objectValidationRuleEngineServiceRegistration == null) {
+			return;
+		}
+
+		objectValidationRuleEngineServiceRegistration.unregister();
+	}
+
+	@Test
 	public void testUpdateStatus() throws Exception {
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
@@ -3975,5 +4062,111 @@ public class ObjectEntryLocalServiceTest {
 
 	@Inject
 	private WorkflowTaskManager _workflowTaskManager;
+
+	private static class TestObjectValidationRuleEngine
+		implements CompanyScoped, ObjectDefinitionScoped,
+				   ObjectValidationRuleEngine {
+
+		@Override
+		public Map<String, Object> execute(
+			Map<String, Object> inputObjects, String script) {
+
+			String emailAddressRequired = "";
+			String listTypeEntryKeyRequired = "";
+
+			if (inputObjects.containsKey("entryDTO") &&
+				Validator.isNotNull(inputObjects.get("entryDTO"))) {
+
+				Map<String, Object> entryDTO =
+					(Map<String, Object>)inputObjects.get("entryDTO");
+
+				Map<String, Object> entryValues =
+					(Map<String, Object>)entryDTO.get("properties");
+
+				emailAddressRequired = GetterUtil.getString(
+					entryValues.get("emailAddressRequired"));
+
+				Map<String, Object> listTypeEntryValues =
+					(Map<String, Object>)entryValues.get(
+						"listTypeEntryKeyRequired");
+
+				listTypeEntryKeyRequired = GetterUtil.getString(
+					listTypeEntryValues.get("key"));
+			}
+
+			String oldEmailAddressRequired = "";
+			String oldListTypeEntryKeyRequired = "";
+
+			if (inputObjects.containsKey("originalEntryDTO") &&
+				Validator.isNotNull(inputObjects.get("originalEntryDTO"))) {
+
+				Map<String, Object> originalEntryDTO =
+					(Map<String, Object>)inputObjects.get("originalEntryDTO");
+
+				Map<String, Object> originalEntryValues =
+					(Map<String, Object>)originalEntryDTO.get("properties");
+
+				oldEmailAddressRequired = GetterUtil.getString(
+					originalEntryValues.get("emailAddressRequired"));
+
+				Map<String, Object> oldListTypeEntryValues =
+					(Map<String, Object>)originalEntryValues.get(
+						"listTypeEntryKeyRequired");
+
+				oldListTypeEntryKeyRequired = GetterUtil.getString(
+					oldListTypeEntryValues.get("key"));
+			}
+
+			if (StringUtil.equals(emailAddressRequired, "john@liferay.com") &&
+				StringUtil.equals(
+					listTypeEntryKeyRequired, "listTypeEntryKey2") &&
+				StringUtil.equals(oldEmailAddressRequired, "bob@liferay.com") &&
+				StringUtil.equals(
+					oldListTypeEntryKeyRequired, "listTypeEntryKey1")) {
+
+				return HashMapBuilder.<String, Object>put(
+					"validationCriteriaMet", false
+				).build();
+			}
+
+			return HashMapBuilder.<String, Object>put(
+				"validationCriteriaMet", true
+			).build();
+		}
+
+		@Override
+		public long getAllowedCompanyId() {
+			return _allowedCompanyId;
+		}
+
+		@Override
+		public List<String> getAllowedObjectDefinitionNames() {
+			return _allowedObjectDefinitionNames;
+		}
+
+		@Override
+		public String getKey() {
+			return _key;
+		}
+
+		@Override
+		public String getLabel(Locale locale) {
+			return RandomTestUtil.randomString();
+		}
+
+		private TestObjectValidationRuleEngine(
+			long allowedCompanyId, List<String> allowedObjectDefinitionNames,
+			String key) {
+
+			_allowedCompanyId = allowedCompanyId;
+			_allowedObjectDefinitionNames = allowedObjectDefinitionNames;
+			_key = key;
+		}
+
+		private final long _allowedCompanyId;
+		private final List<String> _allowedObjectDefinitionNames;
+		private final String _key;
+
+	}
 
 }
