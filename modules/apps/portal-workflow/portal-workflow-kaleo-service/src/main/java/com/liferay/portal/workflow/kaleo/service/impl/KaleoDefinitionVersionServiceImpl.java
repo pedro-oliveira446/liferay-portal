@@ -8,8 +8,6 @@ package com.liferay.portal.workflow.kaleo.service.impl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
@@ -43,7 +41,9 @@ public class KaleoDefinitionVersionServiceImpl
 			_kaleoDefinitionVersionLocalService.getKaleoDefinitionVersion(
 				companyId, name, version);
 
-		_checkPermissions(kaleoDefinitionVersion.getKaleoDefinition());
+		_kaleoDefinitionModelResourcePermission.check(
+			getPermissionChecker(), kaleoDefinitionVersion.getKaleoDefinition(),
+			ActionKeys.VIEW);
 
 		return kaleoDefinitionVersion;
 	}
@@ -64,23 +64,11 @@ public class KaleoDefinitionVersionServiceImpl
 		KaleoDefinitionVersion kaleoDefinitionVersion =
 			kaleoDefinitionVersions.get(0);
 
-		_checkPermissions(kaleoDefinitionVersion.getKaleoDefinition());
+		_kaleoDefinitionModelResourcePermission.check(
+			getPermissionChecker(), kaleoDefinitionVersion.getKaleoDefinition(),
+			ActionKeys.VIEW);
 
 		return kaleoDefinitionVersions;
-	}
-
-	private void _checkPermissions(KaleoDefinition kaleoDefinition)
-		throws PortalException {
-
-		PermissionChecker permissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
-
-		if (permissionChecker == null) {
-			return;
-		}
-
-		_kaleoDefinitionModelResourcePermission.check(
-			permissionChecker, kaleoDefinition, ActionKeys.VIEW);
 	}
 
 	@Reference(
