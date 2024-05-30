@@ -20,6 +20,7 @@ type EmailRecipients = {
 	ccType: string;
 	from: string;
 	fromName: LocalizedValue<string>;
+	sendUserLanguage: boolean;
 	singleRecipient: boolean;
 	to: LocalizedValue<string> | EmailNotificationRecipients[];
 	toType: string;

@@ -24,6 +24,8 @@ public class NotificationRecipientSettingConstants {
 
 	public static final String NAME_ROLE_NAME = "roleName";
 
+	public static final String NAME_SEND_USER_LANGUAGE = "sendUserLanguage";
+
 	public static final String NAME_SINGLE_RECIPIENT = "singleRecipient";
 
 	public static final String NAME_TERM = "term";

@@ -8,6 +8,7 @@ import {InputLocalized} from 'frontend-js-components-web';
 import React from 'react';
 
 import {NotificationTemplateError} from '../EditNotificationTemplate';
+import { ClayCheckbox } from '@clayui/form';
 
 interface SenderProps {
 	errors: FormError<NotificationTemplate & NotificationTemplateError>;
@@ -25,6 +26,7 @@ export function Sender({
 	const [recipient] = values.recipients as EmailRecipients[];
 
 	return (
+		<>
 		<div className="row">
 			<div className="col-lg-6">
 				<Input
@@ -74,5 +76,28 @@ export function Sender({
 				/>
 			</div>
 		</div>
+		<div className="row">
+			<div className="col-lg-6">
+				<ClayCheckbox
+					checked={
+						(values.recipients[0] as EmailRecipients).sendUserLanguage
+					}
+					disabled={values.system}
+					label={"Enable sending notifications in the user's language."}
+					onChange={({target: {checked}}) => {
+						setValues({
+							...values,
+							recipients: [
+								{
+									...values.recipients[0],
+									sendUserLanguage: checked,
+								},
+							],
+						});
+					}}
+				/>
+			</div>
+		</div>
+		</>
 	);
 }

@@ -146,6 +146,7 @@ export default function EditNotificationTemplate({
 						cc: recipients.cc,
 						from: recipients.from,
 						fromName: recipients.fromName,
+						sendUserLanguage: recipients.sendUserLanguage,
 						singleRecipient: recipients.singleRecipient,
 						to: recipients.to,
 					},
@@ -210,6 +211,7 @@ export default function EditNotificationTemplate({
 				fromName: {
 					[defaultLanguageId]: '',
 				},
+				sendUserLanguage: false,
 				singleRecipient: false,
 				to: {
 					[defaultLanguageId]: '',
