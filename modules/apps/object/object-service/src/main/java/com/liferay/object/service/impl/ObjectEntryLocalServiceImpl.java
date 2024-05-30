@@ -336,10 +336,14 @@ public class ObjectEntryLocalServiceImpl
 		boolean clearObjectEntryIdsMap =
 			ObjectActionThreadLocal.isClearObjectEntryIdsMap();
 
+		Locale currentLocale = LocaleThreadLocal.getThemeDisplayLocale();
+
 		try {
 			if (clearObjectEntryIdsMap) {
 				ObjectActionThreadLocal.clearObjectEntryIdsMap();
 			}
+
+			LocaleThreadLocal.setThemeDisplayLocale(serviceContext.getLocale());
 
 			ObjectActionThreadLocal.setClearObjectEntryIdsMap(false);
 
@@ -349,6 +353,8 @@ public class ObjectEntryLocalServiceImpl
 				objectEntry, user);
 		}
 		finally {
+			LocaleThreadLocal.setThemeDisplayLocale(currentLocale);
+
 			ObjectActionThreadLocal.setClearObjectEntryIdsMap(
 				clearObjectEntryIdsMap);
 		}
