@@ -45,5 +45,6 @@ export declare function specialCharactersInString(str: string): boolean;
  */
 export declare function toCamelCase(
 	str: string,
-	removeSpecialCharacters?: boolean
+	removeSpecialCharacters?: boolean,
+	keepFirstLetter?: boolean
 ): string;
