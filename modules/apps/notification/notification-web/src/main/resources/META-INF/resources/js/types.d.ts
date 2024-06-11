@@ -27,6 +27,7 @@ type EmailRecipients = {
 	singleRecipient: boolean;
 	to: LocalizedValue<string> | EmailNotificationRecipients[];
 	toType: string;
+	useUserLocale: boolean;
 };
 
 type EmailNotificationRecipients = {
