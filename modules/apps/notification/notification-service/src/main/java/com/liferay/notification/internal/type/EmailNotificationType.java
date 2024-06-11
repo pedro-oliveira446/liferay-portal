@@ -150,7 +150,8 @@ public class EmailNotificationType extends BaseNotificationType {
 			NotificationRecipientSettingConstants.NAME_FROM,
 			NotificationRecipientSettingConstants.NAME_FROM_NAME,
 			NotificationRecipientSettingConstants.NAME_SINGLE_RECIPIENT,
-			NotificationRecipientSettingConstants.NAME_TO);
+			NotificationRecipientSettingConstants.NAME_TO,
+			NotificationRecipientSettingConstants.NAME_USE_USER_LOCALE);
 
 		if (FeatureFlagManagerUtil.isEnabled("LPD-11165")) {
 			names.addAll(
