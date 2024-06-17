@@ -78,6 +78,7 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -143,6 +144,9 @@ public class DefaultObjectEntryManagerImpl
 
 		ServiceContext serviceContext = ServiceContextUtil.createServiceContext(
 			objectEntry, dtoConverterContext.getUserId());
+
+		serviceContext.setLanguageId(
+			LocaleUtil.toLanguageId(dtoConverterContext.getLocale()));
 
 		com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry =
 			_objectEntryService.addObjectEntry(
