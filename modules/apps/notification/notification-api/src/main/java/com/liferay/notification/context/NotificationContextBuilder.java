@@ -7,6 +7,7 @@ package com.liferay.notification.context;
 
 import com.liferay.notification.model.NotificationTemplate;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -68,6 +69,12 @@ public class NotificationContextBuilder {
 
 	public NotificationContextBuilder userId(long userId) {
 		_notificationContext.setUserId(userId);
+
+		return this;
+	}
+
+	public NotificationContextBuilder defaultLocale(Locale locale) {
+		_notificationContext.setSiteDefaultLocale(locale);
 
 		return this;
 	}

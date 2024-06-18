@@ -56,6 +56,7 @@ import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.model.Group;
@@ -102,6 +103,8 @@ import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.SynchronousMailTestRule;
+import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
+import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.text.SimpleDateFormat;
@@ -248,7 +251,7 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 					LocaleUtil.US, "[%CURRENT_USER_FIRST_NAME%]"),
 				false,
 				Collections.singletonMap(
-					LocaleUtil.US, user1.getEmailAddress())));
+					LocaleUtil.US, user1.getEmailAddress()),false));
 
 		_assertNotificationQueueEntryTermValues(
 			new ArrayList<>(_freeMarkerTermValues.values()), StringPool.POUND);
@@ -286,7 +289,7 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 						LocaleUtil.US, RandomTestUtil.randomString()),
 					false,
 					Collections.singletonMap(
-						LocaleUtil.US, user1.getEmailAddress())));
+						LocaleUtil.US, user1.getEmailAddress()),false));
 		}
 		finally {
 			PermissionThreadLocal.setPermissionChecker(
@@ -318,7 +321,7 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 					LocaleUtil.US, "[%CURRENT_USER_FIRST_NAME%]"),
 				false,
 				Collections.singletonMap(
-					LocaleUtil.US, user1.getEmailAddress())));
+					LocaleUtil.US, user1.getEmailAddress()),false));
 
 		ListEntry listEntry = (ListEntry)childObjectEntryValues.get(
 			"picklistObjectField");
@@ -421,6 +424,82 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 			StringBundler.concat(
 				user1.getEmailAddress(), StringPool.COMMA,
 				user2.getEmailAddress()));
+	}
+@Test
+	public void testSendNotificationWithContextLanguage() throws Exception {
+
+	DTOConverterContext dto = dtoConverterContext;
+
+	// Notification triggered by guest user
+
+	dtoConverterContext = new DefaultDTOConverterContext(
+		false, Collections.emptyMap(),
+		BaseNotificationTypeTest.dtoConverterRegistry, null,
+		Locale.FRENCH, null, guestUser);
+
+	Role guestRole = _roleLocalService.getRole(
+		TestPropsValues.getCompanyId(), RoleConstants.GUEST);
+
+	resourcePermissionLocalService.addResourcePermission(
+		guestUser.getCompanyId(), childObjectDefinition.getResourceName(),
+		ResourceConstants.SCOPE_COMPANY,
+		String.valueOf(guestUser.getCompanyId()), guestRole.getRoleId(),
+		ObjectActionKeys.ADD_OBJECT_ENTRY);
+	resourcePermissionLocalService.addResourcePermission(
+		guestUser.getCompanyId(), parentObjectDefinition.getResourceName(),
+		ResourceConstants.SCOPE_COMPANY,
+		String.valueOf(guestUser.getCompanyId()), guestRole.getRoleId(),
+		ObjectActionKeys.ADD_OBJECT_ENTRY);
+
+	PermissionChecker originalPermissionChecker =
+		PermissionThreadLocal.getPermissionChecker();
+	String originalName = PrincipalThreadLocal.getName();
+
+	String randomFrenchBody = RandomTestUtil.randomString();
+	String randomFromNameFrench = RandomTestUtil.randomString();
+	String randomFrenchEmailAddress = RandomTestUtil.randomString() + "@liferay.com";
+
+	String body = LocalizationUtil.updateLocalization(
+		LocalizedMapUtil.getLocalizedMap(
+			HashMapBuilder.put(
+				LanguageUtil.getLanguageId(LocaleUtil.US),
+				RandomTestUtil.randomString()
+			).put(
+				LanguageUtil.getLanguageId(LocaleUtil.FRANCE),
+				randomFrenchBody
+			).build()),
+		null, "Body", LanguageUtil.getLanguageId(LocaleUtil.US));
+
+	try {
+		PermissionThreadLocal.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(guestUser));
+		PrincipalThreadLocal.setName(guestUser.getUserId());
+
+		executeNotificationObjectAction(
+			0,
+			_addNotificationTemplate(
+				body, NotificationTemplateConstants.EDITOR_TYPE_FREEMARKER,
+				HashMapBuilder.put(
+					LocaleUtil.US, RandomTestUtil.randomString()
+				).put(
+					LocaleUtil.FRANCE,randomFromNameFrench
+				).build(),
+				false,
+				HashMapBuilder.put(
+					LocaleUtil.US, RandomTestUtil.randomString()
+				).put(
+					LocaleUtil.FRANCE, randomFrenchEmailAddress
+				).build(),true));
+	}
+	finally {
+		PermissionThreadLocal.setPermissionChecker(
+			originalPermissionChecker);
+		PrincipalThreadLocal.setName(originalName);
+	}
+
+
+	dtoConverterContext = dto;
+
 	}
 
 	@FeatureFlags("LPD-11165")
@@ -917,7 +996,7 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 
 	private NotificationTemplate _addNotificationTemplate(
 			String body, String editorType, Map<Locale, String> fromName,
-			boolean singleRecipient, Map<Locale, String> to)
+			boolean singleRecipient, Map<Locale, String> to, boolean useUserLocale)
 		throws Exception {
 
 		ObjectField objectField = objectFieldLocalService.getObjectField(
@@ -940,7 +1019,8 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 					createNotificationRecipientSetting("fromName", fromName),
 					createNotificationRecipientSetting(
 						"singleRecipient", String.valueOf(singleRecipient)),
-					createNotificationRecipientSetting("to", to)),
+					createNotificationRecipientSetting("to", to),
+					createNotificationRecipientSetting("useUserLocale", String.valueOf(useUserLocale))),
 				ListUtil.toString(
 					getTermNames(), StringPool.BLANK, StringPool.SEMICOLON),
 				NotificationConstants.TYPE_EMAIL,
@@ -1134,7 +1214,7 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 				NotificationTemplateConstants.EDITOR_TYPE_RICH_TEXT,
 				Collections.singletonMap(
 					LocaleUtil.US, "[%CURRENT_USER_FIRST_NAME%]"),
-				singleRecipient, Collections.singletonMap(LocaleUtil.US, to)));
+				singleRecipient, Collections.singletonMap(LocaleUtil.US, to),false));
 
 		List<NotificationQueueEntry> notificationQueueEntries = ListUtil.sort(
 			notificationQueueEntryLocalService.getNotificationEntries(
