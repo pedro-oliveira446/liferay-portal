@@ -492,6 +492,9 @@ public class ObjectRelationshipLocalServiceTest {
 
 	@Test
 	public void testBindPublishedObjectDefinitions() throws Exception {
+
+		// Bind two published object definitions
+
 		ObjectDefinition objectDefinitionA =
 			ObjectDefinitionTestUtil.addCustomObjectDefinition("A");
 		ObjectDefinition objectDefinitionAA =
@@ -514,6 +517,68 @@ public class ObjectRelationshipLocalServiceTest {
 					_treeFactory.createObjectDefinitionTree(
 						objectDefinition1.getObjectDefinitionId()),
 					_objectDefinitionLocalService));
+
+		// Bind two published object definitions trees
+
+		objectDefinitionA = _addAndPublishCustomObjectDefinition();
+		objectDefinitionAA = _addAndPublishCustomObjectDefinition();
+
+		_addObjectRelationshipEdge(objectDefinitionA, objectDefinitionAA);
+
+		ObjectDefinition objectDefinitionAB =
+			_addAndPublishCustomObjectDefinition();
+
+		_addObjectRelationshipEdge(objectDefinitionA, objectDefinitionAB);
+
+		ObjectDefinition objectDefinitionAAA =
+			_addAndPublishCustomObjectDefinition();
+		ObjectDefinition objectDefinitionAAAA =
+			_addAndPublishCustomObjectDefinition();
+
+		_addObjectRelationshipEdge(
+			objectDefinitionAAA, objectDefinitionAAAA);
+
+		ObjectDefinition objectDefinitionAAAAA =
+			_addAndPublishCustomObjectDefinition();
+
+		_addObjectRelationshipEdge(
+			objectDefinitionAAAA, objectDefinitionAAAAA);
+
+		_addObjectRelationshipEdge(objectDefinitionAA, objectDefinitionAAA);
+
+		TreeTestUtil.assertObjectDefinitionTree(
+			LinkedHashMapBuilder.put(
+				objectDefinitionA.getShortName(),
+				new String[] {
+					objectDefinitionAA.getShortName(),
+					objectDefinitionAB.getShortName()
+				}
+			).put(
+				objectDefinitionAA.getShortName(),
+				new String[] {objectDefinitionAAA.getShortName()}
+			).put(
+				objectDefinitionAB.getShortName(), new String[0]
+			).put(
+				objectDefinitionAAA.getShortName(),
+				new String[] {objectDefinitionAAAA.getShortName()}
+			).put(
+				objectDefinitionAAAA.getShortName(),
+				new String[] {objectDefinitionAAAAA.getShortName()}
+			).put(
+				objectDefinitionAAAAA.getShortName(), new String[0]
+			).build(),
+			_treeFactory.createObjectDefinitionTree(
+				objectDefinitionA.getObjectDefinitionId()),
+			_objectDefinitionLocalService);
+
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			_objectDefinitionLocalService,
+			new String[] {
+				objectDefinitionAAAAA.getName(), objectDefinitionAAAA.getName(),
+				objectDefinitionAAA.getName(), objectDefinitionAB.getName(),
+				objectDefinitionAA.getName(), objectDefinitionA.getName()
+			},
+			_objectEntryLocalService);
 	}
 
 	@Test
@@ -893,6 +958,28 @@ public class ObjectRelationshipLocalServiceTest {
 			ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
 	}
 
+	private ObjectRelationship _addObjectRelationshipEdge(
+			ObjectDefinition objectDefinition1,
+			ObjectDefinition objectDefinition2)
+		throws Exception {
+
+		ObjectRelationship objectRelationship =
+			_objectRelationshipLocalService.addObjectRelationship(
+				StringUtil.randomId(), TestPropsValues.getUserId(),
+				objectDefinition1.getObjectDefinitionId(),
+				objectDefinition2.getObjectDefinitionId(), 0,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				StringUtil.randomId(), false,
+				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
+
+		return _objectRelationshipLocalService.updateObjectRelationship(
+			objectRelationship.getExternalReferenceCode(),
+			objectRelationship.getObjectRelationshipId(), 0,
+			objectRelationship.getDeletionType(), true,
+			objectRelationship.getLabelMap(), null);
+	}
+
 	private boolean _hasColumn(String tableName, String columnName)
 		throws Exception {
 
@@ -1087,22 +1174,8 @@ public class ObjectRelationshipLocalServiceTest {
 				biConsumer)
 		throws Exception {
 
-		ObjectRelationship objectRelationship =
-			_objectRelationshipLocalService.addObjectRelationship(
-				StringUtil.randomId(), TestPropsValues.getUserId(),
-				objectDefinition1.getObjectDefinitionId(),
-				objectDefinition2.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				StringUtil.randomId(), false,
-				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
-
-		objectRelationship =
-			_objectRelationshipLocalService.updateObjectRelationship(
-				objectRelationship.getExternalReferenceCode(),
-				objectRelationship.getObjectRelationshipId(), 0,
-				objectRelationship.getDeletionType(), true,
-				objectRelationship.getLabelMap(), null);
+		ObjectRelationship objectRelationship = _addObjectRelationshipEdge(
+			objectDefinition1, objectDefinition2);
 
 		Assert.assertTrue(objectRelationship.isEdge());
 		Assert.assertEquals(
