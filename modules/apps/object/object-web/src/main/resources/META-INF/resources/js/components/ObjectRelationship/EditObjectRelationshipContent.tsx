@@ -4,7 +4,7 @@
  */
 
 import ClayAlert from '@clayui/alert';
-import {Input, SingleSelect} from '@liferay/object-js-components-web';
+import {Input, SingleSelect, Toggle} from '@liferay/object-js-components-web';
 import {InputLocalized} from 'frontend-js-components-web';
 import React from 'react';
 
@@ -13,6 +13,7 @@ import {SelectObjectRelationship} from './SelectObjectRelationship';
 
 import type {FormError} from '@liferay/object-js-components-web';
 import type {ChangeEventHandler, ElementType} from 'react';
+import ClayForm from '@clayui/form';
 
 interface EditObjectRelationshipContentProps {
 	baseResourceURL: string;
@@ -107,6 +108,24 @@ export function EditObjectRelationshipContent({
 					required
 					selectedKey={values.deletionType}
 				/>
+				<ClayForm.Group>
+					<Toggle
+						disabled={readOnly}
+						label={
+							Liferay.Language.get('edge')
+						}
+						name="edge"
+						onBlur={(event) => {
+							event.stopPropagation();
+
+							if (onSubmit) {
+								onSubmit();
+							}
+						}}
+						onToggle={() => setValues({edge: !values.edge})}
+						toggled={values.edge}
+					/>
+				</ClayForm.Group>
 			</ContainerWrapper>
 
 			{parameterRequired && values.type === 'oneToMany' && (
