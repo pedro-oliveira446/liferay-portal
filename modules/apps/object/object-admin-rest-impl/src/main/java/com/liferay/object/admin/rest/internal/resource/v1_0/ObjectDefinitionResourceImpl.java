@@ -232,16 +232,15 @@ public class ObjectDefinitionResourceImpl
 			throw new ObjectDefinitionStorageTypeException();
 		}
 
-		String rootObjectDefinitionExternalReferenceCode =
-			objectDefinition.getRootObjectDefinitionExternalReferenceCode();
-
-		if (Validator.isNotNull(rootObjectDefinitionExternalReferenceCode)) {
-			objectDefinition.setStatus(() -> null);
-
-			_validateRootObjectDefinition(
-				WorkflowConstants.STATUS_DRAFT,
-				rootObjectDefinitionExternalReferenceCode);
-		}
+//		String rootObjectDefinitionExternalReferenceCode =
+//			objectDefinition.getRootObjectDefinitionExternalReferenceCode();
+//
+//		if (Validator.isNotNull(rootObjectDefinitionExternalReferenceCode)) {
+//
+//			_validateRootObjectDefinition(
+//				WorkflowConstants.STATUS_DRAFT,
+//				rootObjectDefinitionExternalReferenceCode);
+//		}
 
 		_addListTypeDefinition(objectDefinition);
 
@@ -345,12 +344,12 @@ public class ObjectDefinitionResourceImpl
 					objectDefinition.getExternalReferenceCode());
 		}
 
-		if (Validator.isNotNull(rootObjectDefinitionExternalReferenceCode)) {
-			serviceBuilderObjectDefinition =
-				_bindObjectDefinitionToRootObjectDefinition(
-					rootObjectDefinitionExternalReferenceCode,
-					serviceBuilderObjectDefinition);
-		}
+//		if (Validator.isNotNull(rootObjectDefinitionExternalReferenceCode)) {
+//			serviceBuilderObjectDefinition =
+//				_bindObjectDefinitionToRootObjectDefinition(
+//					rootObjectDefinitionExternalReferenceCode,
+//					serviceBuilderObjectDefinition);
+//		}
 
 		com.liferay.object.model.ObjectField serviceBuilderObjectField =
 			_objectFieldLocalService.fetchObjectField(
@@ -495,16 +494,16 @@ public class ObjectDefinitionResourceImpl
 					"not allowed");
 		}
 
-		String rootObjectDefinitionExternalReferenceCode =
-			objectDefinition.getRootObjectDefinitionExternalReferenceCode();
-
-		if (Validator.isNotNull(rootObjectDefinitionExternalReferenceCode) &&
-			FeatureFlagManagerUtil.isEnabled("LPS-187142")) {
-
-			_validateRootObjectDefinition(
-				serviceBuilderObjectDefinition.getStatus(),
-				rootObjectDefinitionExternalReferenceCode);
-		}
+//		String rootObjectDefinitionExternalReferenceCode =
+//			objectDefinition.getRootObjectDefinitionExternalReferenceCode();
+//
+//		if (Validator.isNotNull(rootObjectDefinitionExternalReferenceCode) &&
+//			FeatureFlagManagerUtil.isEnabled("LPS-187142")) {
+//
+//			_validateRootObjectDefinition(
+//				serviceBuilderObjectDefinition.getStatus(),
+//				rootObjectDefinitionExternalReferenceCode);
+//		}
 
 		_addListTypeDefinition(objectDefinition);
 
@@ -525,9 +524,7 @@ public class ObjectDefinitionResourceImpl
 
 		int statusInt = serviceBuilderObjectDefinition.getStatus();
 
-		if ((objectDefinition.getStatus() != null) &&
-			Validator.isNull(rootObjectDefinitionExternalReferenceCode)) {
-
+		if ((objectDefinition.getStatus() != null)) {
 			Status status = objectDefinition.getStatus();
 
 			statusInt = status.getCode();
@@ -793,28 +790,28 @@ public class ObjectDefinitionResourceImpl
 			_objectViewLocalService.deleteObjectViews(objectDefinitionId);
 		}
 
-		if (Validator.isNotNull(rootObjectDefinitionExternalReferenceCode)) {
-			if (serviceBuilderObjectDefinition.isRootNode() &&
-				!Objects.equals(
-					serviceBuilderObjectDefinition.
-						getRootObjectDefinitionExternalReferenceCode(),
-					rootObjectDefinitionExternalReferenceCode)) {
-
-				rootObjectDefinitionExternalReferenceCode =
-					serviceBuilderObjectDefinition.
-						getRootObjectDefinitionExternalReferenceCode();
-			}
-
-			serviceBuilderObjectDefinition =
-				_bindObjectDefinitionToRootObjectDefinition(
-					rootObjectDefinitionExternalReferenceCode,
-					serviceBuilderObjectDefinition);
-
-			_objectRelationshipLocalService.disableEdge(
-				serviceBuilderObjectDefinition.getObjectDefinitionId());
-
-			statusInt = WorkflowConstants.STATUS_DRAFT;
-		}
+//		if (Validator.isNotNull(rootObjectDefinitionExternalReferenceCode)) {
+//			if (serviceBuilderObjectDefinition.isRootNode() &&
+//				!Objects.equals(
+//					serviceBuilderObjectDefinition.
+//						getRootObjectDefinitionExternalReferenceCode(),
+//					rootObjectDefinitionExternalReferenceCode)) {
+//
+//				rootObjectDefinitionExternalReferenceCode =
+//					serviceBuilderObjectDefinition.
+//						getRootObjectDefinitionExternalReferenceCode();
+//			}
+//
+//			serviceBuilderObjectDefinition =
+//				_bindObjectDefinitionToRootObjectDefinition(
+//					rootObjectDefinitionExternalReferenceCode,
+//					serviceBuilderObjectDefinition);
+//
+//			_objectRelationshipLocalService.disableEdge(
+//				serviceBuilderObjectDefinition.getObjectDefinitionId());
+//
+//			statusInt = WorkflowConstants.STATUS_DRAFT;
+//		}
 
 		_addObjectDefinitionResources(
 			accountEntryRestrictedObjectRelationshipsNames,
@@ -980,10 +977,10 @@ public class ObjectDefinitionResourceImpl
 							getObjectRelationshipId(),
 						objectRelationship);
 
-					_objectRelationshipLocalService.enableEdge(
-						serviceBuilderObjectRelationship.
-							getObjectRelationshipId(),
-						edge);
+//					_objectRelationshipLocalService.enableEdge(
+//						serviceBuilderObjectRelationship.
+//							getObjectRelationshipId(),
+//						edge);
 
 					if (Objects.equals(
 							serviceBuilderObjectRelationship.getType(),
@@ -1002,8 +999,8 @@ public class ObjectDefinitionResourceImpl
 						postObjectDefinitionObjectRelationship(
 							objectDefinitionId, objectRelationship);
 
-				_objectRelationshipLocalService.enableEdge(
-					objectRelationship.getId(), edge);
+//				_objectRelationshipLocalService.enableEdge(
+//					objectRelationship.getId(), edge);
 
 				if (Objects.equals(
 						objectRelationship.getTypeAsString(),
@@ -1432,14 +1429,6 @@ public class ObjectDefinitionResourceImpl
 
 		if (rootServiceBuilderObjectDefinition == null) {
 			return;
-		}
-
-		if (rootServiceBuilderObjectDefinition.getStatus() !=
-				objectDefinitionStatus) {
-
-			throw new ObjectDefinitionRootObjectDefinitionIdException(
-				"Unable to bind an object definition when the root object " +
-					"definition has a different status");
 		}
 
 		if (!rootServiceBuilderObjectDefinition.isRootNode()) {

@@ -852,21 +852,11 @@ public class ObjectDefinitionLocalServiceImpl
 		}
 
 		if (objectDefinition.isRootDescendantNode()) {
-			throw new ObjectDefinitionStatusException(
-				"Nonroot object definitions within a hierarchical structure " +
-					"are ineligible for publication");
+			// _publishObjectDefinitionRoot
 		}
 
-		Tree tree = _treeFactory.createObjectDefinitionTree(objectDefinitionId);
-
-		Iterator<Node> iterator = tree.iterator();
-
-		while (iterator.hasNext()) {
-			Node node = iterator.next();
-
-			_publishObjectDefinition(
-				userId, getObjectDefinition(node.getPrimaryKey()));
-		}
+		_publishObjectDefinition(
+			userId,objectDefinition);
 
 		return getObjectDefinition(objectDefinitionId);
 	}
