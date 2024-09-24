@@ -42,6 +42,7 @@ import deleteItem from '../thunks/deleteItem';
 import duplicateItem from '../thunks/duplicateItem';
 import pasteItem from '../thunks/pasteItem';
 import switchSidebarPanel from '../thunks/switchSidebarPanel';
+import canBeCopied from '../utils/canBeCopied';
 import canBeDuplicated from '../utils/canBeDuplicated';
 import canBeHidden from '../utils/canBeHidden';
 import canBeRemoved from '../utils/canBeRemoved';
@@ -137,6 +138,12 @@ export default function ShortcutManager() {
 		);
 	};
 
+	const getParentItemId = () => {
+		const rootItem = layoutData.items[layoutData.rootItems.main];
+
+		return !activeItemIds?.length ? rootItem.itemId : activeItemIds[0];
+	};
+
 	const hideShow = () => {
 		updateItemStyle({
 			dispatch,
@@ -156,14 +163,10 @@ export default function ShortcutManager() {
 	};
 
 	const paste = () => {
-		const rootItem = layoutData.items[layoutData.rootItems.main];
-
 		dispatch(
 			pasteItem({
 				copiedItemIds,
-				parentItemId: !activeItemIds?.length
-					? rootItem.itemId
-					: activeItemIds[0],
+				parentItemId: getParentItemId(),
 				selectItems,
 			})
 		);
@@ -259,7 +262,9 @@ export default function ShortcutManager() {
 							)
 					),
 				isKeyCombination: (event) =>
-					isCtrlOrMeta(event) && event.code === C_KEY_CODE,
+					event.shiftKey &&
+					isCtrlOrMeta(event) &&
+					event.code === C_KEY_CODE,
 			},
 		}),
 		...(Liferay.FeatureFlags['LPD-18221'] && {
@@ -277,7 +282,9 @@ export default function ShortcutManager() {
 							!isInteractiveElement(event.target)
 					),
 				isKeyCombination: (event) =>
-					isCtrlOrMeta(event) && event.code === X_KEY_CODE,
+					event.shiftKey &&
+					isCtrlOrMeta(event) &&
+					event.code === X_KEY_CODE,
 			},
 		}),
 		duplicate: {
@@ -353,6 +360,17 @@ export default function ShortcutManager() {
 					copiedItemIds.every(
 						(copiedItemId) =>
 							!!layoutData.items[copiedItemId] &&
+							!!layoutData.items[getParentItemId()] &&
+							canBeCopied(
+								copiedItemId,
+								fragmentEntryLinks,
+								getParentItemId(),
+								layoutData
+							)
+					) &&
+					copiedItemIds.every(
+						(copiedItemId) =>
+							!!layoutData.items[copiedItemId] &&
 							canBeDuplicated(
 								fragmentEntryLinks,
 								layoutData.items[copiedItemId],
@@ -361,7 +379,9 @@ export default function ShortcutManager() {
 							)
 					),
 				isKeyCombination: (event) =>
-					isCtrlOrMeta(event) && event.code === V_KEY_CODE,
+					event.shiftKey &&
+					isCtrlOrMeta(event) &&
+					event.code === V_KEY_CODE,
 			},
 		}),
 		remove: {
@@ -411,7 +431,7 @@ export default function ShortcutManager() {
 				!isInteractiveElement(event.target) &&
 				activeLayoutDataItem,
 			isKeyCombination: (event) =>
-				event.shiftKey && event.altKey && event.key === 'Enter',
+				event.shiftKey && event.key === 'Enter',
 		},
 		undo: {
 			action: undo,

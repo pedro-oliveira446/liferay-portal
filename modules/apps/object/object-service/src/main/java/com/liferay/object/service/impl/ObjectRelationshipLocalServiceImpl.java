@@ -43,6 +43,9 @@ import com.liferay.object.service.persistence.ObjectLayoutTabPersistence;
 import com.liferay.object.system.JaxRsApplicationDescriptor;
 import com.liferay.object.system.SystemObjectDefinitionManager;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
+import com.liferay.object.tree.Node;
+import com.liferay.object.tree.Tree;
+import com.liferay.object.tree.TreeFactory;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
@@ -52,6 +55,7 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.jdbc.CurrentConnection;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
@@ -79,6 +83,7 @@ import java.io.Serializable;
 
 import java.sql.Connection;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -962,7 +967,7 @@ public class ObjectRelationshipLocalServiceImpl
 
 			_updateObjectRelationship(
 				reverseObjectRelationship.getExternalReferenceCode(),
-				parameterObjectFieldId, deletionType, labelMap,
+				parameterObjectFieldId, deletionType, edge, labelMap,
 				reverseObjectRelationship);
 
 			Indexer<ObjectRelationship> indexer =
@@ -1003,7 +1008,7 @@ public class ObjectRelationshipLocalServiceImpl
 		}
 
 		objectRelationship = _updateObjectRelationship(
-			externalReferenceCode, parameterObjectFieldId, deletionType,
+			externalReferenceCode, parameterObjectFieldId, deletionType, edge,
 			labelMap, objectRelationship);
 
 		if ((objectRelationship.getObjectFieldId2() != 0) &&
@@ -1015,8 +1020,13 @@ public class ObjectRelationshipLocalServiceImpl
 				objectRelationship.getObjectFieldId2(), false);
 		}
 
-		if (edge && !objectRelationship.isEdge()) {
+		if (edge && !objectRelationship.isEdge() &&
+			FeatureFlagManagerUtil.isEnabled("LPD-33549")) {
+
 			_bindObjectDefinitions(objectRelationship);
+		}
+		else if (!edge && objectRelationship.isEdge()) {
+			_unbindObjectDefinitions(objectRelationship);
 		}
 
 		return objectRelationship;
@@ -1295,8 +1305,10 @@ public class ObjectRelationshipLocalServiceImpl
 		String objectDefinition1PreviousRESTContextPath =
 			objectDefinition1.getRESTContextPath();
 
-		objectDefinition1.setRootObjectDefinitionId(
-			objectDefinition1.getObjectDefinitionId());
+		if (objectDefinition1.getRootObjectDefinitionId() == 0) {
+			objectDefinition1.setRootObjectDefinitionId(
+				objectDefinition1.getObjectDefinitionId());
+		}
 
 		ObjectDefinitionLocalService objectDefinitionLocalService =
 			_objectDefinitionLocalServiceSnapshot.get();
@@ -1308,26 +1320,54 @@ public class ObjectRelationshipLocalServiceImpl
 			_objectDefinitionPersistence.findByPrimaryKey(
 				objectRelationship.getObjectDefinitionId2());
 
-		String objectDefinition2PreviousRESTContextPath =
-			objectDefinition2.getRESTContextPath();
+		Tree tree = _treeFactory.createObjectDefinitionTree(
+			objectDefinition2.getObjectDefinitionId());
 
-		objectDefinition2.setPortlet(false);
+		Iterator<Node> iterator = tree.iterator();
 
-		if (!objectDefinition1.isApproved() && objectDefinition2.isApproved()) {
-			objectDefinition2.setPortlet(true);
+		while (iterator.hasNext()) {
+			Node node = iterator.next();
+
+			ObjectDefinition objectDefinition =
+				objectDefinitionLocalService.fetchObjectDefinition(
+					node.getPrimaryKey());
+
+			String objectDefinitionPreviousRESTContextPath =
+				objectDefinition.getRESTContextPath();
+
+			if (objectDefinition1.isApproved() ==
+					objectDefinition.isApproved()) {
+
+				objectDefinition.setRootObjectDefinitionId(
+					objectDefinition1.getRootObjectDefinitionId());
+			}
+			else {
+				objectDefinition.setRootObjectDefinitionId(
+					objectDefinition.getObjectDefinitionId());
+			}
+
+			objectDefinition.setPortlet(false);
+
+			if (!objectDefinition1.isApproved() &&
+				objectDefinition.isRootNode()) {
+
+				objectDefinition.setPortlet(true);
+			}
+
+			objectDefinition =
+				objectDefinitionLocalService.updateObjectDefinition(
+					objectDefinition);
+
+			if (objectDefinition1.isApproved() &&
+				objectDefinition.isApproved()) {
+
+				objectDefinition.setPreviousRESTContextPath(
+					objectDefinitionPreviousRESTContextPath);
+
+				objectDefinitionLocalService.deployObjectDefinition(
+					objectDefinition);
+			}
 		}
-
-		if (objectDefinition1.isApproved() == objectDefinition2.isApproved()) {
-			objectDefinition2.setRootObjectDefinitionId(
-				objectDefinition1.getObjectDefinitionId());
-		}
-		else {
-			objectDefinition2.setRootObjectDefinitionId(
-				objectDefinition2.getObjectDefinitionId());
-		}
-
-		objectDefinition2 = objectDefinitionLocalService.updateObjectDefinition(
-			objectDefinition2);
 
 		if (objectDefinition1.isApproved()) {
 			objectDefinition1.setPreviousRESTContextPath(
@@ -1337,12 +1377,13 @@ public class ObjectRelationshipLocalServiceImpl
 				objectDefinition1);
 		}
 
-		if (objectDefinition1.isApproved() && objectDefinition2.isApproved()) {
-			objectDefinition2.setPreviousRESTContextPath(
-				objectDefinition2PreviousRESTContextPath);
+		if (!objectDefinition1.isRootNode()) {
+			ObjectDefinition rootObjectDefinition1 =
+				_objectDefinitionPersistence.findByPrimaryKey(
+					objectDefinition1.getRootObjectDefinitionId());
 
 			objectDefinitionLocalService.deployObjectDefinition(
-				objectDefinition2);
+				rootObjectDefinition1);
 		}
 	}
 
@@ -1367,6 +1408,19 @@ public class ObjectRelationshipLocalServiceImpl
 					objectField.getObjectFieldId());
 			}
 		}
+	}
+
+	private long _getRootObjectDefinitionId(ObjectDefinition objectDefinition)
+		throws PortalException {
+
+		long count = objectRelationshipPersistence.countByODI1_E(
+			objectDefinition.getObjectDefinitionId(), true);
+
+		if (count == 0) {
+			return 0;
+		}
+
+		return objectDefinition.getObjectDefinitionId();
 	}
 
 	private String _getServiceRegistrationKey(
@@ -1446,17 +1500,109 @@ public class ObjectRelationshipLocalServiceImpl
 				).build()));
 	}
 
+	private void _unbindObjectDefinitions(ObjectRelationship objectRelationship)
+		throws PortalException {
+
+		objectRelationship.setEdge(false);
+
+		objectRelationship =
+			objectRelationshipLocalService.updateObjectRelationship(
+				objectRelationship);
+
+		ObjectDefinitionLocalService objectDefinitionLocalService =
+			_objectDefinitionLocalServiceSnapshot.get();
+
+		ObjectDefinition objectDefinition1 =
+			objectDefinitionLocalService.fetchObjectDefinition(
+				objectRelationship.getObjectDefinitionId1());
+
+		if (objectDefinition1.isRootDescendantNode()) {
+			objectDefinition1 =
+				objectDefinitionLocalService.fetchObjectDefinition(
+					objectDefinition1.getRootObjectDefinitionId());
+		}
+
+		_updateRootObjectDefinitionId(
+			objectDefinition1, objectDefinitionLocalService,
+			objectDefinition1.getRootObjectDefinitionId(),
+			_getRootObjectDefinitionId(objectDefinition1));
+
+		ObjectDefinition objectDefinition2 =
+			_objectDefinitionPersistence.findByPrimaryKey(
+				objectRelationship.getObjectDefinitionId2());
+
+		_updateRootObjectDefinitionId(
+			objectDefinition2, objectDefinitionLocalService,
+			objectDefinition2.getRootObjectDefinitionId(),
+			_getRootObjectDefinitionId(objectDefinition2));
+	}
+
 	private ObjectRelationship _updateObjectRelationship(
 		String externalReferenceCode, long parameterObjectFieldId,
-		String deletionType, Map<Locale, String> labelMap,
+		String deletionType, boolean edge, Map<Locale, String> labelMap,
 		ObjectRelationship objectRelationship) {
 
 		objectRelationship.setExternalReferenceCode(externalReferenceCode);
 		objectRelationship.setParameterObjectFieldId(parameterObjectFieldId);
 		objectRelationship.setDeletionType(deletionType);
+
+		if (edge) {
+			objectRelationship.setEdge(true);
+		}
+
 		objectRelationship.setLabelMap(labelMap);
 
 		return objectRelationshipPersistence.update(objectRelationship);
+	}
+
+	private void _updateRootObjectDefinitionId(
+			ObjectDefinition objectDefinition,
+			ObjectDefinitionLocalService objectDefinitionLocalService,
+			long oldRootObjectDefinitionId, long newRootObjectDefinitionId)
+		throws PortalException {
+
+		if (oldRootObjectDefinitionId == newRootObjectDefinitionId) {
+			if (objectDefinition.isApproved()) {
+				objectDefinitionLocalService.deployObjectDefinition(
+					objectDefinition);
+			}
+
+			return;
+		}
+
+		String previousRESTContextPath = objectDefinition.getRESTContextPath();
+
+		objectDefinition.setRootObjectDefinitionId(newRootObjectDefinitionId);
+
+		objectDefinition = objectDefinitionLocalService.updateObjectDefinition(
+			objectDefinition);
+
+		if (objectDefinition.isApproved()) {
+			objectDefinition.setPreviousRESTContextPath(
+				previousRESTContextPath);
+
+			objectDefinitionLocalService.deployObjectDefinition(
+				objectDefinition);
+		}
+
+		for (ObjectRelationship objectRelationship :
+				objectRelationshipLocalService.getObjectRelationships(
+					objectDefinition.getObjectDefinitionId(), true)) {
+
+			ObjectDefinition objectDefinition2 =
+				_objectDefinitionPersistence.findByPrimaryKey(
+					objectRelationship.getObjectDefinitionId2());
+
+			if (objectDefinition2.getRootObjectDefinitionId() !=
+					oldRootObjectDefinitionId) {
+
+				continue;
+			}
+
+			_updateRootObjectDefinitionId(
+				objectDefinition2, objectDefinitionLocalService,
+				oldRootObjectDefinitionId, newRootObjectDefinitionId);
+		}
 	}
 
 	private void _validateDeletionType(
@@ -1833,6 +1979,9 @@ public class ObjectRelationshipLocalServiceImpl
 	@Reference
 	private SystemObjectDefinitionManagerRegistry
 		_systemObjectDefinitionManagerRegistry;
+
+	@Reference
+	private TreeFactory _treeFactory;
 
 	@Reference
 	private UserLocalService _userLocalService;
