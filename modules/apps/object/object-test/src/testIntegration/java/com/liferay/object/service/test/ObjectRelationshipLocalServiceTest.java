@@ -471,6 +471,10 @@ public class ObjectRelationshipLocalServiceTest {
 						objectDefinition2.getObjectDefinitionId()),
 					_objectDefinitionLocalService);
 			});
+
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			_objectDefinitionLocalService, new String[] {"C_AA", "C_A"},
+			_objectEntryLocalService);
 	}
 
 	@Test
@@ -488,6 +492,10 @@ public class ObjectRelationshipLocalServiceTest {
 					_treeFactory.createObjectDefinitionTree(
 						objectDefinition1.getObjectDefinitionId()),
 					_objectDefinitionLocalService));
+
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			_objectDefinitionLocalService, new String[] {"C_AA", "C_A"},
+			_objectEntryLocalService);
 	}
 
 	@Test
@@ -514,6 +522,10 @@ public class ObjectRelationshipLocalServiceTest {
 					_treeFactory.createObjectDefinitionTree(
 						objectDefinition1.getObjectDefinitionId()),
 					_objectDefinitionLocalService));
+
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			_objectDefinitionLocalService, new String[] {"C_AA", "C_A"},
+			_objectEntryLocalService);
 	}
 
 	@Test
@@ -1119,10 +1131,6 @@ public class ObjectRelationshipLocalServiceTest {
 				objectDefinition1.getObjectDefinitionId()),
 			_objectDefinitionLocalService.getObjectDefinition(
 				objectDefinition2.getObjectDefinitionId()));
-
-		TreeTestUtil.deleteObjectDefinitionHierarchy(
-			_objectDefinitionLocalService, new String[] {"C_AA", "C_A"},
-			_objectEntryLocalService);
 	}
 
 	private void _testCreateManyToManyObjectRelationshipTable(
