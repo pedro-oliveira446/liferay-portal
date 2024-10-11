@@ -953,6 +953,12 @@ public class ObjectDefinitionResourceTest
 		Assert.assertEquals(
 			"titleObjectFieldName",
 			randomObjectDefinition.getTitleObjectFieldName());
+
+
+
+
+
+
 	}
 
 	@Override
