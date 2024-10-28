@@ -38,14 +38,12 @@ public class OneToManyObjectRelationshipRelatedInfoCollectionProvider
 
 		return InfoPage.of(
 			objectEntryLocalService.getOneToManyObjectEntries(
-				objectEntry.getGroupId(),
-				objectRelationship.getObjectRelationshipId(),
+				objectEntry.getGroupId(), objectRelationship,
 				objectEntry.getObjectEntryId(), true, null,
 				pagination.getStart(), pagination.getEnd()),
 			pagination,
 			objectEntryLocalService.getOneToManyObjectEntriesCount(
-				objectEntry.getGroupId(),
-				objectRelationship.getObjectRelationshipId(),
+				objectEntry.getGroupId(), objectRelationship,
 				objectEntry.getObjectEntryId(), true, null));
 	}
 

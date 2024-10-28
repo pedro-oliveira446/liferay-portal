@@ -34,12 +34,12 @@ public class DeleteOnDisassociateObjectRelatedModelsProvider
 
 	@Override
 	public void deleteRelatedModel(
-			long userId, long groupId, long objectRelationshipId,
+			long userId, long groupId, ObjectRelationship objectRelationship,
 			long primaryKey, String deletionType)
 		throws PortalException {
 
 		_objectRelatedModelsProvider.deleteRelatedModel(
-			userId, groupId, objectRelationshipId, primaryKey, deletionType);
+			userId, groupId, objectRelationship, primaryKey, deletionType);
 	}
 
 	@Override
@@ -89,12 +89,12 @@ public class DeleteOnDisassociateObjectRelatedModelsProvider
 
 	@Override
 	public List<ObjectEntry> getRelatedModels(
-			long groupId, long objectRelationshipId, long primaryKey,
+			long groupId, ObjectRelationship objectRelationship, long primaryKey,
 			String search, int start, int end)
 		throws PortalException {
 
 		return _objectRelatedModelsProvider.getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, search, start, end);
+			groupId, objectRelationship, primaryKey, search, start, end);
 	}
 
 	@Override

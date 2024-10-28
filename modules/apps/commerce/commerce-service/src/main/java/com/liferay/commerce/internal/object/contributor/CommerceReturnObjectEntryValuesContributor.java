@@ -131,7 +131,7 @@ public class CommerceReturnObjectEntryValuesContributor
 				_objectRelationshipLocalService.getObjectRelationship(
 					originalObjectEntry.getObjectDefinitionId(),
 					"commerceReturnToCommerceReturnItems"
-				).getObjectRelationshipId(),
+				),
 				originalObjectEntry.getObjectEntryId(), true, null,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 

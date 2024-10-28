@@ -654,7 +654,7 @@ public class DefaultObjectEntryManagerImpl
 			_toObjectEntries(
 				dtoConverterContext,
 				objectRelatedModelsProvider.getRelatedModels(
-					groupId, objectRelationship.getObjectRelationshipId(),
+					groupId, objectRelationship,
 					serviceBuilderObjectEntry.getPrimaryKey(), null,
 					_getStartPosition(pagination),
 					_getEndPosition(pagination))),
@@ -692,7 +692,7 @@ public class DefaultObjectEntryManagerImpl
 				(List<BaseModel<?>>)
 					objectRelatedModelsProvider.getRelatedModels(
 						serviceBuilderObjectEntry.getGroupId(),
-						objectRelationship.getObjectRelationshipId(),
+						objectRelationship,
 						serviceBuilderObjectEntry.getPrimaryKey(), null,
 						_getStartPosition(pagination),
 						_getEndPosition(pagination)),
@@ -1273,7 +1273,7 @@ public class DefaultObjectEntryManagerImpl
 
 		return objectRelatedModelsProvider.getRelatedModels(
 			GroupThreadLocal.getGroupId(),
-			objectRelationship.getObjectRelationshipId(), primaryKey, null, -1,
+			objectRelationship, primaryKey, null, -1,
 			-1);
 	}
 
@@ -1341,7 +1341,7 @@ public class DefaultObjectEntryManagerImpl
 			_toObjectEntries(
 				dtoConverterContext,
 				objectRelatedModelsProvider.getRelatedModels(
-					groupId, objectRelationship.getObjectRelationshipId(),
+					groupId, objectRelationship,
 					objectEntryId, null, _getStartPosition(pagination),
 					_getEndPosition(pagination))),
 			pagination,

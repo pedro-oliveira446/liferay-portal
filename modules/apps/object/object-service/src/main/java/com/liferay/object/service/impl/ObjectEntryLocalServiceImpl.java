@@ -45,6 +45,7 @@ import com.liferay.object.exception.ObjectDefinitionScopeException;
 import com.liferay.object.exception.ObjectEntryStatusException;
 import com.liferay.object.exception.ObjectEntryValuesException;
 import com.liferay.object.exception.ObjectRelationshipDeletionTypeException;
+import com.liferay.object.exception.RequiredObjectRelationshipException;
 import com.liferay.object.field.attachment.AttachmentManager;
 import com.liferay.object.field.business.type.ObjectFieldBusinessType;
 import com.liferay.object.field.business.type.ObjectFieldBusinessTypeRegistry;
@@ -130,6 +131,7 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.encryptor.Encryptor;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -528,6 +530,72 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
+	public void deleteObjectEntry(List<ObjectEntry> objectEntries)
+		throws PortalException {
+
+		for (ObjectEntry objectEntry : objectEntries) {
+			ObjectActionThreadLocal.clearObjectEntryIdsMap();
+
+			objectEntry = objectEntryPersistence.remove(objectEntry);
+
+			ObjectDefinition objectDefinition =
+				_objectDefinitionPersistence.findByPrimaryKey(
+					objectEntry.getObjectDefinitionId());
+
+			_workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+				objectEntry.getCompanyId(), objectEntry.getNonzeroGroupId(),
+				objectDefinition.getClassName(),
+				objectEntry.getObjectEntryId());
+
+			_deleteFileEntries(
+				Collections.emptyMap(),
+				objectDefinition.getObjectDefinitionId(),
+				objectEntry::getValues);
+
+			if (!ObjectDefinitionThreadLocal.isDeleteObjectDefinitionId(
+					objectDefinition.getObjectDefinitionId())) {
+
+				_resourceLocalService.deleteResource(
+					objectEntry.getCompanyId(), objectDefinition.getClassName(),
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					objectEntry.getObjectEntryId());
+
+				_assetEntryLocalService.deleteEntry(
+					objectDefinition.getClassName(),
+					objectEntry.getObjectEntryId());
+
+				_deleteFromTable(
+					objectDefinition.getDBTableName(),
+					objectDefinition.getPKObjectFieldDBColumnName(),
+					objectEntry.getObjectEntryId());
+				_deleteFromTable(
+					objectDefinition.getExtensionDBTableName(),
+					objectDefinition.getPKObjectFieldDBColumnName(),
+					objectEntry.getObjectEntryId());
+
+				if (objectDefinition.isEnableLocalization()) {
+					_deleteFromTable(
+						objectDefinition.getLocalizationDBTableName(),
+						objectDefinition.getPKObjectFieldDBColumnName(),
+						objectEntry.getObjectEntryId());
+				}
+			}
+
+			if (!objectDefinition.isActive() ||
+				!objectDefinition.isEnableIndexSearch()) {
+
+				return;
+			}
+
+			Indexer<ObjectEntry> indexer = IndexerRegistryUtil.getIndexer(
+				objectDefinition.getClassName());
+
+			indexer.delete(objectEntry);
+		}
+	}
+
+	@Override
 	public ObjectEntry deleteObjectEntry(long objectEntryId)
 		throws PortalException {
 
@@ -587,9 +655,7 @@ public class ObjectEntryLocalServiceImpl
 			}
 		}
 
-		deleteRelatedObjectEntries(
-			objectEntry.getGroupId(), objectDefinition.getObjectDefinitionId(),
-			objectEntry.getPrimaryKey());
+		deleteRelatedObjectEntries(objectEntry);
 
 		if (!objectDefinition.isActive() ||
 			!objectDefinition.isEnableIndexSearch()) {
@@ -656,8 +722,7 @@ public class ObjectEntryLocalServiceImpl
 
 				objectRelatedModelsProvider.deleteRelatedModel(
 					PrincipalThreadLocal.getUserId(), groupId,
-					objectRelationship.getObjectRelationshipId(), primaryKey,
-					deletionType);
+					objectRelationship, primaryKey, deletionType);
 			}
 			catch (PrincipalException principalException) {
 				throw new ObjectRelationshipDeletionTypeException(
@@ -668,6 +733,39 @@ public class ObjectEntryLocalServiceImpl
 					false);
 			}
 		}
+	}
+
+	@Override
+	public void deleteRelatedObjectEntries(ObjectEntry objectEntry)
+		throws PortalException {
+
+		Map<String, List<ObjectEntry>> relatedModels = _getRelatedObjectEntries(
+			objectEntry);
+
+		List<ObjectEntry> cascadeObjectEntries = relatedModels.get(
+			ObjectRelationshipConstants.DELETION_TYPE_CASCADE);
+
+		if(!cascadeObjectEntries.isEmpty()) {
+			try {
+				ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(
+					true);
+				deleteObjectEntry(cascadeObjectEntries);
+			}
+			catch (PortalException portalException) {
+				throw new PortalException(portalException);
+			}
+			finally {
+				ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(
+					false);
+			}
+
+			System.out.println("Entries " + cascadeObjectEntries.size());
+		}
+
+		List<ObjectEntry> disassociateObjectEntries = relatedModels.get(
+			ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE);
+
+
 	}
 
 	@Override
@@ -994,13 +1092,13 @@ public class ObjectEntryLocalServiceImpl
 
 	@Override
 	public List<ObjectEntry> getOneToManyObjectEntries(
-			long groupId, long objectRelationshipId, long primaryKey,
-			boolean related, String search, int start, int end)
+			long groupId, ObjectRelationship objectRelationship,
+			long primaryKey, boolean related, String search, int start, int end)
 		throws PortalException {
 
 		DSLQuery dslQuery = _getOneToManyObjectEntriesGroupByStep(
 			DSLQueryFactoryUtil.selectDistinct(ObjectEntryTable.INSTANCE),
-			groupId, objectRelationshipId, primaryKey, related, search
+			groupId, objectRelationship, primaryKey, related, search
 		).orderBy(
 			ObjectEntryTable.INSTANCE.objectEntryId.ascending()
 		).limit(
@@ -1016,14 +1114,14 @@ public class ObjectEntryLocalServiceImpl
 
 	@Override
 	public int getOneToManyObjectEntriesCount(
-			long groupId, long objectRelationshipId, long primaryKey,
-			boolean related, String search)
+			long groupId, ObjectRelationship objectRelationship,
+			long primaryKey, boolean related, String search)
 		throws PortalException {
 
 		DSLQuery dslQuery = _getOneToManyObjectEntriesGroupByStep(
 			DSLQueryFactoryUtil.countDistinct(
 				ObjectEntryTable.INSTANCE.objectEntryId),
-			groupId, objectRelationshipId, primaryKey, related, search);
+			groupId, objectRelationship, primaryKey, related, search);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug(
@@ -3028,13 +3126,10 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	private GroupByStep _getOneToManyObjectEntriesGroupByStep(
-			FromStep fromStep, long groupId, long objectRelationshipId,
-			long primaryKey, boolean related, String search)
+			FromStep fromStep, long groupId,
+			ObjectRelationship objectRelationship, long primaryKey,
+			boolean related, String search)
 		throws PortalException {
-
-		ObjectRelationship objectRelationship =
-			_objectRelationshipPersistence.findByPrimaryKey(
-				objectRelationshipId);
 
 		DynamicObjectDefinitionLocalizationTable
 			dynamicObjectDefinitionLocalizationTable =
@@ -3213,6 +3308,73 @@ public class ObjectEntryLocalServiceImpl
 		}
 
 		return ObjectEntryTable.INSTANCE.objectEntryId;
+	}
+
+	private Map<String, List<ObjectEntry>> _getRelatedObjectEntries(
+			ObjectEntry objectEntry)
+		throws PortalException {
+
+		Map<String, List<ObjectEntry>> allRelatedModelsMap = new HashMap<>();
+
+		List<ObjectRelationship> objectRelationships =
+			_objectRelationshipPersistence.findByObjectDefinitionId1(
+				objectEntry.getObjectDefinitionId());
+
+		for (ObjectRelationship objectRelationship : objectRelationships) {
+			ObjectDefinition objectDefinition2 =
+				_objectDefinitionPersistence.findByPrimaryKey(
+					objectRelationship.getObjectDefinitionId2());
+
+			if (WorkflowConstants.STATUS_DRAFT ==
+					objectDefinition2.getStatus()) {
+
+				continue;
+			}
+
+			ObjectRelatedModelsProvider objectRelatedModelsProvider =
+				_objectRelatedModelsProviderRegistry.
+					getObjectRelatedModelsProvider(
+						objectDefinition2.getClassName(),
+						objectDefinition2.getCompanyId(),
+						objectRelationship.getType());
+
+			List<ObjectEntry> relatedModels =
+				objectRelatedModelsProvider.getRelatedModels(
+					objectEntry.getGroupId(), objectRelationship,
+					objectEntry.getObjectEntryId(), null, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS);
+
+			String deletionType = objectRelationship.getDeletionType();
+
+			if (!relatedModels.isEmpty() &&
+				Objects.equals(
+					deletionType,
+					ObjectRelationshipConstants.DELETION_TYPE_PREVENT)) {
+
+				throw new RequiredObjectRelationshipException(
+					objectRelationship);
+			}
+
+			allRelatedModelsMap.computeIfAbsent(
+				deletionType, k -> new ArrayList<>()
+			).addAll(
+				relatedModels
+			);
+
+			for (ObjectEntry relatedModel : relatedModels) {
+				Map<String, List<ObjectEntry>> nestedRelatedModels =
+					_getRelatedObjectEntries(relatedModel);
+
+				nestedRelatedModels.forEach(
+					(key, entries) -> allRelatedModelsMap.computeIfAbsent(
+						key, k -> new ArrayList<>()
+					).addAll(
+						entries
+					));
+			}
+		}
+
+		return allRelatedModelsMap;
 	}
 
 	private Predicate _getRelationshipObjectFieldPredicate(

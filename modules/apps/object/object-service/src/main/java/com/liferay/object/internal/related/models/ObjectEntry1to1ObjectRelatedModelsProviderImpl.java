@@ -47,16 +47,12 @@ public class ObjectEntry1to1ObjectRelatedModelsProviderImpl
 
 	@Override
 	public void deleteRelatedModel(
-			long userId, long groupId, long objectRelationshipId,
+			long userId, long groupId, ObjectRelationship objectRelationship,
 			long primaryKey, String deletionType)
 		throws PortalException {
 
-		ObjectRelationship objectRelationship =
-			_objectRelationshipLocalService.getObjectRelationship(
-				objectRelationshipId);
-
 		List<ObjectEntry> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, null, 0, 1);
+			groupId, objectRelationship, primaryKey, null, 0, 1);
 
 		if (relatedModels.isEmpty()) {
 			return;
@@ -139,12 +135,12 @@ public class ObjectEntry1to1ObjectRelatedModelsProviderImpl
 
 	@Override
 	public List<ObjectEntry> getRelatedModels(
-			long groupId, long objectRelationshipId, long primaryKey,
-			String search, int start, int end)
+			long groupId, ObjectRelationship objectRelationship,
+			long primaryKey, String search, int start, int end)
 		throws PortalException {
 
 		return _objectEntryService.getOneToManyObjectEntries(
-			groupId, objectRelationshipId, primaryKey, true, search, 0, 1);
+			groupId, objectRelationship, primaryKey, true, search, 0, 1);
 	}
 
 	@Override
@@ -154,7 +150,10 @@ public class ObjectEntry1to1ObjectRelatedModelsProviderImpl
 		throws PortalException {
 
 		List<ObjectEntry> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, search, 0, 1);
+			groupId,
+			_objectRelationshipLocalService.getObjectRelationship(
+				objectRelationshipId),
+			primaryKey, search, 0, 1);
 
 		return relatedModels.size();
 	}

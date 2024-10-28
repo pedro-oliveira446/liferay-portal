@@ -48,7 +48,7 @@ public class ObjectEntryTreeFactory extends BaseTreeFactory {
 						TransformUtil.transform(
 							_objectEntryLocalService.getOneToManyObjectEntries(
 								parentObjectEntry.getGroupId(),
-								objectRelationship.getObjectRelationshipId(),
+								objectRelationship,
 								parentObjectEntry.getPrimaryKey(), true, null,
 								QueryUtil.ALL_POS, QueryUtil.ALL_POS),
 							objectEntry -> new Node(

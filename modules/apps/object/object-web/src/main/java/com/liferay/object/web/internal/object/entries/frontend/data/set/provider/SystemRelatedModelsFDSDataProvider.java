@@ -85,7 +85,7 @@ public class SystemRelatedModelsFDSDataProvider
 		return TransformUtil.transform(
 			(List<BaseModel<?>>)objectRelatedModelsProvider.getRelatedModels(
 				objectScopeProvider.getGroupId(httpServletRequest),
-				objectRelationshipId, objectEntryId, fdsKeywords.getKeywords(),
+				objectRelationship, objectEntryId, fdsKeywords.getKeywords(),
 				fdsPagination.getStartPosition(),
 				fdsPagination.getEndPosition()),
 			relatedModel -> {

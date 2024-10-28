@@ -73,16 +73,12 @@ public class SystemObject1toMObjectRelatedModelsProviderImpl
 
 	@Override
 	public void deleteRelatedModel(
-			long userId, long groupId, long objectRelationshipId,
+			long userId, long groupId, ObjectRelationship objectRelationship,
 			long primaryKey, String deletionType)
 		throws PortalException {
 
-		ObjectRelationship objectRelationship =
-			_objectRelationshipLocalService.getObjectRelationship(
-				objectRelationshipId);
-
 		List<T> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, null, QueryUtil.ALL_POS,
+			groupId, objectRelationship, primaryKey, null, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS);
 
 		if (relatedModels.isEmpty()) {
@@ -246,8 +242,8 @@ public class SystemObject1toMObjectRelatedModelsProviderImpl
 
 	@Override
 	public List<T> getRelatedModels(
-			long groupId, long objectRelationshipId, long primaryKey,
-			String search, int start, int end)
+			long groupId, ObjectRelationship objectRelationship,
+			long primaryKey, String search, int start, int end)
 		throws PortalException {
 
 		PersistedModelLocalService persistedModelLocalService =
@@ -258,7 +254,7 @@ public class SystemObject1toMObjectRelatedModelsProviderImpl
 		DSLQuery dslQuery = _getGroupByStep(
 			_getDynamicObjectDefinitionTable(),
 			DSLQueryFactoryUtil.selectDistinct(_table), groupId,
-			objectRelationshipId, primaryKey, search
+			objectRelationship.getObjectRelationshipId(), primaryKey, search
 		).orderBy(
 			_systemObjectDefinitionManager.getPrimaryKeyColumn(
 			).ascending()

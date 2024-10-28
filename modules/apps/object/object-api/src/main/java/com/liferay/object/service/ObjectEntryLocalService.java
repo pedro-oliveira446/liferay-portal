@@ -117,6 +117,10 @@ public interface ObjectEntryLocalService
 			ObjectDefinition objectDefinition, long primaryKey)
 		throws PortalException;
 
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
+	public void deleteObjectEntry(List<ObjectEntry> objectEntries)
+		throws PortalException;
+
 	/**
 	 * Deletes the object entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
@@ -161,6 +165,9 @@ public interface ObjectEntryLocalService
 
 	public void deleteRelatedObjectEntries(
 			long groupId, long objectDefinitionId, long primaryKey)
+		throws PortalException;
+
+	public void deleteRelatedObjectEntries(ObjectEntry objectEntry)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -400,14 +407,14 @@ public interface ObjectEntryLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<ObjectEntry> getOneToManyObjectEntries(
-			long groupId, long objectRelationshipId, long primaryKey,
-			boolean related, String search, int start, int end)
+			long groupId, ObjectRelationship objectRelationship,
+			long primaryKey, boolean related, String search, int start, int end)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getOneToManyObjectEntriesCount(
-			long groupId, long objectRelationshipId, long primaryKey,
-			boolean related, String search)
+			long groupId, ObjectRelationship objectRelationship,
+			long primaryKey, boolean related, String search)
 		throws PortalException;
 
 	/**

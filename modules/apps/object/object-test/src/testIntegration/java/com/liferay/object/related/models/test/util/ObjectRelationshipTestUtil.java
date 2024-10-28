@@ -42,7 +42,7 @@ public class ObjectRelationshipTestUtil {
 
 		List<ObjectEntry> objectEntries =
 			objectRelatedModelsProvider.getRelatedModels(
-				0, objectRelationshipId, primaryKey, null, QueryUtil.ALL_POS,
+				0, null, primaryKey, null, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS);
 
 		Assert.assertEquals(
@@ -57,7 +57,7 @@ public class ObjectRelationshipTestUtil {
 
 		List<ObjectEntry> objectEntries =
 			objectRelatedModelsProvider.getRelatedModels(
-				groupId, objectRelationshipId, primaryKey, search,
+				groupId, null, primaryKey, search,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		Assert.assertEquals(

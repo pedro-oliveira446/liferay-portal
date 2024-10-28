@@ -121,6 +121,12 @@ public class ObjectEntryLocalServiceUtil {
 			objectDefinition, primaryKey);
 	}
 
+	public static void deleteObjectEntry(List<ObjectEntry> objectEntries)
+		throws PortalException {
+
+		getService().deleteObjectEntry(objectEntries);
+	}
+
 	/**
 	 * Deletes the object entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
@@ -179,6 +185,12 @@ public class ObjectEntryLocalServiceUtil {
 
 		getService().deleteRelatedObjectEntries(
 			groupId, objectDefinitionId, primaryKey);
+	}
+
+	public static void deleteRelatedObjectEntries(ObjectEntry objectEntry)
+		throws PortalException {
+
+		getService().deleteRelatedObjectEntries(objectEntry);
 	}
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
@@ -502,22 +514,24 @@ public class ObjectEntryLocalServiceUtil {
 	}
 
 	public static List<ObjectEntry> getOneToManyObjectEntries(
-			long groupId, long objectRelationshipId, long primaryKey,
-			boolean related, String search, int start, int end)
+			long groupId,
+			com.liferay.object.model.ObjectRelationship objectRelationship,
+			long primaryKey, boolean related, String search, int start, int end)
 		throws PortalException {
 
 		return getService().getOneToManyObjectEntries(
-			groupId, objectRelationshipId, primaryKey, related, search, start,
+			groupId, objectRelationship, primaryKey, related, search, start,
 			end);
 	}
 
 	public static int getOneToManyObjectEntriesCount(
-			long groupId, long objectRelationshipId, long primaryKey,
-			boolean related, String search)
+			long groupId,
+			com.liferay.object.model.ObjectRelationship objectRelationship,
+			long primaryKey, boolean related, String search)
 		throws PortalException {
 
 		return getService().getOneToManyObjectEntriesCount(
-			groupId, objectRelationshipId, primaryKey, related, search);
+			groupId, objectRelationship, primaryKey, related, search);
 	}
 
 	/**

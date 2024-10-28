@@ -543,8 +543,9 @@ public class ObjectEntryServiceHttp {
 	public static java.util.List<com.liferay.object.model.ObjectEntry>
 			getOneToManyObjectEntries(
 				HttpPrincipal httpPrincipal, long groupId,
-				long objectRelationshipId, long primaryKey, boolean related,
-				String search, int start, int end)
+				com.liferay.object.model.ObjectRelationship objectRelationship,
+				long primaryKey, boolean related, String search, int start,
+				int end)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -553,7 +554,7 @@ public class ObjectEntryServiceHttp {
 				_getOneToManyObjectEntriesParameterTypes12);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, objectRelationshipId, primaryKey, related,
+				methodKey, groupId, objectRelationship, primaryKey, related,
 				search, start, end);
 
 			Object returnObj = null;
@@ -587,8 +588,8 @@ public class ObjectEntryServiceHttp {
 
 	public static int getOneToManyObjectEntriesCount(
 			HttpPrincipal httpPrincipal, long groupId,
-			long objectRelationshipId, long primaryKey, boolean related,
-			String search)
+			com.liferay.object.model.ObjectRelationship objectRelationship,
+			long primaryKey, boolean related, String search)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -597,7 +598,7 @@ public class ObjectEntryServiceHttp {
 				_getOneToManyObjectEntriesCountParameterTypes13);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, objectRelationshipId, primaryKey, related,
+				methodKey, groupId, objectRelationship, primaryKey, related,
 				search);
 
 			Object returnObj = null;
@@ -878,12 +879,13 @@ public class ObjectEntryServiceHttp {
 		new Class[] {String.class, long.class, long.class};
 	private static final Class<?>[] _getOneToManyObjectEntriesParameterTypes12 =
 		new Class[] {
-			long.class, long.class, long.class, boolean.class, String.class,
-			int.class, int.class
+			long.class, com.liferay.object.model.ObjectRelationship.class,
+			long.class, boolean.class, String.class, int.class, int.class
 		};
 	private static final Class<?>[]
 		_getOneToManyObjectEntriesCountParameterTypes13 = new Class[] {
-			long.class, long.class, long.class, boolean.class, String.class
+			long.class, com.liferay.object.model.ObjectRelationship.class,
+			long.class, boolean.class, String.class
 		};
 	private static final Class<?>[]
 		_hasModelResourcePermissionParameterTypes14 = new Class[] {

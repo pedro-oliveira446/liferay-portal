@@ -128,6 +128,14 @@ public class ObjectEntryLocalServiceWrapper
 				objectDefinition, primaryKey);
 	}
 
+	@Override
+	public void deleteObjectEntry(
+			java.util.List<com.liferay.object.model.ObjectEntry> objectEntries)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_objectEntryLocalService.deleteObjectEntry(objectEntries);
+	}
+
 	/**
 	 * Deletes the object entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
@@ -193,6 +201,14 @@ public class ObjectEntryLocalServiceWrapper
 
 		_objectEntryLocalService.deleteRelatedObjectEntries(
 			groupId, objectDefinitionId, primaryKey);
+	}
+
+	@Override
+	public void deleteRelatedObjectEntries(
+			com.liferay.object.model.ObjectEntry objectEntry)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_objectEntryLocalService.deleteRelatedObjectEntries(objectEntry);
 	}
 
 	@Override
@@ -576,23 +592,26 @@ public class ObjectEntryLocalServiceWrapper
 	@Override
 	public java.util.List<com.liferay.object.model.ObjectEntry>
 			getOneToManyObjectEntries(
-				long groupId, long objectRelationshipId, long primaryKey,
-				boolean related, String search, int start, int end)
+				long groupId,
+				com.liferay.object.model.ObjectRelationship objectRelationship,
+				long primaryKey, boolean related, String search, int start,
+				int end)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectEntryLocalService.getOneToManyObjectEntries(
-			groupId, objectRelationshipId, primaryKey, related, search, start,
+			groupId, objectRelationship, primaryKey, related, search, start,
 			end);
 	}
 
 	@Override
 	public int getOneToManyObjectEntriesCount(
-			long groupId, long objectRelationshipId, long primaryKey,
-			boolean related, String search)
+			long groupId,
+			com.liferay.object.model.ObjectRelationship objectRelationship,
+			long primaryKey, boolean related, String search)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectEntryLocalService.getOneToManyObjectEntriesCount(
-			groupId, objectRelationshipId, primaryKey, related, search);
+			groupId, objectRelationship, primaryKey, related, search);
 	}
 
 	/**

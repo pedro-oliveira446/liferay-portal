@@ -40,21 +40,17 @@ public class ObjectEntryMtoMObjectRelatedModelsProviderImpl
 
 	@Override
 	public void deleteRelatedModel(
-			long userId, long groupId, long objectRelationshipId,
+			long userId, long groupId, ObjectRelationship objectRelationship,
 			long primaryKey, String deletionType)
 		throws PortalException {
 
 		List<ObjectEntry> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, null, QueryUtil.ALL_POS,
+			groupId, objectRelationship, primaryKey, null, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS);
 
 		if (relatedModels.isEmpty()) {
 			return;
 		}
-
-		ObjectRelationship objectRelationship =
-			_objectRelationshipLocalService.getObjectRelationship(
-				objectRelationshipId);
 
 		if (Objects.equals(
 				deletionType,
@@ -66,7 +62,7 @@ public class ObjectEntryMtoMObjectRelatedModelsProviderImpl
 
 		_objectRelationshipLocalService.
 			deleteObjectRelationshipMappingTableValues(
-				objectRelationshipId, primaryKey);
+				objectRelationship.getObjectRelationshipId(), primaryKey);
 
 		if (Objects.equals(
 				deletionType,
@@ -107,13 +103,9 @@ public class ObjectEntryMtoMObjectRelatedModelsProviderImpl
 	}
 
 	public List<ObjectEntry> getRelatedModels(
-			long groupId, long objectRelationshipId, long primaryKey,
-			String search, int start, int end)
+			long groupId, ObjectRelationship objectRelationship,
+			long primaryKey, String search, int start, int end)
 		throws PortalException {
-
-		ObjectRelationship objectRelationship =
-			_objectRelationshipLocalService.getObjectRelationship(
-				objectRelationshipId);
 
 		return _objectEntryService.getManyToManyObjectEntries(
 			groupId, objectRelationship.getObjectRelationshipId(), primaryKey,

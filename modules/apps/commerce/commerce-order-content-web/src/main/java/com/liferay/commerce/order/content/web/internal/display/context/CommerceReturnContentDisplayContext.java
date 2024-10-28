@@ -820,8 +820,7 @@ public class CommerceReturnContentDisplayContext {
 			TransformUtil.transformToLongArray(
 				_objectEntryLocalService.getOneToManyObjectEntries(
 					objectEntry.getGroupId(),
-					commerceReturnToCommerceReturnItems.
-						getObjectRelationshipId(),
+					commerceReturnToCommerceReturnItems,
 					commerceReturn.getId(), true, null, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS),
 				curObjectEntry -> {
