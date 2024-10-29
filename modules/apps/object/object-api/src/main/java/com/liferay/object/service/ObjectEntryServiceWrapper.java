@@ -59,10 +59,10 @@ public class ObjectEntryServiceWrapper
 
 	@Override
 	public com.liferay.object.model.ObjectEntry deleteObjectEntry(
-			long objectEntryId)
+			long objectEntryId, boolean related)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _objectEntryService.deleteObjectEntry(objectEntryId);
+		return _objectEntryService.deleteObjectEntry(objectEntryId, related);
 	}
 
 	@Override

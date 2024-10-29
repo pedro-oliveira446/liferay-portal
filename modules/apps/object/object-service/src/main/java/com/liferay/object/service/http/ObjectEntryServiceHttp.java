@@ -165,7 +165,7 @@ public class ObjectEntryServiceHttp {
 	}
 
 	public static com.liferay.object.model.ObjectEntry deleteObjectEntry(
-			HttpPrincipal httpPrincipal, long objectEntryId)
+			HttpPrincipal httpPrincipal, long objectEntryId, boolean related)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -174,7 +174,7 @@ public class ObjectEntryServiceHttp {
 				_deleteObjectEntryParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, objectEntryId);
+				methodKey, objectEntryId, related);
 
 			Object returnObj = null;
 
@@ -853,7 +853,7 @@ public class ObjectEntryServiceHttp {
 			long.class, long.class, String.class
 		};
 	private static final Class<?>[] _deleteObjectEntryParameterTypes3 =
-		new Class[] {long.class};
+		new Class[] {long.class, boolean.class};
 	private static final Class<?>[] _deleteObjectEntryParameterTypes4 =
 		new Class[] {String.class, long.class, long.class};
 	private static final Class<?>[] _fetchManyToOneObjectEntryParameterTypes5 =

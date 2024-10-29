@@ -147,12 +147,16 @@ public class ObjectEntryLocalServiceUtil {
 	 *
 	 * @param objectEntry the object entry
 	 * @return the object entry that was removed
-	 * @throws PortalException
 	 */
-	public static ObjectEntry deleteObjectEntry(ObjectEntry objectEntry)
+	public static ObjectEntry deleteObjectEntry(ObjectEntry objectEntry) {
+		return getService().deleteObjectEntry(objectEntry);
+	}
+
+	public static ObjectEntry deleteObjectEntry(
+			ObjectEntry objectEntry, boolean related)
 		throws PortalException {
 
-		return getService().deleteObjectEntry(objectEntry);
+		return getService().deleteObjectEntry(objectEntry, related);
 	}
 
 	public static ObjectEntry deleteObjectEntry(
@@ -173,12 +177,10 @@ public class ObjectEntryLocalServiceUtil {
 		return getService().deletePersistedModel(persistedModel);
 	}
 
-	public static void deleteRelatedObjectEntries(
-			long groupId, long objectDefinitionId, long primaryKey)
+	public static void deleteRelatedObjectEntries(ObjectEntry objectEntry)
 		throws PortalException {
 
-		getService().deleteRelatedObjectEntries(
-			groupId, objectDefinitionId, primaryKey);
+		getService().deleteRelatedObjectEntries(objectEntry);
 	}
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {

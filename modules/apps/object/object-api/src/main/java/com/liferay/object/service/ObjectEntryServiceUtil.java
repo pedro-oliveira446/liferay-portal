@@ -62,10 +62,11 @@ public class ObjectEntryServiceUtil {
 			objectDefinitionId, objectEntryId, actionId);
 	}
 
-	public static ObjectEntry deleteObjectEntry(long objectEntryId)
+	public static ObjectEntry deleteObjectEntry(
+			long objectEntryId, boolean related)
 		throws PortalException {
 
-		return getService().deleteObjectEntry(objectEntryId);
+		return getService().deleteObjectEntry(objectEntryId, related);
 	}
 
 	public static ObjectEntry deleteObjectEntry(

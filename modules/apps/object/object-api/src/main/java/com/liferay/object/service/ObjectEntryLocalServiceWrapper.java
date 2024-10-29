@@ -156,14 +156,20 @@ public class ObjectEntryLocalServiceWrapper
 	 *
 	 * @param objectEntry the object entry
 	 * @return the object entry that was removed
-	 * @throws PortalException
 	 */
 	@Override
 	public com.liferay.object.model.ObjectEntry deleteObjectEntry(
-			com.liferay.object.model.ObjectEntry objectEntry)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		com.liferay.object.model.ObjectEntry objectEntry) {
 
 		return _objectEntryLocalService.deleteObjectEntry(objectEntry);
+	}
+
+	@Override
+	public com.liferay.object.model.ObjectEntry deleteObjectEntry(
+			com.liferay.object.model.ObjectEntry objectEntry, boolean related)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectEntryLocalService.deleteObjectEntry(objectEntry, related);
 	}
 
 	@Override
@@ -188,11 +194,10 @@ public class ObjectEntryLocalServiceWrapper
 
 	@Override
 	public void deleteRelatedObjectEntries(
-			long groupId, long objectDefinitionId, long primaryKey)
+			com.liferay.object.model.ObjectEntry objectEntry)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		_objectEntryLocalService.deleteRelatedObjectEntries(
-			groupId, objectDefinitionId, primaryKey);
+		_objectEntryLocalService.deleteRelatedObjectEntries(objectEntry);
 	}
 
 	@Override

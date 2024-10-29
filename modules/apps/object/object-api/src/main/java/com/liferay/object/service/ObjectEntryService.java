@@ -62,7 +62,7 @@ public interface ObjectEntryService extends BaseService {
 			long objectDefinitionId, long objectEntryId, String actionId)
 		throws PortalException;
 
-	public ObjectEntry deleteObjectEntry(long objectEntryId)
+	public ObjectEntry deleteObjectEntry(long objectEntryId, boolean related)
 		throws PortalException;
 
 	public ObjectEntry deleteObjectEntry(

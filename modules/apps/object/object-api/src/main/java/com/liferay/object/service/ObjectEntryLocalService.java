@@ -141,11 +141,13 @@ public interface ObjectEntryLocalService
 	 *
 	 * @param objectEntry the object entry
 	 * @return the object entry that was removed
-	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
+	public ObjectEntry deleteObjectEntry(ObjectEntry objectEntry);
+
 	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
-	public ObjectEntry deleteObjectEntry(ObjectEntry objectEntry)
+	public ObjectEntry deleteObjectEntry(
+			ObjectEntry objectEntry, boolean related)
 		throws PortalException;
 
 	public ObjectEntry deleteObjectEntry(
@@ -159,8 +161,7 @@ public interface ObjectEntryLocalService
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException;
 
-	public void deleteRelatedObjectEntries(
-			long groupId, long objectDefinitionId, long primaryKey)
+	public void deleteRelatedObjectEntries(ObjectEntry objectEntry)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
