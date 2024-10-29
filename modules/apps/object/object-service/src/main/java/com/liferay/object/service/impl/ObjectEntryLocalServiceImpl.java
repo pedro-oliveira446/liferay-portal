@@ -514,8 +514,7 @@ public class ObjectEntryLocalServiceImpl
 			objectDefinition.getExtensionDBTableName(),
 			objectDefinition.getPKObjectFieldDBColumnName(), primaryKey);
 
-		deleteRelatedObjectEntries(
-			0, objectDefinition.getObjectDefinitionId(), primaryKey);
+		deleteRelatedObjectEntries(getObjectEntry(primaryKey));
 
 		_deleteFileEntries(
 			Collections.emptyMap(), objectDefinition.getObjectDefinitionId(),
@@ -582,9 +581,7 @@ public class ObjectEntryLocalServiceImpl
 			}
 		}
 
-		deleteRelatedObjectEntries(
-			objectEntry.getGroupId(), objectDefinition.getObjectDefinitionId(),
-			objectEntry.getPrimaryKey());
+		deleteRelatedObjectEntries(objectEntry);
 
 		if (!objectDefinition.isActive() ||
 			!objectDefinition.isEnableIndexSearch()) {
@@ -612,35 +609,27 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	@Override
-	public void deleteRelatedObjectEntries(
-			long groupId, long objectDefinitionId, long primaryKey)
+	public void deleteRelatedObjectEntries(ObjectEntry objectEntry)
 		throws PortalException {
 
-		List<ObjectRelationship> objectRelationships =
-			_objectRelationshipPersistence.findByObjectDefinitionId1(
-				objectDefinitionId);
+		try {
+			ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(true);
 
-		for (ObjectRelationship objectRelationship : objectRelationships) {
-			ObjectDefinition objectDefinition2 =
-				_objectDefinitionPersistence.findByPrimaryKey(
-					objectRelationship.getObjectDefinitionId2());
+			Map<Long, Map<String, Object>> relatedModels =
+				_getRelatedObjectEntries(objectEntry);
 
-			if (WorkflowConstants.STATUS_DRAFT ==
-					objectDefinition2.getStatus()) {
+			for (Map.Entry<Long, Map<String, Object>> relatedModel :
+					relatedModels.entrySet()) {
 
-				continue;
-			}
+				Map<String, Object> modelAttributes = relatedModel.getValue();
 
-			ObjectRelatedModelsProvider objectRelatedModelsProvider =
-				_objectRelatedModelsProviderRegistry.
-					getObjectRelatedModelsProvider(
-						objectDefinition2.getClassName(),
-						objectDefinition2.getCompanyId(),
-						objectRelationship.getType());
+				ObjectRelatedModelsProvider objectRelatedModelsProvider =
+					(ObjectRelatedModelsProvider)modelAttributes.get(
+						"objectRelatedModelsProvider");
 
-			try {
-				ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(
-					true);
+				ObjectRelationship objectRelationship =
+					(ObjectRelationship)modelAttributes.get(
+						"objectRelationship");
 
 				String deletionType = objectRelationship.getDeletionType();
 
@@ -650,18 +639,21 @@ public class ObjectEntryLocalServiceImpl
 				}
 
 				objectRelatedModelsProvider.deleteRelatedModel(
-					PrincipalThreadLocal.getUserId(), groupId,
-					objectRelationship.getObjectRelationshipId(), primaryKey,
-					deletionType);
+					PrincipalThreadLocal.getUserId(),
+					(Long)modelAttributes.get("groupId"),
+					objectRelationship.getObjectRelationshipId(),
+					relatedModel.getKey(), deletionType);
 			}
-			catch (PrincipalException principalException) {
-				throw new ObjectRelationshipDeletionTypeException(
-					principalException.getMessage());
-			}
-			finally {
-				ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(
-					false);
-			}
+		}
+		catch (PrincipalException principalException) {
+			throw new ObjectRelationshipDeletionTypeException(
+				principalException.getMessage());
+		}
+		catch (PortalException portalException) {
+			throw new PortalException(portalException);
+		}
+		finally {
+			ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(false);
 		}
 	}
 
