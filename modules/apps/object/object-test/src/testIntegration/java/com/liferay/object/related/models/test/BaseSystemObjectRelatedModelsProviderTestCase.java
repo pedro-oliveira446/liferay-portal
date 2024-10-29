@@ -135,7 +135,7 @@ public abstract class BaseSystemObjectRelatedModelsProviderTestCase {
 			ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
 			_objectRelationship.getLabelMap());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry1);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry1, true);
 
 		assertFailure(primaryKeys[1]);
 		assertFailure(primaryKeys[2]);
@@ -161,7 +161,7 @@ public abstract class BaseSystemObjectRelatedModelsProviderTestCase {
 			_objectRelationship.getObjectRelationshipId(),
 			objectEntry2.getObjectEntryId());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry2);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry2, true);
 
 		ObjectRelationshipTestUtil.assertGetRelatedModels(
 			0, _objectRelatedModelsProvider,
@@ -192,7 +192,8 @@ public abstract class BaseSystemObjectRelatedModelsProviderTestCase {
 				"Object relationship ",
 				_objectRelationship.getObjectRelationshipId(),
 				" does not allow deletes"),
-			() -> _objectEntryLocalService.deleteObjectEntry(objectEntry3));
+			() -> _objectEntryLocalService.deleteObjectEntry(
+				objectEntry3, true));
 
 		ObjectRelationshipTestUtil.assertGetRelatedModels(
 			1, _objectRelatedModelsProvider,
@@ -266,7 +267,7 @@ public abstract class BaseSystemObjectRelatedModelsProviderTestCase {
 
 		assertFailure(primaryKeys[1]);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry1);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry1, true);
 
 		Assert.assertNull(
 			_objectEntryLocalService.fetchObjectEntry(
@@ -295,7 +296,7 @@ public abstract class BaseSystemObjectRelatedModelsProviderTestCase {
 			_objectRelationship.getObjectRelationshipId(),
 			objectEntry2.getObjectEntryId());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry2);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry2, true);
 
 		ObjectRelationshipTestUtil.assertGetRelatedModels(
 			0, _objectRelatedModelsProvider,
@@ -328,7 +329,8 @@ public abstract class BaseSystemObjectRelatedModelsProviderTestCase {
 				"Object relationship ",
 				_objectRelationship.getObjectRelationshipId(),
 				" does not allow deletes"),
-			() -> _objectEntryLocalService.deleteObjectEntry(objectEntry3));
+			() -> _objectEntryLocalService.deleteObjectEntry(
+				objectEntry3, true));
 
 		// Reverse object relationship
 

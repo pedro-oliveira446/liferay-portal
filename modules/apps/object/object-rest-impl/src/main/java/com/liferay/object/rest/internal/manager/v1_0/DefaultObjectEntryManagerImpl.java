@@ -230,7 +230,7 @@ public class DefaultObjectEntryManagerImpl
 			objectDefinition, serviceBuilderObjectEntry);
 
 		_objectEntryService.deleteObjectEntry(
-			serviceBuilderObjectEntry.getObjectEntryId());
+			serviceBuilderObjectEntry.getObjectEntryId(), true);
 	}
 
 	@Override
@@ -242,7 +242,7 @@ public class DefaultObjectEntryManagerImpl
 			objectDefinition,
 			_objectEntryService.getObjectEntry(objectEntryId));
 
-		_objectEntryService.deleteObjectEntry(objectEntryId);
+		_objectEntryService.deleteObjectEntry(objectEntryId, true);
 	}
 
 	@Override

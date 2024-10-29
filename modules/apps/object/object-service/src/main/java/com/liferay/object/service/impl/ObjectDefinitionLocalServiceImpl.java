@@ -561,7 +561,8 @@ public class ObjectDefinitionLocalServiceImpl
 				(ObjectEntry objectEntry) -> {
 					deletedMarker.set(true);
 
-					_objectEntryLocalService.deleteObjectEntry(objectEntry);
+					_objectEntryLocalService.deleteObjectEntry(
+						objectEntry, true);
 				});
 
 			actionableDynamicQuery.setPrimaryKeyPropertyName("objectEntryId");

@@ -430,7 +430,7 @@ public class ObjectEntryServiceTest {
 			_objectEntryLocalService,
 			objectEntry -> Assert.assertNotNull(
 				_objectEntryService.deleteObjectEntry(
-					objectEntry.getObjectEntryId())));
+					objectEntry.getObjectEntryId(), true)));
 
 		_resourcePermissionLocalService.removeResourcePermission(
 			TestPropsValues.getCompanyId(),
@@ -460,7 +460,7 @@ public class ObjectEntryServiceTest {
 			_objectEntryLocalService,
 			objectEntry -> Assert.assertNotNull(
 				_objectEntryService.deleteObjectEntry(
-					objectEntry.getObjectEntryId())));
+					objectEntry.getObjectEntryId(), true)));
 
 		// User can delete an object entry of a descendant object definition
 		// with the update permission
@@ -495,7 +495,7 @@ public class ObjectEntryServiceTest {
 
 				Assert.assertNotNull(
 					_objectEntryService.deleteObjectEntry(
-						objectEntry.getObjectEntryId()));
+						objectEntry.getObjectEntryId(), true));
 			});
 
 		long rootObjectEntryId = objectEntryRootNode.getPrimaryKey();
@@ -508,7 +508,8 @@ public class ObjectEntryServiceTest {
 			StringBundler.concat(
 				"User ", _user.getUserId(), " must have DELETE permission for ",
 				_rootObjectDefinition.getClassName(), " ", rootObjectEntryId),
-			() -> _objectEntryService.deleteObjectEntry(rootObjectEntryId));
+			() -> _objectEntryService.deleteObjectEntry(
+				rootObjectEntryId, true));
 	}
 
 	@Test
@@ -731,7 +732,8 @@ public class ObjectEntryServiceTest {
 		Assert.assertNotNull(
 			_objectEntryService.getObjectEntry(objectEntry.getObjectEntryId()));
 
-		_objectEntryService.deleteObjectEntry(objectEntry.getObjectEntryId());
+		_objectEntryService.deleteObjectEntry(
+			objectEntry.getObjectEntryId(), true);
 
 		_accountEntryLocalService.deleteAccountEntry(accountEntry);
 	}
@@ -756,8 +758,8 @@ public class ObjectEntryServiceTest {
 
 		Assert.assertEquals(0, baseModelSearchResult.getLength());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry1);
-		_objectEntryLocalService.deleteObjectEntry(objectEntry2);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry1, true);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry2, true);
 	}
 
 	@Test
@@ -1011,11 +1013,11 @@ public class ObjectEntryServiceTest {
 			objectEntry = _addObjectEntry(ownerUser);
 
 			deleteObjectEntry = _objectEntryService.deleteObjectEntry(
-				objectEntry.getObjectEntryId());
+				objectEntry.getObjectEntryId(), true);
 		}
 		finally {
 			if (deleteObjectEntry == null) {
-				_objectEntryLocalService.deleteObjectEntry(objectEntry);
+				_objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 			}
 		}
 	}

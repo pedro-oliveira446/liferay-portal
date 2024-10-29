@@ -121,7 +121,8 @@ public class GroupModelListenerTest {
 				"Object relationship ",
 				_objectRelationship.getObjectRelationshipId(),
 				" does not allow deletes"),
-			() -> _objectEntryLocalService.deleteObjectEntry(objectEntry1));
+			() -> _objectEntryLocalService.deleteObjectEntry(
+				objectEntry1, true));
 
 		GroupTestUtil.deleteGroup(group);
 

@@ -64,7 +64,7 @@ public class ObjectEntryMtoMObjectRelatedModelsProviderImpl
 				ObjectRelationshipConstants.DELETION_TYPE_CASCADE) &&
 			!objectRelationship.isReverse()) {
 
-			_objectEntryService.deleteObjectEntry(primaryKey);
+			_objectEntryService.deleteObjectEntry(primaryKey, false);
 		}
 	}
 

@@ -70,7 +70,7 @@ public class GroupModelListener extends BaseModelListener<Group> {
 						"objectDefinitionId", objectDefinitionId))));
 		actionableDynamicQuery.setPerformActionMethod(
 			(ObjectEntry objectEntry) ->
-				_objectEntryLocalService.deleteObjectEntry(objectEntry));
+				_objectEntryLocalService.deleteObjectEntry(objectEntry, true));
 
 		boolean disassociateRelatedModels =
 			ObjectEntryThreadLocal.isDisassociateRelatedModels();

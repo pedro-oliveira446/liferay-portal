@@ -159,7 +159,7 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 	}
 
 	@Override
-	public ObjectEntry deleteObjectEntry(long objectEntryId)
+	public ObjectEntry deleteObjectEntry(long objectEntryId, boolean related)
 		throws PortalException {
 
 		ObjectEntry objectEntry = objectEntryLocalService.getObjectEntry(
@@ -169,7 +169,7 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 			ActionKeys.DELETE, objectEntry.getObjectDefinitionId(),
 			objectEntry);
 
-		return objectEntryLocalService.deleteObjectEntry(objectEntryId);
+		return objectEntryLocalService.deleteObjectEntry(objectEntry, related);
 	}
 
 	@Override
@@ -184,7 +184,7 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 			ActionKeys.DELETE, objectEntry.getObjectDefinitionId(),
 			objectEntry);
 
-		return objectEntryLocalService.deleteObjectEntry(objectEntry);
+		return objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 	}
 
 	@Override

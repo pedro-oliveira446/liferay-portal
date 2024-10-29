@@ -1531,13 +1531,13 @@ public class ObjectRelationshipLocalServiceTest {
 		_assertHasResourcePermission(true, objectEntryAAA1, role);
 		_assertHasResourcePermission(true, objectEntryAAA2, role);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntryAAA1);
-		_objectEntryLocalService.deleteObjectEntry(objectEntryAAA2);
+		_objectEntryLocalService.deleteObjectEntry(objectEntryAAA1, true);
+		_objectEntryLocalService.deleteObjectEntry(objectEntryAAA2, true);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntryAA1);
-		_objectEntryLocalService.deleteObjectEntry(objectEntryAA2);
+		_objectEntryLocalService.deleteObjectEntry(objectEntryAA1, true);
+		_objectEntryLocalService.deleteObjectEntry(objectEntryAA2, true);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntryA);
+		_objectEntryLocalService.deleteObjectEntry(objectEntryA, true);
 
 		TreeTestUtil.deleteObjectDefinitionHierarchy(
 			_objectDefinitionLocalService,

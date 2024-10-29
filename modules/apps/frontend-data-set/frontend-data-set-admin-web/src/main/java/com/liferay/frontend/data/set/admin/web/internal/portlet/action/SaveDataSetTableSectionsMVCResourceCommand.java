@@ -107,7 +107,7 @@ public class SaveDataSetTableSectionsMVCResourceCommand
 			resourceRequest, "deletionIds");
 
 		for (long id : deletionIds) {
-			_objectEntryService.deleteObjectEntry(id);
+			_objectEntryService.deleteObjectEntry(id, true);
 		}
 
 		JSONPortletResponseUtil.writeJSON(

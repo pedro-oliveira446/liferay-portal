@@ -250,7 +250,7 @@ public class TreeTestUtil {
 					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 			for (ObjectEntry objectEntry : objectEntries) {
-				objectEntryLocalService.deleteObjectEntry(objectEntry);
+				objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 			}
 
 			if (objectDefinition.getRootObjectDefinitionId() != 0) {

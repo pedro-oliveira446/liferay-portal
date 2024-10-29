@@ -356,7 +356,7 @@ public class ObjectRelatedModelsProviderTest {
 			expectedLocalizedValues.get("text_i18n"),
 			actualLocalizedValues.get("text_i18n"));
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry5);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry5, true);
 
 		// Get related models with search
 
@@ -455,7 +455,7 @@ public class ObjectRelatedModelsProviderTest {
 			_objectRelationship.getObjectRelationshipId(),
 			objectEntry4.getObjectEntryId());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry4);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry4, true);
 
 		Assert.assertNull(
 			_objectEntryLocalService.fetchObjectEntry(
@@ -485,7 +485,7 @@ public class ObjectRelatedModelsProviderTest {
 			_objectRelationship.getObjectRelationshipId(),
 			objectEntry7.getObjectEntryId());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry7);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry7, true);
 
 		Assert.assertNotNull(
 			_objectEntryLocalService.fetchObjectEntry(
@@ -525,7 +525,8 @@ public class ObjectRelatedModelsProviderTest {
 				"Object relationship ",
 				_objectRelationship.getObjectRelationshipId(),
 				" does not allow deletes"),
-			() -> _objectEntryLocalService.deleteObjectEntry(objectEntry9));
+			() -> _objectEntryLocalService.deleteObjectEntry(
+				objectEntry9, true));
 
 		ObjectRelationshipTestUtil.assertGetRelatedModels(
 			1, _objectRelatedModelsProvider,
@@ -922,7 +923,7 @@ public class ObjectRelatedModelsProviderTest {
 			ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
 			_objectRelationship.getLabelMap());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry3);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry3, true);
 
 		Assert.assertNotNull(
 			_objectEntryLocalService.fetchObjectEntry(
@@ -936,7 +937,7 @@ public class ObjectRelatedModelsProviderTest {
 			_objectRelationship.getObjectRelationshipId(),
 			objectEntry1.getObjectEntryId());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry1);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry1, true);
 
 		Assert.assertNull(
 			_objectEntryLocalService.fetchObjectEntry(
@@ -972,7 +973,7 @@ public class ObjectRelatedModelsProviderTest {
 			_objectRelationship.getObjectRelationshipId(),
 			objectEntry4.getObjectEntryId());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry4);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry4, true);
 
 		ObjectRelationshipTestUtil.assertGetRelatedModels(
 			0, _objectRelatedModelsProvider,
@@ -1008,7 +1009,8 @@ public class ObjectRelatedModelsProviderTest {
 				"Object relationship ",
 				_objectRelationship.getObjectRelationshipId(),
 				" does not allow deletes"),
-			() -> _objectEntryLocalService.deleteObjectEntry(objectEntry7));
+			() -> _objectEntryLocalService.deleteObjectEntry(
+				objectEntry7, true));
 
 		Assert.assertNotNull(
 			_objectEntryLocalService.fetchObjectEntry(
@@ -1019,7 +1021,7 @@ public class ObjectRelatedModelsProviderTest {
 			_objectRelationship.getObjectRelationshipId(),
 			objectEntry7.getObjectEntryId());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry6);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry6, true);
 
 		ObjectRelationshipTestUtil.assertGetRelatedModels(
 			1, _objectRelatedModelsProvider,

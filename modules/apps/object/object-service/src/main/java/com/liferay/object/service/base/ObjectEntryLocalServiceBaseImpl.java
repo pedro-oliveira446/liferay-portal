@@ -137,12 +137,14 @@ public abstract class ObjectEntryLocalServiceBaseImpl
 	 * </p>
 	 *
 	 * @param objectEntry the object entry
+	 * @param related
 	 * @return the object entry that was removed
 	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public ObjectEntry deleteObjectEntry(ObjectEntry objectEntry)
+	public ObjectEntry deleteObjectEntry(ObjectEntry objectEntry,
+										 boolean related)
 		throws PortalException {
 
 		return objectEntryPersistence.remove(objectEntry);
@@ -472,7 +474,7 @@ public abstract class ObjectEntryLocalServiceBaseImpl
 		}
 
 		return objectEntryLocalService.deleteObjectEntry(
-			(ObjectEntry)persistedModel);
+			(ObjectEntry)persistedModel, true);
 	}
 
 	@Override

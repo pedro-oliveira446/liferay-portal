@@ -141,7 +141,7 @@ public class CommerceReturnItemObjectEntryValuesContributorTest {
 	@After
 	public void tearDown() throws Exception {
 		for (ObjectEntry objectEntry : _objectEntries) {
-			_objectEntryLocalService.deleteObjectEntry(objectEntry);
+			_objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 		}
 	}
 

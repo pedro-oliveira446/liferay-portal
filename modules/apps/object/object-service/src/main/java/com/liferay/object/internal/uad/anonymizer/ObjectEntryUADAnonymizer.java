@@ -88,7 +88,7 @@ public class ObjectEntryUADAnonymizer
 		try {
 			ObjectEntryThreadLocal.setDisassociateRelatedModels(true);
 
-			_objectEntryLocalService.deleteObjectEntry(objectEntry);
+			_objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 		}
 		finally {
 			ObjectEntryThreadLocal.setDisassociateRelatedModels(false);

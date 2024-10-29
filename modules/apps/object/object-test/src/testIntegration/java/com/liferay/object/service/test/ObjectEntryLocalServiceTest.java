@@ -970,7 +970,7 @@ public class ObjectEntryLocalServiceTest {
 		Assert.assertNotNull(
 			_dlAppLocalService.getFileEntry(persistedFileEntryId2));
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 
 		AssertUtils.assertFailure(
 			NoSuchFileEntryException.class,
@@ -2277,7 +2277,7 @@ public class ObjectEntryLocalServiceTest {
 			() -> _objectEntryLocalService.deleteObjectEntry(
 				objectEntry1.getObjectEntryId()));
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry1);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry1, true);
 
 		AssertUtils.assertFailure(
 			NoSuchObjectEntryException.class,
@@ -2288,7 +2288,7 @@ public class ObjectEntryLocalServiceTest {
 
 		_assertCount(1);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry2);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry2, true);
 
 		_assertCount(0);
 
@@ -2313,7 +2313,7 @@ public class ObjectEntryLocalServiceTest {
 			StringUtil.randomId(), false,
 			ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry3);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry3, true);
 
 		_assertCount(0);
 
@@ -2349,7 +2349,7 @@ public class ObjectEntryLocalServiceTest {
 			_objectDefinition.getPluralLabelMap(), _objectDefinition.getScope(),
 			_objectDefinition.getStatus());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry4);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry4, true);
 
 		_assertCount(0);
 
@@ -2393,7 +2393,7 @@ public class ObjectEntryLocalServiceTest {
 			StringUtil.randomId(), false,
 			ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry5);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry5, true);
 
 		_assertCount(0);
 

@@ -788,7 +788,7 @@ public class ObjectActionLocalServiceTest {
 
 			Assert.assertEquals(0, _argumentsList.size());
 
-			_objectEntryLocalService.deleteObjectEntry(objectEntry);
+			_objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 
 			// On after remove
 
@@ -1086,7 +1086,7 @@ public class ObjectActionLocalServiceTest {
 			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 
 		Assert.assertNull(_argumentsList.poll());
 
@@ -1100,7 +1100,8 @@ public class ObjectActionLocalServiceTest {
 			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
-		objectEntry = _objectEntryLocalService.deleteObjectEntry(objectEntry);
+		objectEntry = _objectEntryLocalService.deleteObjectEntry(
+			objectEntry, true);
 
 		_assertGroovyObjectActionExecutorArguments("João", objectEntry);
 
@@ -1285,8 +1286,8 @@ public class ObjectActionLocalServiceTest {
 			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD, _objectDefinition,
 			null, null, WorkflowConstants.STATUS_APPROVED);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry1);
-		_objectEntryLocalService.deleteObjectEntry(objectEntry2);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry1, true);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry2, true);
 
 		_objectActionLocalService.deleteObjectAction(objectAction1);
 
@@ -1329,14 +1330,14 @@ public class ObjectActionLocalServiceTest {
 			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry3);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry3, true);
 
 		_assertWebhookObjectAction(
 			null, "John", "Smith",
 			ObjectActionTriggerConstants.KEY_ON_AFTER_DELETE, _objectDefinition,
 			"John", "Smith", WorkflowConstants.STATUS_APPROVED);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry4);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry4, true);
 
 		_assertWebhookObjectAction(
 			null, "Peter", "White",
@@ -1410,8 +1411,8 @@ public class ObjectActionLocalServiceTest {
 			ObjectActionTriggerConstants.KEY_ON_AFTER_UPDATE, _objectDefinition,
 			"Peter", "White", WorkflowConstants.STATUS_APPROVED);
 
-		_objectEntryLocalService.deleteObjectEntry(objectEntry5);
-		_objectEntryLocalService.deleteObjectEntry(objectEntry6);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry5, true);
+		_objectEntryLocalService.deleteObjectEntry(objectEntry6, true);
 
 		_objectActionLocalService.deleteObjectAction(objectAction3);
 	}

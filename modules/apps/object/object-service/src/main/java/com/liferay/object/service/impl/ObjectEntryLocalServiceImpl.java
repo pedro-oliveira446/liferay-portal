@@ -528,12 +528,13 @@ public class ObjectEntryLocalServiceImpl
 		ObjectEntry objectEntry = objectEntryPersistence.findByPrimaryKey(
 			objectEntryId);
 
-		return objectEntryLocalService.deleteObjectEntry(objectEntry);
+		return objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 	}
 
 	@Override
 	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
-	public ObjectEntry deleteObjectEntry(ObjectEntry objectEntry)
+	public ObjectEntry deleteObjectEntry(
+			ObjectEntry objectEntry, boolean related)
 		throws PortalException {
 
 		ObjectActionThreadLocal.clearObjectEntryIdsMap();
@@ -581,7 +582,9 @@ public class ObjectEntryLocalServiceImpl
 			}
 		}
 
-		deleteRelatedObjectEntries(objectEntry);
+		if (related) {
+			deleteRelatedObjectEntries(objectEntry);
+		}
 
 		if (!objectDefinition.isActive() ||
 			!objectDefinition.isEnableIndexSearch()) {
@@ -605,7 +608,7 @@ public class ObjectEntryLocalServiceImpl
 		ObjectEntry objectEntry = objectEntryPersistence.findByERC_G_C(
 			externalReferenceCode, groupId, companyId);
 
-		return objectEntryLocalService.deleteObjectEntry(objectEntry);
+		return objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 	}
 
 	@Override

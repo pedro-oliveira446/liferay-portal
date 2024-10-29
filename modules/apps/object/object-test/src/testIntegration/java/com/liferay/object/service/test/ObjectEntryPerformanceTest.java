@@ -138,7 +138,7 @@ public class ObjectEntryPerformanceTest {
 		for (com.liferay.object.model.ObjectEntry objectEntry :
 				_objectEntries) {
 
-			_objectEntryLocalService.deleteObjectEntry(objectEntry);
+			_objectEntryLocalService.deleteObjectEntry(objectEntry, true);
 		}
 	}
 
