@@ -130,6 +130,7 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.encryptor.Encryptor;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -3203,6 +3204,63 @@ public class ObjectEntryLocalServiceImpl
 		}
 
 		return ObjectEntryTable.INSTANCE.objectEntryId;
+	}
+
+	private Map<Long, Map<String, Object>> _getRelatedObjectEntries(
+			ObjectEntry objectEntry)
+		throws PortalException {
+
+		Map<Long, Map<String, Object>> allRelatedModels = new HashMap<>();
+
+		List<ObjectRelationship> objectRelationships =
+			_objectRelationshipPersistence.findByObjectDefinitionId1(
+				objectEntry.getObjectDefinitionId());
+
+		for (ObjectRelationship objectRelationship : objectRelationships) {
+			ObjectDefinition objectDefinition2 =
+				_objectDefinitionPersistence.findByPrimaryKey(
+					objectRelationship.getObjectDefinitionId2());
+
+			if (WorkflowConstants.STATUS_DRAFT ==
+					objectDefinition2.getStatus()) {
+
+				continue;
+			}
+
+			ObjectRelatedModelsProvider objectRelatedModelsProvider =
+				_objectRelatedModelsProviderRegistry.
+					getObjectRelatedModelsProvider(
+						objectDefinition2.getClassName(),
+						objectDefinition2.getCompanyId(),
+						objectRelationship.getType());
+
+			List<ObjectEntry> relatedModels =
+				objectRelatedModelsProvider.getRelatedModels(
+					objectEntry.getGroupId(),
+					objectRelationship.getObjectRelationshipId(),
+					objectEntry.getObjectEntryId(), null, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS);
+
+			for (ObjectEntry relatedModel : relatedModels) {
+				allRelatedModels.put(
+					relatedModel.getObjectEntryId(),
+					HashMapBuilder.<String, Object>put(
+						"groupId", relatedModel.getGroupId()
+					).put(
+						"objectRelatedModelsProvider",
+						objectRelatedModelsProvider
+					).put(
+						"objectRelationship", objectRelationship
+					).build());
+
+				Map<Long, Map<String, Object>> nestedRelatedModels =
+					_getRelatedObjectEntries(relatedModel);
+
+				allRelatedModels.putAll(nestedRelatedModels);
+			}
+		}
+
+		return allRelatedModels;
 	}
 
 	private Predicate _getRelationshipObjectFieldPredicate(
