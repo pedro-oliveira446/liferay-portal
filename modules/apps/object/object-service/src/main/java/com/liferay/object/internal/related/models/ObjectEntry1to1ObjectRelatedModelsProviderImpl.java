@@ -51,32 +51,25 @@ public class ObjectEntry1to1ObjectRelatedModelsProviderImpl
 			long primaryKey, String deletionType)
 		throws PortalException {
 
-		ObjectRelationship objectRelationship =
-			_objectRelationshipLocalService.getObjectRelationship(
-				objectRelationshipId);
-
-		List<ObjectEntry> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, null, 0, 1);
-
-		if (relatedModels.isEmpty()) {
-			return;
-		}
-
-		ObjectEntry objectEntry = relatedModels.get(0);
-
 		if (Objects.equals(
 				deletionType,
 				ObjectRelationshipConstants.DELETION_TYPE_CASCADE)) {
 
-			_objectEntryService.deleteObjectEntry(
-				objectEntry.getObjectEntryId());
+			_objectEntryService.deleteObjectEntry(primaryKey);
+
+			return;
 		}
-		else if (Objects.equals(
-					deletionType,
-					ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE)) {
+
+		ObjectRelationship objectRelationship =
+			_objectRelationshipLocalService.getObjectRelationship(
+				objectRelationshipId);
+
+		if (Objects.equals(
+				deletionType,
+				ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE)) {
 
 			_objectEntryService.updateObjectEntry(
-				objectEntry.getObjectEntryId(),
+				primaryKey,
 				HashMapBuilder.<String, Serializable>put(
 					() -> {
 						ObjectField objectField =

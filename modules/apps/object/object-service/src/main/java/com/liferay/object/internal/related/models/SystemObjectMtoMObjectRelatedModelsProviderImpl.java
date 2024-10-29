@@ -24,7 +24,6 @@ import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.Table;
 import com.liferay.petra.sql.dsl.query.FromStep;
 import com.liferay.petra.sql.dsl.query.GroupByStep;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
@@ -66,14 +65,6 @@ public class SystemObjectMtoMObjectRelatedModelsProviderImpl
 			long primaryKey, String deletionType)
 		throws PortalException {
 
-		List<T> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, null, QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS);
-
-		if (relatedModels.isEmpty()) {
-			return;
-		}
-
 		ObjectRelationship objectRelationship =
 			_objectRelationshipLocalService.getObjectRelationship(
 				objectRelationshipId);
@@ -100,9 +91,14 @@ public class SystemObjectMtoMObjectRelatedModelsProviderImpl
 					getSystemObjectDefinitionManager(
 						_objectDefinition.getName());
 
-			for (BaseModel<T> baseModel : relatedModels) {
-				systemObjectDefinitionManager.deleteBaseModel(baseModel);
-			}
+			BaseModel<?> baseModel =
+				systemObjectDefinitionManager.
+					getBaseModelByExternalReferenceCode(
+						systemObjectDefinitionManager.
+							getBaseModelExternalReferenceCode(primaryKey),
+						_objectDefinition.getCompanyId());
+
+			systemObjectDefinitionManager.deleteBaseModel(baseModel);
 		}
 	}
 

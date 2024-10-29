@@ -15,7 +15,6 @@ import com.liferay.object.related.models.ObjectRelatedModelsProvider;
 import com.liferay.object.service.ObjectEntryService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -52,42 +51,34 @@ public class ObjectEntry1toMObjectRelatedModelsProviderImpl
 			long primaryKey, String deletionType)
 		throws PortalException {
 
-		ObjectRelationship objectRelationship =
-			_objectRelationshipLocalService.getObjectRelationship(
-				objectRelationshipId);
-
-		List<ObjectEntry> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, null, QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS);
-
-		if (relatedModels.isEmpty()) {
-			return;
-		}
-
 		if (Objects.equals(
 				deletionType,
 				ObjectRelationshipConstants.DELETION_TYPE_CASCADE)) {
 
-			for (ObjectEntry objectEntry : relatedModels) {
-				_objectEntryService.deleteObjectEntry(
-					objectEntry.getObjectEntryId());
-			}
+			_objectEntryService.deleteObjectEntry(primaryKey);
 		}
-		else if (Objects.equals(
-					deletionType,
-					ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE)) {
 
-			ObjectField objectField = _objectFieldLocalService.getObjectField(
-				objectRelationship.getObjectFieldId2());
+		ObjectRelationship objectRelationship =
+			_objectRelationshipLocalService.getObjectRelationship(
+				objectRelationshipId);
 
-			for (ObjectEntry objectEntry : relatedModels) {
-				_objectEntryService.updateObjectEntry(
-					objectEntry.getObjectEntryId(),
-					HashMapBuilder.<String, Serializable>put(
-						objectField.getName(), 0
-					).build(),
-					new ServiceContext());
-			}
+		if (Objects.equals(
+				deletionType,
+				ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE)) {
+
+			_objectEntryService.updateObjectEntry(
+				primaryKey,
+				HashMapBuilder.<String, Serializable>put(
+					() -> {
+						ObjectField objectField =
+							_objectFieldLocalService.getObjectField(
+								objectRelationship.getObjectFieldId2());
+
+						return objectField.getName();
+					},
+					0
+				).build(),
+				new ServiceContext());
 		}
 		else if (Objects.equals(
 					deletionType,

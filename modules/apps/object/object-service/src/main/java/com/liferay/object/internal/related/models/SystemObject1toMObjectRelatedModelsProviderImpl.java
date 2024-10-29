@@ -28,7 +28,6 @@ import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.petra.sql.dsl.query.FromStep;
 import com.liferay.petra.sql.dsl.query.GroupByStep;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
@@ -81,48 +80,46 @@ public class SystemObject1toMObjectRelatedModelsProviderImpl
 			_objectRelationshipLocalService.getObjectRelationship(
 				objectRelationshipId);
 
-		List<T> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, null, QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS);
+		if (Objects.equals(
+				deletionType,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT)) {
 
-		if (relatedModels.isEmpty()) {
-			return;
+			throw new RequiredObjectRelationshipException(objectRelationship);
 		}
+
+		SystemObjectDefinitionManager systemObjectDefinitionManager =
+			_systemObjectDefinitionManagerRegistry.
+				getSystemObjectDefinitionManager(_objectDefinition.getName());
+
+		BaseModel<?> baseModel =
+			systemObjectDefinitionManager.getBaseModelByExternalReferenceCode(
+				systemObjectDefinitionManager.getBaseModelExternalReferenceCode(
+					primaryKey),
+				_objectDefinition.getCompanyId());
 
 		if (Objects.equals(
 				deletionType,
 				ObjectRelationshipConstants.DELETION_TYPE_CASCADE)) {
 
-			SystemObjectDefinitionManager systemObjectDefinitionManager =
-				_systemObjectDefinitionManagerRegistry.
-					getSystemObjectDefinitionManager(
-						_objectDefinition.getName());
-
-			for (BaseModel<T> baseModel : relatedModels) {
-				systemObjectDefinitionManager.deleteBaseModel(baseModel);
-			}
+			systemObjectDefinitionManager.deleteBaseModel(baseModel);
 		}
 		else if (Objects.equals(
 					deletionType,
 					ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE)) {
 
-			ObjectField objectField = _objectFieldLocalService.getObjectField(
-				objectRelationship.getObjectFieldId2());
+			_objectEntryLocalService.insertIntoOrUpdateExtensionTable(
+				userId, objectRelationship.getObjectDefinitionId2(),
+				GetterUtil.getLong(baseModel.getPrimaryKeyObj()),
+				HashMapBuilder.<String, Serializable>put(
+					() -> {
+						ObjectField objectField =
+							_objectFieldLocalService.getObjectField(
+								objectRelationship.getObjectFieldId2());
 
-			for (BaseModel<T> baseModel : relatedModels) {
-				_objectEntryLocalService.insertIntoOrUpdateExtensionTable(
-					userId, objectRelationship.getObjectDefinitionId2(),
-					GetterUtil.getLong(baseModel.getPrimaryKeyObj()),
-					HashMapBuilder.<String, Serializable>put(
-						objectField.getName(), 0
-					).build());
-			}
-		}
-		else if (Objects.equals(
-					deletionType,
-					ObjectRelationshipConstants.DELETION_TYPE_PREVENT)) {
-
-			throw new RequiredObjectRelationshipException(objectRelationship);
+						return objectField.getName();
+					},
+					0
+				).build());
 		}
 	}
 
