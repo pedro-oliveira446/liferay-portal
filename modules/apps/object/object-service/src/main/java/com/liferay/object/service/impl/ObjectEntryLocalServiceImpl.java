@@ -615,49 +615,79 @@ public class ObjectEntryLocalServiceImpl
 	public void deleteRelatedObjectEntries(ObjectEntry objectEntry)
 		throws PortalException {
 
-		try {
-			ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(true);
+		PermissionChecker originalPermissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
 
-			Map<Long, Map<String, Object>> relatedModels =
-				_getRelatedObjectEntries(objectEntry);
+		Map<Long, Map<String, Object>> relatedModels = _getRelatedObjectEntries(
+			objectEntry);
 
-			for (Map.Entry<Long, Map<String, Object>> relatedModel :
-					relatedModels.entrySet()) {
+		long[] values = new long[79598];
+		int contador = 0;
 
-				Map<String, Object> modelAttributes = relatedModel.getValue();
+		for (Map.Entry<Long, Map<String, Object>> relatedModel :
+				relatedModels.entrySet()) {
 
-				ObjectRelatedModelsProvider objectRelatedModelsProvider =
-					(ObjectRelatedModelsProvider)modelAttributes.get(
-						"objectRelatedModelsProvider");
+			values[contador] = relatedModel.getKey();
+			contador++;
+		}
 
-				ObjectRelationship objectRelationship =
-					(ObjectRelationship)modelAttributes.get(
-						"objectRelationship");
+		ActionableDynamicQuery actionableDynamicQuery =
+			getActionableDynamicQuery();
 
-				String deletionType = objectRelationship.getDeletionType();
+		actionableDynamicQuery.setAddCriteriaMethod(
+			dynamicQuery -> {
+				Property objectEntryIdProperty = PropertyFactoryUtil.forName(
+					"objectEntryId");
 
-				if (ObjectEntryThreadLocal.isDisassociateRelatedModels()) {
-					deletionType =
-						ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE;
+				dynamicQuery.add(objectEntryIdProperty.in(values));
+			});
+		actionableDynamicQuery.setParallel(true);
+		actionableDynamicQuery.setPerformActionMethod(
+			(ObjectEntry entry) -> {
+				try {
+					PermissionThreadLocal.setPermissionChecker(
+						originalPermissionChecker);
+					ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(
+						true);
+					Map<String, Object> modelAttributes = relatedModels.get(
+						entry.getObjectEntryId());
+
+					ObjectRelatedModelsProvider objectRelatedModelsProvider =
+						(ObjectRelatedModelsProvider)modelAttributes.get(
+							"objectRelatedModelsProvider");
+
+					ObjectRelationship objectRelationship =
+						(ObjectRelationship)modelAttributes.get(
+							"objectRelationship");
+
+					String deletionType = objectRelationship.getDeletionType();
+
+					if (ObjectEntryThreadLocal.isDisassociateRelatedModels()) {
+						deletionType =
+							ObjectRelationshipConstants.
+								DELETION_TYPE_DISASSOCIATE;
+					}
+
+					objectRelatedModelsProvider.deleteRelatedModel(
+						PrincipalThreadLocal.getUserId(),
+						(Long)modelAttributes.get("groupId"),
+						objectRelationship.getObjectRelationshipId(),
+						entry.getObjectEntryId(), deletionType);
 				}
+				catch (PrincipalException principalException) {
+					throw new ObjectRelationshipDeletionTypeException(
+						principalException.getMessage());
+				}
+				catch (PortalException portalException) {
+					throw new PortalException(portalException);
+				}
+				finally {
+					ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(
+						false);
+				}
+			});
 
-				objectRelatedModelsProvider.deleteRelatedModel(
-					PrincipalThreadLocal.getUserId(),
-					(Long)modelAttributes.get("groupId"),
-					objectRelationship.getObjectRelationshipId(),
-					relatedModel.getKey(), deletionType);
-			}
-		}
-		catch (PrincipalException principalException) {
-			throw new ObjectRelationshipDeletionTypeException(
-				principalException.getMessage());
-		}
-		catch (PortalException portalException) {
-			throw new PortalException(portalException);
-		}
-		finally {
-			ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(false);
-		}
+		actionableDynamicQuery.performActions();
 	}
 
 	@Override

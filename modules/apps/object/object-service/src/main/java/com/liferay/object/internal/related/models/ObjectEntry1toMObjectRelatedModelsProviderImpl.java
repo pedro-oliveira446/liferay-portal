@@ -56,6 +56,8 @@ public class ObjectEntry1toMObjectRelatedModelsProviderImpl
 				ObjectRelationshipConstants.DELETION_TYPE_CASCADE)) {
 
 			_objectEntryService.deleteObjectEntry(primaryKey, false);
+
+			return;
 		}
 
 		ObjectRelationship objectRelationship =
