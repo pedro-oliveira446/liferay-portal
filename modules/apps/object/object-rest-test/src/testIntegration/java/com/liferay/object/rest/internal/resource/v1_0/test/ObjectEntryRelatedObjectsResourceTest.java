@@ -642,7 +642,7 @@ public class ObjectEntryRelatedObjectsResourceTest {
 			objectRelationship1, TestPropsValues.getUserId());
 
 		_relateObjectEntries(
-			20, _objectDefinition2, _OBJECT_FIELD_NAME_2,
+			1000, _objectDefinition2, _OBJECT_FIELD_NAME_2,
 			_objectEntry1.getPrimaryKey(), objectRelationship1);
 
 		ObjectRelationship objectRelationship2 =
@@ -657,7 +657,7 @@ public class ObjectEntryRelatedObjectsResourceTest {
 			objectRelationship2, TestPropsValues.getUserId());
 
 		_relateObjectEntries(
-			20, _objectDefinition3, _OBJECT_FIELD_NAME_2,
+			1000, _objectDefinition3, _OBJECT_FIELD_NAME_2,
 			_objectEntry2.getPrimaryKey(), objectRelationship2);
 
 		String objectFieldName = "x" + RandomTestUtil.randomString();
@@ -686,7 +686,7 @@ public class ObjectEntryRelatedObjectsResourceTest {
 			objectRelationship2, TestPropsValues.getUserId());
 
 		_relateObjectEntries(
-			20, objectDefinition, objectFieldName,
+			1000, objectDefinition, objectFieldName,
 			_objectEntry4.getPrimaryKey(), objectRelationship3);
 
 		HTTPTestUtil.invokeToHttpCode(

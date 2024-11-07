@@ -162,12 +162,14 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 	public ObjectEntry deleteObjectEntry(long objectEntryId)
 		throws PortalException {
 
-		ObjectEntry objectEntry = objectEntryLocalService.getObjectEntry(
-			objectEntryId);
+		if(!ObjectEntryThreadLocal.isSkipObjectEntryResourcePermission()) {
+			ObjectEntry objectEntry = objectEntryLocalService.getObjectEntry(
+				objectEntryId);
 
-		_checkPermission(
-			ActionKeys.DELETE, objectEntry.getObjectDefinitionId(),
-			objectEntry);
+			_checkPermission(
+				ActionKeys.DELETE, objectEntry.getObjectDefinitionId(),
+				objectEntry);
+		}
 
 		return objectEntryLocalService.deleteObjectEntry(objectEntryId);
 	}
