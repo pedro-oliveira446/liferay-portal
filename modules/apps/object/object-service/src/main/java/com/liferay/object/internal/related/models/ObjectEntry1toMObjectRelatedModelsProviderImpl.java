@@ -6,22 +6,39 @@
 package com.liferay.object.internal.related.models;
 
 import com.liferay.object.constants.ObjectRelationshipConstants;
+import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.exception.RequiredObjectRelationshipException;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.related.models.ObjectRelatedModelsProvider;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.jdbc.CurrentConnectionUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import java.io.Serializable;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,13 +51,19 @@ public class ObjectEntry1toMObjectRelatedModelsProviderImpl
 
 	public ObjectEntry1toMObjectRelatedModelsProviderImpl(
 		ObjectDefinition objectDefinition,
+		ObjectDefinitionLocalService objectDefinitionLocalService,
 		ObjectEntryService objectEntryService,
+		ObjectEntryLocalService objectEntryLocalService,
 		ObjectFieldLocalService objectFieldLocalService,
-		ObjectRelationshipLocalService objectRelationshipLocalService) {
+		ObjectRelationshipLocalService objectRelationshipLocalService,
+		ResourcePermissionLocalService resourcePermissionLocalService) {
 
+		_objectDefinitionLocalService = objectDefinitionLocalService;
 		_objectEntryService = objectEntryService;
+		_objectEntryLocalService = objectEntryLocalService;
 		_objectFieldLocalService = objectFieldLocalService;
 		_objectRelationshipLocalService = objectRelationshipLocalService;
+		_resourcePermissionLocalService = resourcePermissionLocalService;
 
 		_className = objectDefinition.getClassName();
 		_companyId = objectDefinition.getCompanyId();
@@ -56,33 +79,137 @@ public class ObjectEntry1toMObjectRelatedModelsProviderImpl
 			_objectRelationshipLocalService.getObjectRelationship(
 				objectRelationshipId);
 
-		List<ObjectEntry> relatedModels = getRelatedModels(
-			groupId, objectRelationshipId, primaryKey, null, QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS);
+		ObjectField objectField = _objectFieldLocalService.getObjectField(
+			objectRelationship.getObjectFieldId2());
 
-		if (relatedModels.isEmpty()) {
-			return;
+		ObjectDefinition objectDefinition2 =
+			_objectDefinitionLocalService.getObjectDefinition(
+				objectRelationship.getObjectDefinitionId2());
+
+		List<Long> ids = new ArrayList<>();
+
+		try (PreparedStatement preparedStatement =
+				CurrentConnectionUtil.getConnection(
+					_objectEntryLocalService.getBasePersistence(
+					).getDataSource()
+				).prepareStatement(
+					StringBundler.concat(
+						"select ",
+						objectDefinition2.getPKObjectFieldDBColumnName(),
+						" from ", objectField.getDBTableName(), " where ",
+						objectField.getDBColumnName(), " = ?")
+				)) {
+
+			preparedStatement.setLong(1, primaryKey);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					ids.add(
+						resultSet.getLong(
+							objectDefinition2.getPKObjectFieldDBColumnName()));
+				}
+			}
 		}
+		catch (SQLException e) {
+			_log.debug(e);
+		}
+
+		System.out.println("SIze" +ids.size());
 
 		if (Objects.equals(
 				deletionType,
 				ObjectRelationshipConstants.DELETION_TYPE_CASCADE)) {
 
-			for (ObjectEntry objectEntry : relatedModels) {
-				_objectEntryService.deleteObjectEntry(
-					objectEntry.getObjectEntryId());
+			ActionableDynamicQuery actionableDynamicQuery =
+				new DefaultActionableDynamicQuery() {
+
+					@Override
+					protected void actionsCompleted() throws PortalException {
+						Session portletSession =
+							_objectEntryLocalService.getBasePersistence(
+							).openSession();
+
+						portletSession.flush();
+
+						portletSession.clear();
+
+						Session portalSession =
+							_resourcePermissionLocalService.getBasePersistence(
+							).openSession();
+
+						portalSession.flush();
+
+						portalSession.clear();
+					}
+
+					@Override
+					protected void intervalCompleted(
+							long startPrimaryKey, long endPrimaryKey)
+						throws PortalException {
+
+						Session portletSession =
+							_objectEntryLocalService.getBasePersistence(
+							).openSession();
+
+						portletSession.flush();
+
+						portletSession.clear();
+
+						Session portalSession =
+							_resourcePermissionLocalService.getBasePersistence(
+							).openSession();
+
+						portalSession.flush();
+
+						portalSession.clear();
+					}
+
+				};
+
+			actionableDynamicQuery.setAddCriteriaMethod(
+				dynamicQuery -> {
+					Property nameProperty = PropertyFactoryUtil.forName(
+						"objectEntryId");
+
+					dynamicQuery.add(nameProperty.in(ids));
+				});
+			actionableDynamicQuery.setBaseLocalService(
+				_objectEntryLocalService);
+
+			Class<?> clazz = getClass();
+
+			actionableDynamicQuery.setClassLoader(clazz.getClassLoader());
+
+			actionableDynamicQuery.setModelClass(ObjectEntry.class);
+
+			boolean skipObjectEntryResourcePermission =
+				ObjectEntryThreadLocal.isSkipObjectEntryResourcePermission();
+
+			actionableDynamicQuery.setPerformActionMethod(
+				(ObjectEntry objectEntry) -> {
+					ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(
+						skipObjectEntryResourcePermission);
+
+					_objectEntryLocalService.deleteObjectEntry(objectEntry);
+				});
+
+			actionableDynamicQuery.setPrimaryKeyPropertyName("objectEntryId");
+
+			try {
+				actionableDynamicQuery.performActions();
+			}
+			catch (Exception exception) {
+				_log.debug(exception);
 			}
 		}
-		else if (Objects.equals(
-					deletionType,
-					ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE)) {
 
-			ObjectField objectField = _objectFieldLocalService.getObjectField(
-				objectRelationship.getObjectFieldId2());
+		if (Objects.equals(
+				deletionType,
+				ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE)) {
 
-			for (ObjectEntry objectEntry : relatedModels) {
+			for (Long id : ids) {
 				_objectEntryService.updateObjectEntry(
-					objectEntry.getObjectEntryId(),
+					id,
 					HashMapBuilder.<String, Serializable>put(
 						objectField.getName(), 0
 					).build(),
@@ -193,11 +320,18 @@ public class ObjectEntry1toMObjectRelatedModelsProviderImpl
 			groupId, objectRelationshipId, objectEntryId, false, null);
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		ObjectEntry1toMObjectRelatedModelsProviderImpl.class);
+
 	private final String _className;
 	private final long _companyId;
+	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
+	private final ObjectEntryLocalService _objectEntryLocalService;
 	private final ObjectEntryService _objectEntryService;
 	private final ObjectFieldLocalService _objectFieldLocalService;
 	private final ObjectRelationshipLocalService
 		_objectRelationshipLocalService;
+	private final ResourcePermissionLocalService
+		_resourcePermissionLocalService;
 
 }

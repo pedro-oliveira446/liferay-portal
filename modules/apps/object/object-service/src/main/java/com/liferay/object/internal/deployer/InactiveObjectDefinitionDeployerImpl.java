@@ -11,9 +11,12 @@ import com.liferay.object.internal.related.models.ObjectEntry1toMObjectRelatedMo
 import com.liferay.object.internal.related.models.ObjectEntryMtoMObjectRelatedModelsProviderImpl;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.related.models.ObjectRelatedModelsProviderRegistrarHelper;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.util.ListUtil;
 
 import java.util.List;
@@ -28,18 +31,25 @@ public class InactiveObjectDefinitionDeployerImpl
 	implements InactiveObjectDefinitionDeployer {
 
 	public InactiveObjectDefinitionDeployerImpl(
-		BundleContext bundleContext, ObjectEntryService objectEntryService,
+		BundleContext bundleContext,
+		ObjectDefinitionLocalService objectDefinitionLocalService,
+		ObjectEntryService objectEntryService,
+		ObjectEntryLocalService objectEntryLocalService,
 		ObjectFieldLocalService objectFieldLocalService,
 		ObjectRelatedModelsProviderRegistrarHelper
 			objectRelatedModelsProviderRegistrarHelper,
-		ObjectRelationshipLocalService objectRelationshipLocalService) {
+		ObjectRelationshipLocalService objectRelationshipLocalService,
+		ResourcePermissionLocalService resourcePermissionLocalService) {
 
 		_bundleContext = bundleContext;
+		_objectDefinitionLocalService = objectDefinitionLocalService;
 		_objectEntryService = objectEntryService;
+		_objectEntryLocalService = objectEntryLocalService;
 		_objectFieldLocalService = objectFieldLocalService;
 		_objectRelatedModelsProviderRegistrarHelper =
 			objectRelatedModelsProviderRegistrarHelper;
 		_objectRelationshipLocalService = objectRelationshipLocalService;
+		_resourcePermissionLocalService = resourcePermissionLocalService;
 	}
 
 	@Override
@@ -55,8 +65,10 @@ public class InactiveObjectDefinitionDeployerImpl
 			_objectRelatedModelsProviderRegistrarHelper.register(
 				_bundleContext, objectDefinition,
 				new ObjectEntry1toMObjectRelatedModelsProviderImpl(
-					objectDefinition, _objectEntryService,
-					_objectFieldLocalService, _objectRelationshipLocalService)),
+					objectDefinition, _objectDefinitionLocalService,
+					_objectEntryService, _objectEntryLocalService,
+					_objectFieldLocalService, _objectRelationshipLocalService,
+					_resourcePermissionLocalService)),
 			_objectRelatedModelsProviderRegistrarHelper.register(
 				_bundleContext, objectDefinition,
 				new ObjectEntry1to1ObjectRelatedModelsProviderImpl(
@@ -66,11 +78,15 @@ public class InactiveObjectDefinitionDeployerImpl
 	}
 
 	private final BundleContext _bundleContext;
+	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
+	private final ObjectEntryLocalService _objectEntryLocalService;
 	private final ObjectEntryService _objectEntryService;
 	private final ObjectFieldLocalService _objectFieldLocalService;
 	private final ObjectRelatedModelsProviderRegistrarHelper
 		_objectRelatedModelsProviderRegistrarHelper;
 	private final ObjectRelationshipLocalService
 		_objectRelationshipLocalService;
+	private final ResourcePermissionLocalService
+		_resourcePermissionLocalService;
 
 }

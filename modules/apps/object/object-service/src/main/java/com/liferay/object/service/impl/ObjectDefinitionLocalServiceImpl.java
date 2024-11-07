@@ -965,9 +965,12 @@ public class ObjectDefinitionLocalServiceImpl
 			new ConcurrentHashMap<>();
 		InactiveObjectDefinitionDeployer inactiveObjectDefinitionDeployer =
 			new InactiveObjectDefinitionDeployerImpl(
-				_bundleContext, _objectEntryService, _objectFieldLocalService,
+				_bundleContext, objectDefinitionLocalService,
+				_objectEntryService, _objectEntryLocalService,
+				_objectFieldLocalService,
 				_objectRelatedModelsProviderRegistrarHelper,
-				_objectRelationshipLocalService);
+				_objectRelationshipLocalService,
+				_resourcePermissionLocalService);
 		Map<Long, List<ServiceRegistration<?>>>
 			inactiveServiceRegistrationsMap = new ConcurrentHashMap<>();
 		ObjectDefinitionDeployer objectDefinitionDeployer =
