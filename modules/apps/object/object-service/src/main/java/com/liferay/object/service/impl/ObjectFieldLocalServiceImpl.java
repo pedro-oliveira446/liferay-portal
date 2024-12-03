@@ -1611,6 +1611,10 @@ public class ObjectFieldLocalServiceImpl
 					StringBundler.concat(
 						"Only ", ObjectFieldConstants.BUSINESS_TYPE_BOOLEAN,
 						StringPool.COMMA,
+						ObjectFieldConstants.BUSINESS_TYPE_DATE,
+						StringPool.COMMA,
+						ObjectFieldConstants.BUSINESS_TYPE_DATE_TIME,
+						StringPool.COMMA,
 						ObjectFieldConstants.BUSINESS_TYPE_LONG_TEXT,
 						StringPool.COMMA,
 						ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT, " and ",
@@ -1620,8 +1624,7 @@ public class ObjectFieldLocalServiceImpl
 
 			throw new ObjectFieldLocalizedException(
 				StringBundler.concat(
-					"Only ", message,
-					ObjectFieldConstants.BUSINESS_TYPE_LONG_TEXT,
+					"Only ", ObjectFieldConstants.BUSINESS_TYPE_LONG_TEXT,
 					StringPool.COMMA,
 					ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT, " and ",
 					ObjectFieldConstants.BUSINESS_TYPE_TEXT,
