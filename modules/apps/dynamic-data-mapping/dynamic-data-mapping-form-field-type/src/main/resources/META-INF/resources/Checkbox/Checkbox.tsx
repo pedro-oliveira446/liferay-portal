@@ -106,6 +106,8 @@ const Main: React.FC<{children?: React.ReactNode | undefined} & IProps> = ({
 	visible,
 	...otherProps
 }) => {
+    console.log("value",value)
+	console.log("otherProps",otherProps)
 	const Toggle = showAsSwitcher ? Switcher : Checkbox;
 
 	const checked = !!(
