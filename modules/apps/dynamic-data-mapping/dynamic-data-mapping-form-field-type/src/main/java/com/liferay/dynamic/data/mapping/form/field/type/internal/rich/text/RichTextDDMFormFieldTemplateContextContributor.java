@@ -9,13 +9,13 @@ import com.liferay.ai.creator.openai.manager.AICreatorOpenAIManager;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTemplateContextContributor;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.internal.util.DDMFormFieldTypeUtil;
+import com.liferay.dynamic.data.mapping.form.field.type.internal.util.DDMFormFieldValueUtil;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.portal.kernel.editor.configuration.EditorConfiguration;
 import com.liferay.portal.kernel.editor.configuration.EditorConfigurationFactoryUtil;
-import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -89,7 +89,8 @@ public class RichTextDDMFormFieldTemplateContextContributor
 			"value",
 			() -> {
 				if (localizedObjectField) {
-					return _getValueJSONObject(ddmFormFieldRenderingContext);
+					return DDMFormFieldValueUtil.getValueJSONObject(
+						ddmFormFieldRenderingContext);
 				}
 
 				return DDMFormFieldTypeUtil.getPropertyValue(
@@ -161,22 +162,6 @@ public class RichTextDDMFormFieldTemplateContextContributor
 
 		return localizedValue.getString(
 			ddmFormFieldRenderingContext.getLocale());
-	}
-
-	private JSONObject _getValueJSONObject(
-		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
-
-		try {
-			return _jsonFactory.createJSONObject(
-				ddmFormFieldRenderingContext.getValue());
-		}
-		catch (JSONException jsonException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(jsonException);
-			}
-		}
-
-		return _jsonFactory.createJSONObject();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

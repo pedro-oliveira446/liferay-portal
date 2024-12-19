@@ -9,6 +9,7 @@ import com.liferay.configuration.admin.constants.ConfigurationAdminPortletKeys;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTemplateContextContributor;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.internal.util.DDMFormFieldTypeUtil;
+import com.liferay.dynamic.data.mapping.form.field.type.internal.util.DDMFormFieldValueUtil;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
@@ -87,9 +88,16 @@ public class CheckboxDDMFormFieldTemplateContextContributor
 				"tooltip")
 		).put(
 			"value",
-			GetterUtil.getBoolean(
-				DDMFormFieldTypeUtil.getValue(
-					ddmFormFieldRenderingContext.getValue()))
+			() -> {
+				if (localizedObjectField) {
+					return DDMFormFieldValueUtil.getValueJSONObject(
+						ddmFormFieldRenderingContext);
+				}
+
+				return GetterUtil.getBoolean(
+					DDMFormFieldTypeUtil.getValue(
+						ddmFormFieldRenderingContext.getValue()));
+			}
 		).build();
 	}
 
