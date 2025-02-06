@@ -42,15 +42,6 @@ interface InputLocale {
 	symbol: string;
 }
 
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
-
-const availableLocales = Object.keys(Liferay.Language.available)
-	.sort((languageId) => (languageId === defaultLanguageId ? -1 : 1))
-	.map((language) => ({
-		label: language as Liferay.Language.Locale,
-		symbol: language.replace(/_/g, '-').toLowerCase(),
-	}));
-
 export function translationsNormalizer(
 	translations: Liferay.Language.LocalizedValue<string>
 ): Liferay.Language.LocalizedValue<string> {
@@ -85,6 +76,15 @@ export default function InputLocalized({
 	translations: initialTranslations,
 	...otherProps
 }: InputLocalizedProps) {
+	const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
+
+	const availableLocales = Object.keys(Liferay.Language.available)
+		.sort((languageId) => (languageId === defaultLanguageId ? -1 : 1))
+		.map((language) => ({
+			label: language as Liferay.Language.Locale,
+			symbol: language.replace(/_/g, '-').toLowerCase(),
+		}));
+
 	const [locale, setLocale] = useState<InputLocale>(availableLocales[0]);
 	const translations = translationsNormalizer(initialTranslations);
 
