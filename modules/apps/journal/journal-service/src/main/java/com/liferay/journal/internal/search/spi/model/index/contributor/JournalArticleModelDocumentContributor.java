@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -85,6 +86,22 @@ public class JournalArticleModelDocumentContributor
 			ddmFormValues = journalArticle.getDDMFormValues();
 
 			if (ddmFormValues != null) {
+				Set<Locale> availableLocales =
+					ddmFormValues.getAvailableLocales();
+
+				for (String availableLanguageId :
+						journalArticle.getAvailableLanguageIds()) {
+
+					Locale locale = LocaleUtil.fromLanguageId(
+						availableLanguageId);
+
+					if (availableLocales.contains(locale)) {
+						continue;
+					}
+
+					availableLocales.add(locale);
+				}
+
 				for (Locale contentAvailableLocale :
 						ddmFormValues.getAvailableLocales()) {
 
