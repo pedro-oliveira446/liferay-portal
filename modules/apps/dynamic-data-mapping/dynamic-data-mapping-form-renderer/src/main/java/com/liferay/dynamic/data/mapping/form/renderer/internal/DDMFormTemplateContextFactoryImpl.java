@@ -220,7 +220,9 @@ public class DDMFormTemplateContextFactoryImpl
 			ParamUtil.getInteger(
 				ddmFormRenderingContext.getHttpServletRequest(), "activePage"));
 
-		_setDDMFormFieldsEvaluableProperty(ddmForm, ddmFormLayout);
+		if (!Objects.equals(containerId, "editObjectEntry")) {
+			_setDDMFormFieldsEvaluableProperty(ddmForm, ddmFormLayout);
+		}
 
 		Locale locale = ddmFormRenderingContext.getLocale();
 
