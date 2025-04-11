@@ -653,8 +653,10 @@ public class ObjectEntryLocalServiceImpl
 			objectEntry.getGroupId(), objectDefinition.getObjectDefinitionId(),
 			objectEntry.getPrimaryKey());
 
-		_objectEntryVersionLocalService.deleteObjectEntryVersions(
-			objectEntry.getObjectEntryId());
+		if(FeatureFlagManagerUtil.isEnabled(objectDefinition.getCompanyId(), "LPD-17564")) {
+			_objectEntryVersionLocalService.deleteObjectEntryVersions(
+				objectEntry.getObjectEntryId());
+		}
 
 		_sharingEntryLocalService.deleteSharingEntries(
 			_classNameLocalService.getClassNameId(
