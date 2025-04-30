@@ -47,32 +47,6 @@ public class ObjectEntryVersionLocalServiceImpl
 			objectEntry.getVersion() + 1);
 	}
 
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public ObjectEntryVersion updateStatus(
-		long userId, ObjectEntryVersion objectEntryVersion, int status,
-		ServiceContext serviceContext)
-		throws PortalException {
-
-		if (objectEntryVersion.getStatus() == status) {
-			return objectEntryVersion;
-		}
-
-		ObjectEntry originalObjectEntry = (ObjectEntry)objectEntryVersion.clone();
-
-		objectEntryVersion.setStatus(status);
-
-//		User user = _userLocalService.getUser(userId);
-//		objectEntryVersion.setStatusByUserId(user.getUserId());
-//		objectEntryVersion.setStatusByUserName(user.getFullName());
-//		objectEntryVersion.setStatusDate(serviceContext.getModifiedDate(null));
-
-
-		// TODO if IS THE ONLY VERSION SET THE ENTRY TO EXPIRED !
-
-		return objectEntryVersionPersistence.update(objectEntryVersion);
-	}
-
 	@Override
 	public ObjectEntryVersion deleteObjectEntryVersion(
 			long objectEntryId, int version)
@@ -153,6 +127,36 @@ public class ObjectEntryVersionLocalServiceImpl
 				objectEntry.getObjectEntryId(),
 				ObjectEntryVersionVersionComparator.getInstance(false)),
 			objectEntry.getVersion());
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public ObjectEntryVersion updateStatus(
+			long userId, ObjectEntryVersion objectEntryVersion, int status,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		if (objectEntryVersion.getStatus() == status) {
+			return objectEntryVersion;
+		}
+
+		objectEntryVersion.setStatus(status);
+
+		//		User user = _userLocalService.getUser(userId);
+
+		//		objectEntryVersion.setStatusByUserId(user.getUserId());
+		//		objectEntryVersion.setStatusByUserName(user.getFullName());
+		//		objectEntryVersion.setStatusDate(serviceContext.getModifiedDate(null));
+
+		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
+			objectEntryVersion.getObjectEntryId());
+
+		if (objectEntry.getVersion() == objectEntryVersion.getVersion()) {
+			_objectEntryLocalService.updateStatus(
+				userId, objectEntry, status, serviceContext);
+		}
+
+		return objectEntryVersionPersistence.update(objectEntryVersion);
 	}
 
 	private ObjectEntryVersion _updateObjectEntryVersion(
