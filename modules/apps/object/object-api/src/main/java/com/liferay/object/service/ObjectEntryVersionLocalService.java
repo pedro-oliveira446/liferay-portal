@@ -104,6 +104,10 @@ public interface ObjectEntryVersionLocalService
 			long objectEntryVersionId)
 		throws PortalException;
 
+	public ObjectEntryVersion deleteObjectEntryVersion(
+			long objectEntryId, int version)
+		throws PortalException;
+
 	/**
 	 * Deletes the object entry version from the database. Also notifies the appropriate model listeners.
 	 *
@@ -117,6 +121,11 @@ public interface ObjectEntryVersionLocalService
 	@Indexable(type = IndexableType.DELETE)
 	public ObjectEntryVersion deleteObjectEntryVersion(
 		ObjectEntryVersion objectEntryVersion);
+
+	public ObjectEntryVersion deleteObjectEntryVersion(
+			String externalReferenceCode, long companyId, long groupId,
+			int version)
+		throws PortalException;
 
 	public void deleteObjectEntryVersionByObjectDefinitionId(
 		Long objectDefinitionId);

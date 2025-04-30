@@ -99,6 +99,13 @@ public class ObjectEntryVersionLocalServiceUtil {
 		return getService().deleteObjectEntryVersion(objectEntryVersionId);
 	}
 
+	public static ObjectEntryVersion deleteObjectEntryVersion(
+			long objectEntryId, int version)
+		throws PortalException {
+
+		return getService().deleteObjectEntryVersion(objectEntryId, version);
+	}
+
 	/**
 	 * Deletes the object entry version from the database. Also notifies the appropriate model listeners.
 	 *
@@ -113,6 +120,15 @@ public class ObjectEntryVersionLocalServiceUtil {
 		ObjectEntryVersion objectEntryVersion) {
 
 		return getService().deleteObjectEntryVersion(objectEntryVersion);
+	}
+
+	public static ObjectEntryVersion deleteObjectEntryVersion(
+			String externalReferenceCode, long companyId, long groupId,
+			int version)
+		throws PortalException {
+
+		return getService().deleteObjectEntryVersion(
+			externalReferenceCode, companyId, groupId, version);
 	}
 
 	public static void deleteObjectEntryVersionByObjectDefinitionId(
