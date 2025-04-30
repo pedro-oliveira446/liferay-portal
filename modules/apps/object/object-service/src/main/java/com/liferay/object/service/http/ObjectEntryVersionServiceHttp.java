@@ -42,6 +42,89 @@ import com.liferay.portal.kernel.util.MethodKey;
 public class ObjectEntryVersionServiceHttp {
 
 	public static com.liferay.object.model.ObjectEntryVersion
+			deleteObjectEntryVersion(
+				HttpPrincipal httpPrincipal, long objectEntryId, int version)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				ObjectEntryVersionServiceUtil.class, "deleteObjectEntryVersion",
+				_deleteObjectEntryVersionParameterTypes0);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, objectEntryId, version);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.object.model.ObjectEntryVersion)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.object.model.ObjectEntryVersion
+			deleteObjectEntryVersion(
+				HttpPrincipal httpPrincipal, String externalReferenceCode,
+				long companyId, long groupId, int version)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				ObjectEntryVersionServiceUtil.class, "deleteObjectEntryVersion",
+				_deleteObjectEntryVersionParameterTypes1);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, externalReferenceCode, companyId, groupId, version);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.object.model.ObjectEntryVersion)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.object.model.ObjectEntryVersion
 			getObjectEntryVersion(
 				HttpPrincipal httpPrincipal, long objectEntryId, int version)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -49,7 +132,7 @@ public class ObjectEntryVersionServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				ObjectEntryVersionServiceUtil.class, "getObjectEntryVersion",
-				_getObjectEntryVersionParameterTypes0);
+				_getObjectEntryVersionParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, objectEntryId, version);
@@ -91,7 +174,7 @@ public class ObjectEntryVersionServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				ObjectEntryVersionServiceUtil.class, "getObjectEntryVersions",
-				_getObjectEntryVersionsParameterTypes1);
+				_getObjectEntryVersionsParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, objectEntryId, start, end);
@@ -133,7 +216,7 @@ public class ObjectEntryVersionServiceHttp {
 			MethodKey methodKey = new MethodKey(
 				ObjectEntryVersionServiceUtil.class,
 				"getObjectEntryVersionsCount",
-				_getObjectEntryVersionsCountParameterTypes2);
+				_getObjectEntryVersionsCountParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, objectEntryId);
@@ -169,11 +252,15 @@ public class ObjectEntryVersionServiceHttp {
 	private static Log _log = LogFactoryUtil.getLog(
 		ObjectEntryVersionServiceHttp.class);
 
-	private static final Class<?>[] _getObjectEntryVersionParameterTypes0 =
+	private static final Class<?>[] _deleteObjectEntryVersionParameterTypes0 =
 		new Class[] {long.class, int.class};
-	private static final Class<?>[] _getObjectEntryVersionsParameterTypes1 =
+	private static final Class<?>[] _deleteObjectEntryVersionParameterTypes1 =
+		new Class[] {String.class, long.class, long.class, int.class};
+	private static final Class<?>[] _getObjectEntryVersionParameterTypes2 =
+		new Class[] {long.class, int.class};
+	private static final Class<?>[] _getObjectEntryVersionsParameterTypes3 =
 		new Class[] {long.class, int.class, int.class};
 	private static final Class<?>[]
-		_getObjectEntryVersionsCountParameterTypes2 = new Class[] {long.class};
+		_getObjectEntryVersionsCountParameterTypes4 = new Class[] {long.class};
 
 }
