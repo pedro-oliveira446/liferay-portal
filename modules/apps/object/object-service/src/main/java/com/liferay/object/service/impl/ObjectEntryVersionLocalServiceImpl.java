@@ -49,6 +49,12 @@ public class ObjectEntryVersionLocalServiceImpl
 			long objectEntryId, int version)
 		throws PortalException {
 
+		if (getObjectEntryVersionsCount(objectEntryId) <= 1) {
+
+			// TODO validation
+
+		}
+
 		return objectEntryVersionLocalService.deleteObjectEntryVersion(
 			objectEntryVersionPersistence.findByOEI_V(objectEntryId, version));
 	}
