@@ -37,6 +37,8 @@ public class ObjectEntryVersionServiceImpl
 			long objectEntryId, int version)
 		throws PortalException {
 
+		// TODO permission checker
+
 		return objectEntryVersionLocalService.deleteObjectEntryVersion(
 			objectEntryId, version);
 	}
@@ -46,6 +48,8 @@ public class ObjectEntryVersionServiceImpl
 			String externalReferenceCode, long companyId, long groupId,
 			int version)
 		throws PortalException {
+
+		// TODO permission checker
 
 		return objectEntryVersionLocalService.deleteObjectEntryVersion(
 			externalReferenceCode, companyId, groupId, version);
