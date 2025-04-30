@@ -33,6 +33,25 @@ public class ObjectEntryVersionServiceImpl
 	extends ObjectEntryVersionServiceBaseImpl {
 
 	@Override
+	public ObjectEntryVersion deleteObjectEntryVersion(
+			long objectEntryId, int version)
+		throws PortalException {
+
+		return objectEntryVersionLocalService.deleteObjectEntryVersion(
+			objectEntryId, version);
+	}
+
+	@Override
+	public ObjectEntryVersion deleteObjectEntryVersion(
+			String externalReferenceCode, long companyId, long groupId,
+			int version)
+		throws PortalException {
+
+		return objectEntryVersionLocalService.deleteObjectEntryVersion(
+			externalReferenceCode, companyId, groupId, version);
+	}
+
+	@Override
 	public ObjectEntryVersion getObjectEntryVersion(
 			long objectEntryId, int version)
 		throws PortalException {
