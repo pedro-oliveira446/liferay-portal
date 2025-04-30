@@ -8,6 +8,7 @@ package com.liferay.object.service.impl;
 import com.liferay.object.entry.util.ObjectEntryDTOConverterUtil;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryVersion;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.base.ObjectEntryVersionLocalServiceBaseImpl;
 import com.liferay.object.util.comparator.ObjectEntryVersionVersionComparator;
 import com.liferay.portal.aop.AopService;
@@ -41,6 +42,28 @@ public class ObjectEntryVersionLocalServiceImpl
 			objectEntryVersionPersistence.create(
 				counterLocalService.increment()),
 			objectEntry.getVersion() + 1);
+	}
+
+	@Override
+	public ObjectEntryVersion deleteObjectEntryVersion(
+			long objectEntryId, int version)
+		throws PortalException {
+
+		return objectEntryVersionLocalService.deleteObjectEntryVersion(
+			objectEntryVersionPersistence.findByOEI_V(objectEntryId, version));
+	}
+
+	@Override
+	public ObjectEntryVersion deleteObjectEntryVersion(
+			String externalReferenceCode, long companyId, long groupId,
+			int version)
+		throws PortalException {
+
+		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
+			externalReferenceCode, companyId, groupId);
+
+		return deleteObjectEntryVersion(
+			objectEntry.getObjectEntryId(), version);
 	}
 
 	@Override
@@ -133,6 +156,9 @@ public class ObjectEntryVersionLocalServiceImpl
 
 	@Reference
 	private JSONFactory _jsonFactory;
+
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;
