@@ -257,6 +257,13 @@ public class ObjectEntryPersistenceTest {
 	}
 
 	@Test
+	public void testCountByRootObjectEntryId() throws Exception {
+		_persistence.countByRootObjectEntryId(RandomTestUtil.nextLong());
+
+		_persistence.countByRootObjectEntryId(0L);
+	}
+
+	@Test
 	public void testCountByG_ODI() throws Exception {
 		_persistence.countByG_ODI(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());

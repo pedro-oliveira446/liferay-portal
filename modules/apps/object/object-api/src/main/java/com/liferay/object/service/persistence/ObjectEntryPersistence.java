@@ -526,6 +526,150 @@ public interface ObjectEntryPersistence extends BasePersistence<ObjectEntry> {
 	public int countByObjectDefinitionId(long objectDefinitionId);
 
 	/**
+	 * Returns all the object entries where rootObjectEntryId = &#63;.
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @return the matching object entries
+	 */
+	public java.util.List<ObjectEntry> findByRootObjectEntryId(
+		long rootObjectEntryId);
+
+	/**
+	 * Returns a range of all the object entries where rootObjectEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @param start the lower bound of the range of object entries
+	 * @param end the upper bound of the range of object entries (not inclusive)
+	 * @return the range of matching object entries
+	 */
+	public java.util.List<ObjectEntry> findByRootObjectEntryId(
+		long rootObjectEntryId, int start, int end);
+
+	/**
+	 * Returns an ordered range of all the object entries where rootObjectEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @param start the lower bound of the range of object entries
+	 * @param end the upper bound of the range of object entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object entries
+	 */
+	public java.util.List<ObjectEntry> findByRootObjectEntryId(
+		long rootObjectEntryId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectEntry>
+			orderByComparator);
+
+	/**
+	 * Returns an ordered range of all the object entries where rootObjectEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @param start the lower bound of the range of object entries
+	 * @param end the upper bound of the range of object entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object entries
+	 */
+	public java.util.List<ObjectEntry> findByRootObjectEntryId(
+		long rootObjectEntryId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectEntry>
+			orderByComparator,
+		boolean useFinderCache);
+
+	/**
+	 * Returns the first object entry in the ordered set where rootObjectEntryId = &#63;.
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	public ObjectEntry findByRootObjectEntryId_First(
+			long rootObjectEntryId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectEntry>
+				orderByComparator)
+		throws NoSuchObjectEntryException;
+
+	/**
+	 * Returns the first object entry in the ordered set where rootObjectEntryId = &#63;.
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	public ObjectEntry fetchByRootObjectEntryId_First(
+		long rootObjectEntryId,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectEntry>
+			orderByComparator);
+
+	/**
+	 * Returns the last object entry in the ordered set where rootObjectEntryId = &#63;.
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	public ObjectEntry findByRootObjectEntryId_Last(
+			long rootObjectEntryId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectEntry>
+				orderByComparator)
+		throws NoSuchObjectEntryException;
+
+	/**
+	 * Returns the last object entry in the ordered set where rootObjectEntryId = &#63;.
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	public ObjectEntry fetchByRootObjectEntryId_Last(
+		long rootObjectEntryId,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectEntry>
+			orderByComparator);
+
+	/**
+	 * Returns the object entries before and after the current object entry in the ordered set where rootObjectEntryId = &#63;.
+	 *
+	 * @param objectEntryId the primary key of the current object entry
+	 * @param rootObjectEntryId the root object entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object entry
+	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
+	 */
+	public ObjectEntry[] findByRootObjectEntryId_PrevAndNext(
+			long objectEntryId, long rootObjectEntryId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectEntry>
+				orderByComparator)
+		throws NoSuchObjectEntryException;
+
+	/**
+	 * Removes all the object entries where rootObjectEntryId = &#63; from the database.
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 */
+	public void removeByRootObjectEntryId(long rootObjectEntryId);
+
+	/**
+	 * Returns the number of object entries where rootObjectEntryId = &#63;.
+	 *
+	 * @param rootObjectEntryId the root object entry ID
+	 * @return the number of matching object entries
+	 */
+	public int countByRootObjectEntryId(long rootObjectEntryId);
+
+	/**
 	 * Returns all the object entries where groupId = &#63; and objectDefinitionId = &#63;.
 	 *
 	 * @param groupId the group ID
