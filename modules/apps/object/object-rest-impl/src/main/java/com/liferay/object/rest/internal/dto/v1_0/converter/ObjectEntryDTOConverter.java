@@ -809,6 +809,27 @@ public class ObjectEntryDTOConverter
 
 		return NestedFieldsSupplier.supplyUnsafeSupplier(
 			nestedFieldName -> {
+				if (StringUtil.equals(nestedFieldName, "hierarchy")) {
+					return () -> TransformUtil.transformToArray(
+						_objectEntryLocalService.getObjectEntries(primaryKey),
+						serviceBuilderObjectEntry -> {
+							if (primaryKey ==
+									serviceBuilderObjectEntry.
+										getObjectEntryId()) {
+
+								return null;
+							}
+
+							return toDTO(
+								_getDTOConverterContext(
+									dtoConverterContext,
+									serviceBuilderObjectEntry.
+										getObjectEntryId()),
+								serviceBuilderObjectEntry);
+						},
+						ObjectEntry.class);
+				}
+
 				ObjectRelationship objectRelationship =
 					_objectRelationshipLocalService.
 						fetchObjectRelationshipByObjectDefinitionId1(
