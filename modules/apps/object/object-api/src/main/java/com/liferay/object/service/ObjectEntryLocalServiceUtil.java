@@ -398,6 +398,10 @@ public class ObjectEntryLocalServiceUtil {
 		return getService().getObjectEntries(start, end);
 	}
 
+	public static List<ObjectEntry> getObjectEntries(long rootObjectEntryId) {
+		return getService().getObjectEntries(rootObjectEntryId);
+	}
+
 	public static List<ObjectEntry> getObjectEntries(
 		long groupId, long objectDefinitionId, int start, int end) {
 
