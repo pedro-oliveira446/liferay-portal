@@ -172,8 +172,15 @@ public class ObjectEntryDisplayContextImpl
 		_objectScopeProviderRegistry = objectScopeProviderRegistry;
 
 		_objectRequestHelper = new ObjectRequestHelper(httpServletRequest);
-		_readOnly = (Boolean)httpServletRequest.getAttribute(
-			ObjectWebKeys.OBJECT_ENTRY_READ_ONLY);
+
+		// Is it the right way to get the readOnly ?
+
+		_readOnly =
+			(Boolean)httpServletRequest.getAttribute(
+				ObjectWebKeys.OBJECT_ENTRY_READ_ONLY) ||
+			GetterUtil.getBoolean(
+				httpServletRequest.getParameter(
+					ObjectWebKeys.OBJECT_ENTRY_READ_ONLY));
 		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 	}

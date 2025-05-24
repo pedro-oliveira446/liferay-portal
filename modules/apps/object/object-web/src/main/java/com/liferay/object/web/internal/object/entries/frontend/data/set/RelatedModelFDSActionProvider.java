@@ -8,6 +8,7 @@ package com.liferay.object.web.internal.object.entries.frontend.data.set;
 import com.liferay.frontend.data.set.provider.FDSActionProvider;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
+import com.liferay.object.constants.ObjectWebKeys;
 import com.liferay.object.entries.frontend.data.set.data.model.RelatedModel;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
@@ -50,14 +51,14 @@ public class RelatedModelFDSActionProvider implements FDSActionProvider {
 			long groupId, HttpServletRequest httpServletRequest, Object model)
 		throws PortalException {
 
-		if (ParamUtil.getBoolean(httpServletRequest, "readOnly")) {
-			return null;
-		}
-
 		RelatedModel relatedModel = (RelatedModel)model;
 
 		return DropdownItemListBuilder.add(
 			() -> {
+				if (ParamUtil.getBoolean(httpServletRequest, "readOnly")) {
+					return false;
+				}
+
 				ObjectEntry objectEntry =
 					_objectEntryLocalService.getObjectEntry(
 						relatedModel.getId());
@@ -84,6 +85,16 @@ public class RelatedModelFDSActionProvider implements FDSActionProvider {
 					_language.get(httpServletRequest, Constants.DELETE));
 			}
 		).add(
+			() -> {
+
+				// Is it necessary ?
+
+				ObjectEntry objectEntry =
+					_objectEntryLocalService.getObjectEntry(
+						relatedModel.getId());
+
+				return objectEntry.getRootObjectEntryId() > 0;
+			},
 			dropdownItem -> {
 				dropdownItem.putData("id", "view");
 				dropdownItem.setHref(
@@ -149,6 +160,8 @@ public class RelatedModelFDSActionProvider implements FDSActionProvider {
 			_objectDefinitionLocalService.getObjectDefinition(
 				objectEntry.getObjectDefinitionId());
 
+		// Is it the right way to pass the readOnly ?
+
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				httpServletRequest, objectDefinition.getPortletId(),
@@ -157,6 +170,9 @@ public class RelatedModelFDSActionProvider implements FDSActionProvider {
 			"/object_entries/edit_object_entry"
 		).setBackURL(
 			_portal.getCurrentURL(httpServletRequest)
+		).setParameter(
+			ObjectWebKeys.OBJECT_ENTRY_READ_ONLY,
+			ParamUtil.getBoolean(httpServletRequest, "readOnly")
 		).setParameter(
 			"externalReferenceCode", objectEntry.getExternalReferenceCode()
 		).buildPortletURL();
