@@ -30,7 +30,13 @@ portletDisplay.setURLBack(objectEntryDisplayContext.getBackURL());
 	<c:choose>
 		<c:when test="<%= objectDefinition2.isUnmodifiableSystemObject() %>">
 			<frontend-data-set:classic-display
-				contextParams="<%= objectEntryDisplayContext.getRelationshipContextParams() %>"
+				contextParams="<%=
+					HashMapBuilder.<String, String>putAll(
+						objectEntryDisplayContext.getRelationshipContextParams()
+					).putAll(
+						objectEntryDisplayContext.getWorkflowContextParams()
+					).build()
+				%>"
 				creationMenu="<%= objectEntryDisplayContext.getRelatedModelCreationMenu(objectRelationship) %>"
 				dataProviderKey="<%= ObjectEntriesFDSNames.SYSTEM_RELATED_MODELS %>"
 				formName="fm"
@@ -40,7 +46,13 @@ portletDisplay.setURLBack(objectEntryDisplayContext.getBackURL());
 		</c:when>
 		<c:otherwise>
 			<frontend-data-set:classic-display
-				contextParams="<%= objectEntryDisplayContext.getRelationshipContextParams() %>"
+				contextParams="<%=
+					HashMapBuilder.<String, String>putAll(
+						objectEntryDisplayContext.getRelationshipContextParams()
+					).putAll(
+						objectEntryDisplayContext.getWorkflowContextParams()
+					).build()
+				%>"
 				creationMenu="<%= objectEntryDisplayContext.getRelatedModelCreationMenu(objectRelationship) %>"
 				dataProviderKey="<%= ObjectEntriesFDSNames.RELATED_MODELS %>"
 				formName="fm"

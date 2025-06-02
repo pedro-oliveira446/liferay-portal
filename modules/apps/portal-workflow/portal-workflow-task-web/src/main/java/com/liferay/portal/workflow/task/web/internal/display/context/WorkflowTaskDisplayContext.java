@@ -220,7 +220,9 @@ public class WorkflowTaskDisplayContext {
 		WorkflowHandler<?> workflowHandler = getWorkflowHandler(workflowTask);
 
 		return workflowHandler.getAssetRenderer(
-			getWorkflowContextEntryClassPK(workflowTask));
+			workflowHandler.getEntryClassPK(
+				_workflowTaskRequestHelper.getCompanyId(), _httpServletRequest,
+				workflowTask));
 	}
 
 	public AssetRendererFactory<?> getAssetRendererFactory() {

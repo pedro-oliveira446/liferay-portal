@@ -17,6 +17,7 @@ import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 
 import jakarta.servlet.jsp.PageContext;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -58,6 +59,10 @@ public interface ObjectEntryDisplayContext {
 
 	public default String getURLSeparator() {
 		return FriendlyURLResolverConstants.URL_SEPARATOR_OBJECT_ENTRY;
+	}
+
+	public default Map<String, String> getWorkflowContextParams() {
+		return Collections.emptyMap();
 	}
 
 	public boolean isGuestUser();

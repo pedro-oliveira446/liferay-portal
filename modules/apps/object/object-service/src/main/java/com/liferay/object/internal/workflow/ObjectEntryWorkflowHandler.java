@@ -5,11 +5,15 @@
 
 package com.liferay.object.internal.workflow;
 
+import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
+import com.liferay.asset.kernel.model.AssetRenderer;
+import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryFolder;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -20,8 +24,12 @@ import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.workflow.BaseWorkflowHandler;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.workflow.WorkflowTask;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.Serializable;
 
@@ -48,8 +56,43 @@ public class ObjectEntryWorkflowHandler
 	}
 
 	@Override
+	public AssetRenderer<ObjectEntry> getAssetRenderer(long classPK)
+		throws PortalException {
+
+		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
+			classPK);
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionLocalServiceUtil.getObjectDefinition(
+				objectEntry.getObjectDefinitionId());
+
+		AssetRendererFactory<ObjectEntry> objectEntryAssetRendererFactory =
+			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
+				objectDefinition.getClassName());
+
+		return objectEntryAssetRendererFactory.getAssetRenderer(classPK);
+	}
+
+	@Override
 	public String getClassName() {
 		return _objectDefinition.getClassName();
+	}
+
+	@Override
+	public long getEntryClassPK(
+			long companyId, HttpServletRequest httpServletRequest,
+			WorkflowTask workflowTask)
+		throws PortalException {
+
+		long assetEntryClassPK = ParamUtil.getLong(
+			httpServletRequest, "assetEntryClassPK");
+
+		if (assetEntryClassPK > 0) {
+			return assetEntryClassPK;
+		}
+
+		return super.getEntryClassPK(
+			companyId, httpServletRequest, workflowTask);
 	}
 
 	@Override
