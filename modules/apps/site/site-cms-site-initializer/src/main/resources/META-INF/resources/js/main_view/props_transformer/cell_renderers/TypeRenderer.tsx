@@ -11,7 +11,7 @@ const CMS_TYPES: {[key: string]: string} = {
 };
 
 const TypeRenderer = ({value}: {value: string}) => {
-	return <>{CMS_TYPES[value]}</>;
+	return <>{CMS_TYPES[value] ?? value}</>;
 };
 
 export default TypeRenderer;

@@ -613,6 +613,47 @@ public class ObjectEntry implements Serializable {
 	private Supplier<String[]> _keywordsSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public String getObjectDefinitionName() {
+		if (_objectDefinitionNameSupplier != null) {
+			objectDefinitionName = _objectDefinitionNameSupplier.get();
+
+			_objectDefinitionNameSupplier = null;
+		}
+
+		return objectDefinitionName;
+	}
+
+	public void setObjectDefinitionName(String objectDefinitionName) {
+		this.objectDefinitionName = objectDefinitionName;
+
+		_objectDefinitionNameSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setObjectDefinitionName(
+		UnsafeSupplier<String, Exception> objectDefinitionNameUnsafeSupplier) {
+
+		_objectDefinitionNameSupplier = () -> {
+			try {
+				return objectDefinitionNameUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String objectDefinitionName;
+
+	@JsonIgnore
+	private Supplier<String> _objectDefinitionNameSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public String getObjectEntryFolderExternalReferenceCode() {
 		if (_objectEntryFolderExternalReferenceCodeSupplier != null) {
 			objectEntryFolderExternalReferenceCode =
@@ -1181,6 +1222,9 @@ public class ObjectEntry implements Serializable {
 		else if (Objects.equals(propertyName, "keywords")) {
 			return getKeywords();
 		}
+		else if (Objects.equals(propertyName, "objectDefinitionName")) {
+			return getObjectDefinitionName();
+		}
 		else if (Objects.equals(
 					propertyName, "objectEntryFolderExternalReferenceCode")) {
 
@@ -1484,6 +1528,22 @@ public class ObjectEntry implements Serializable {
 			}
 
 			sb.append("]");
+		}
+
+		String objectDefinitionName = getObjectDefinitionName();
+
+		if (objectDefinitionName != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"objectDefinitionName\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(objectDefinitionName));
+
+			sb.append("\"");
 		}
 
 		String objectEntryFolderExternalReferenceCode =

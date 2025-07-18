@@ -328,6 +328,7 @@ public class ObjectEntryDTOConverter
 								serviceBuilderObjectEntry.getObjectEntryId()),
 							AssetTag.NAME_ACCESSOR);
 					});
+				setObjectDefinitionName(objectDefinition::getName);
 				setObjectEntryFolderExternalReferenceCode(
 					() -> {
 						ObjectEntryFolder objectEntryFolder =

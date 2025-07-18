@@ -63,6 +63,7 @@ public class SearchResultEntityModel implements EntityModel {
 				locale -> "reviewDate"),
 			new IntegerEntityField("creatorId", locale -> Field.USER_ID),
 			new IntegerEntityField("folderId", locale -> Field.FOLDER_ID),
+			new IntegerEntityField("scopeGroupId", locale -> "scopeGroupId"),
 			new IntegerEntityField(
 				"objectDefinitionId", locale -> "objectDefinitionId"),
 			new IntegerEntityField("status", locale -> Field.STATUS),
