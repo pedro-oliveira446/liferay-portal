@@ -176,10 +176,34 @@ public class ObjectEntryVersionLocalServiceImpl
 
 	@Override
 	public void deleteObjectEntryVersionByObjectDefinitionId(
-		Long objectDefinitionId) {
+			Long objectDefinitionId)
+		throws PortalException {
 
-		objectEntryVersionPersistence.removeByObjectDefinitionId(
-			objectDefinitionId);
+		ActionableDynamicQuery actionableDynamicQuery =
+			getActionableDynamicQuery();
+
+		actionableDynamicQuery.setAddCriteriaMethod(
+			dynamicQuery -> {
+				Property objectDefinitionIdProperty =
+					PropertyFactoryUtil.forName("objectDefinitionId");
+
+				dynamicQuery.add(
+					objectDefinitionIdProperty.eq(objectDefinitionId));
+			});
+		actionableDynamicQuery.setPerformActionMethod(
+			(ObjectEntryVersion objectEntryVersion) -> {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Deleting object entry version " +
+							objectEntryVersion.getObjectEntryVersionId());
+				}
+
+				_deleteFileEntries(objectEntryVersion);
+
+				deleteObjectEntryVersion(objectEntryVersion);
+			});
+
+		actionableDynamicQuery.performActions();
 	}
 
 	@Override
