@@ -5,7 +5,6 @@
 
 package com.liferay.object.service.impl;
 
-import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.dynamic.data.mapping.expression.CreateExpressionRequest;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFactory;
 import com.liferay.object.constants.ObjectDefinitionConstants;
@@ -97,11 +96,10 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PropsValues;
 
-import java.io.Serializable;
-
 import java.sql.Connection;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -1143,20 +1141,9 @@ public class ObjectFieldLocalServiceImpl
 					objectField.getObjectDefinitionId());
 
 			for (ObjectEntry objectEntry : objectEntries) {
-
-				// getValues must be called before deleting the object field
-
-				Map<String, Serializable> values = objectEntry.getValues();
-
-				try {
-					_dlFileEntryLocalService.deleteFileEntry(
-						GetterUtil.getLong(values.get(objectField.getName())));
-				}
-				catch (PortalException portalException) {
-					if (_log.isDebugEnabled()) {
-						_log.debug(portalException);
-					}
-				}
+				_attachmentManager.deleteFileEntries(
+					Collections.singletonList(objectField),
+					objectEntry::getValues);
 			}
 		}
 
@@ -1871,9 +1858,6 @@ public class ObjectFieldLocalServiceImpl
 	private DDMExpressionFactory _ddmExpressionFactory;
 
 	private ObjectFieldSettingContributor _defaultObjectFieldSettingContributor;
-
-	@Reference
-	private DLFileEntryLocalService _dlFileEntryLocalService;
 
 	@Reference
 	private Language _language;
