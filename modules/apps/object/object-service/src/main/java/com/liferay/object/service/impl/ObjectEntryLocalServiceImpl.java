@@ -655,7 +655,7 @@ public class ObjectEntryLocalServiceImpl
 			0, objectDefinition.getObjectDefinitionId(), primaryKey);
 
 		_deleteFileEntries(
-			Collections.emptyMap(), objectDefinition.getObjectDefinitionId(),
+			objectDefinition.getObjectDefinitionId(),
 			extensionDynamicObjectDefinitionTableValues);
 	}
 
@@ -695,7 +695,6 @@ public class ObjectEntryLocalServiceImpl
 		}
 
 		_deleteFileEntries(
-			Collections.emptyMap(),
 			_objectFieldPersistence.findByODI_BT(
 				objectDefinition.getObjectDefinitionId(),
 				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT),
@@ -2779,10 +2778,10 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	private void _deleteFileEntries(
-		Map<String, Serializable> newValues, List<ObjectField> objectFields,
-		Supplier<Map<String, Serializable>> oldValuesSupplier) {
+		List<ObjectField> objectFields,
+		Supplier<Map<String, Serializable>> valuesSupplier) {
 
-		Map<String, Serializable> oldValues = null;
+		Map<String, Serializable> values = null;
 
 		for (ObjectField objectField : objectFields) {
 			if (objectField.isSystem() ||
@@ -2791,51 +2790,31 @@ public class ObjectEntryLocalServiceImpl
 				continue;
 			}
 
-			if (oldValues == null) {
-				oldValues = oldValuesSupplier.get();
+			if (values == null) {
+				values = valuesSupplier.get();
 			}
 
 			List<Long> orphanedFileEntryIds = new ArrayList<>();
 
 			if (objectField.isLocalized()) {
-				Map<String, Serializable> oldLocalizedValues =
-					(Map<String, Serializable>)oldValues.get(
+				Map<String, Serializable> localizedValues =
+					(Map<String, Serializable>)values.get(
 						objectField.getI18nObjectFieldName());
 
-				if (oldLocalizedValues == null) {
+				if (localizedValues == null) {
 					continue;
 				}
 
-				Map<String, Serializable> newLocalizedValues =
-					(Map<String, Serializable>)newValues.getOrDefault(
-						objectField.getI18nObjectFieldName(),
-						(Serializable)Collections.emptyMap());
-
-				Collection<Serializable> values = newLocalizedValues.values();
-
 				for (Map.Entry<String, Serializable> entry :
-						oldLocalizedValues.entrySet()) {
-
-					if (values.contains(entry.getValue())) {
-						continue;
-					}
+						localizedValues.entrySet()) {
 
 					orphanedFileEntryIds.add(
 						GetterUtil.getLong(entry.getValue()));
 				}
 			}
 			else {
-				String objectFieldName = objectField.getName();
-
-				if (Objects.equals(
-						GetterUtil.getLong(newValues.get(objectFieldName)),
-						GetterUtil.getLong(oldValues.get(objectFieldName)))) {
-
-					continue;
-				}
-
 				orphanedFileEntryIds.add(
-					GetterUtil.getLong(oldValues.get(objectFieldName)));
+					GetterUtil.getLong(values.get(objectField.getName())));
 			}
 
 			try {
@@ -2857,15 +2836,13 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	private void _deleteFileEntries(
-		Map<String, Serializable> newValues, long objectDefinitionId,
-		Map<String, Serializable> oldValues) {
+		long objectDefinitionId, Map<String, Serializable> values) {
 
 		_deleteFileEntries(
-			newValues,
 			_objectFieldPersistence.findByODI_BT(
 				objectDefinitionId,
 				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT),
-			() -> oldValues);
+			() -> values);
 	}
 
 	private void _deleteFromLocalizationTable(
@@ -5832,15 +5809,16 @@ public class ObjectEntryLocalServiceImpl
 
 		Map<ObjectField, Set<DLFileEntry>> dlFileEntriesMap = new HashMap<>();
 
+		List<ObjectField> objectFields =
+			_objectFieldLocalService.getObjectFields(
+				objectDefinition.getObjectDefinitionId());
+
 		_validateValues(
 			objectEntry.getDefaultLanguageId(), dlFileEntriesMap,
 			objectEntry.getValues(), objectEntry.getGroupId(),
 			user.isGuestUser(), objectDefinition,
-			objectEntry.getObjectEntryId(),
-			_objectFieldLocalService.getObjectFields(
-				objectDefinition.getObjectDefinitionId()),
-			partialUpdate, serviceContext, objectEntry.getStatus(), userId,
-			null, values);
+			objectEntry.getObjectEntryId(), objectFields, partialUpdate,
+			serviceContext, objectEntry.getStatus(), userId, null, values);
 
 		_addDLFileEntries(
 			dlFileEntriesMap, objectEntry.getGroupId(), objectDefinition,
@@ -5921,9 +5899,60 @@ public class ObjectEntryLocalServiceImpl
 			objectDefinition, objectEntry, serviceContext);
 
 		if (!objectDefinition.isEnableObjectEntryVersioning()) {
-			_deleteFileEntries(
-				objectEntry.getValues(), objectEntry.getObjectDefinitionId(),
-				transientValues);
+			Map<String, Serializable> newValues = objectEntry.getValues();
+			Map<String, Serializable> oldValues = transientValues;
+
+			for (ObjectField objectField : objectFields) {
+				if (objectField.isSystem() ||
+					!objectField.compareBusinessType(
+						ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT) ||
+					!_attachmentManager.isFileEntryDeletable(objectField)) {
+
+					continue;
+				}
+
+				if (objectField.isLocalized()) {
+					Map<String, Serializable> oldLocalizedValues =
+						(Map<String, Serializable>)oldValues.get(
+							objectField.getI18nObjectFieldName());
+
+					if (oldLocalizedValues == null) {
+						continue;
+					}
+
+					Map<String, Serializable> newLocalizedValues =
+						(Map<String, Serializable>)newValues.getOrDefault(
+							objectField.getI18nObjectFieldName(),
+							(Serializable)Collections.emptyMap());
+
+					for (Map.Entry<String, Serializable> entry :
+							oldLocalizedValues.entrySet()) {
+
+						if (!newLocalizedValues.containsValue(
+								entry.getValue())) {
+
+							continue;
+						}
+
+						oldLocalizedValues.put(entry.getKey(), 0);
+					}
+				}
+				else {
+					String objectFieldName = objectField.getName();
+
+					if (!Objects.equals(
+							GetterUtil.getLong(newValues.get(objectFieldName)),
+							GetterUtil.getLong(
+								transientValues.get(objectFieldName)))) {
+
+						continue;
+					}
+
+					oldValues.put(objectFieldName, 0);
+				}
+			}
+
+			_deleteFileEntries(objectEntry.getObjectDefinitionId(), oldValues);
 		}
 
 		_deleteTempFileEntries(dlFileEntriesMap);
