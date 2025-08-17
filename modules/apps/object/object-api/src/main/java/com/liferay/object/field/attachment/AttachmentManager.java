@@ -22,7 +22,7 @@ public interface AttachmentManager {
 	public String[] getAcceptedFileExtensions(long objectFieldId);
 
 	public DLFolder getDLFolder(
-			long companyId, long groupId, long objectFieldId,
+			long companyId, long groupId, ObjectField objectField,
 			ServiceContext serviceContext, long userId)
 		throws PortalException;
 
@@ -30,7 +30,7 @@ public interface AttachmentManager {
 
 	public FileEntry getOrAddFileEntry(
 			long companyId, String externalReferenceCode, byte[] fileContent,
-			String fileName, long groupId, long objectFieldId,
+			String fileName, long groupId, ObjectField objectField,
 			ServiceContext serviceContext)
 		throws Exception;
 

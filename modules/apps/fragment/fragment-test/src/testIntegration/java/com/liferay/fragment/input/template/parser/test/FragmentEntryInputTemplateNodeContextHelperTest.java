@@ -839,7 +839,7 @@ public class FragmentEntryInputTemplateNodeContextHelperTest {
 
 		DLFolder dlFolder = _attachmentManager.getDLFolder(
 			_group.getCompanyId(), _group.getGroupId(),
-			objectField.getObjectFieldId(),
+			objectField,
 			ServiceContextTestUtil.getServiceContext(),
 			TestPropsValues.getUserId());
 

@@ -2261,8 +2261,8 @@ public class ObjectEntryLocalServiceImpl
 		}
 
 		DLFolder dlFolder = _attachmentManager.getDLFolder(
-			dlFileEntry.getCompanyId(), groupId, objectField.getObjectFieldId(),
-			serviceContext, userId);
+			dlFileEntry.getCompanyId(), groupId, objectField, serviceContext,
+			userId);
 
 		if (Objects.equals(
 				dlFileEntryFolder.getFolderId(), dlFolder.getFolderId())) {

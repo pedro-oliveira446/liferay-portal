@@ -2525,7 +2525,7 @@ public class DefaultObjectEntryManagerImpl
 				fileEntry.getName(),
 				_getFileEntryGroupId(
 					groupExternalReferenceCode, objectDefinition, scopeKey),
-				objectField.getObjectFieldId(), serviceContext);
+				objectField, serviceContext);
 		}
 
 		return serviceBuilderFileEntry.getFileEntryId();

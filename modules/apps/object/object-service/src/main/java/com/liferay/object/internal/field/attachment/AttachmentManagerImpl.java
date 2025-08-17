@@ -24,7 +24,6 @@ import com.liferay.object.field.setting.util.ObjectFieldSettingUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldSetting;
-import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -82,14 +81,11 @@ public class AttachmentManagerImpl implements AttachmentManager {
 
 	@Override
 	public DLFolder getDLFolder(
-			long companyId, long groupId, long objectFieldId,
+			long companyId, long groupId, ObjectField objectField,
 			ServiceContext serviceContext, long userId)
 		throws PortalException {
 
 		Long dlFolderId = null;
-
-		ObjectField objectField = _objectFieldLocalService.getObjectField(
-			objectFieldId);
 
 		boolean showFilesInDocumentsAndMedia = GetterUtil.getBoolean(
 			ObjectFieldSettingUtil.getValue(
@@ -135,7 +131,7 @@ public class AttachmentManagerImpl implements AttachmentManager {
 	@Override
 	public FileEntry getOrAddFileEntry(
 			long companyId, String externalReferenceCode, byte[] fileContent,
-			String fileName, long groupId, long objectFieldId,
+			String fileName, long groupId, ObjectField objectField,
 			ServiceContext serviceContext)
 		throws Exception {
 
@@ -148,10 +144,11 @@ public class AttachmentManagerImpl implements AttachmentManager {
 		}
 
 		_validateObjectDefinitionSettings(
-			fileContent, fileName, objectFieldId, serviceContext.getUserId());
+			fileContent, fileName, objectField.getObjectFieldId(),
+			serviceContext.getUserId());
 
 		DLFolder dlFolder = getDLFolder(
-			companyId, groupId, objectFieldId, serviceContext,
+			companyId, groupId, objectField, serviceContext,
 			serviceContext.getUserId());
 
 		try (InputStream inputStream = new ByteArrayInputStream(fileContent)) {
@@ -462,9 +459,6 @@ public class AttachmentManagerImpl implements AttachmentManager {
 	private MimeTypes _mimeTypes;
 
 	private volatile ObjectConfiguration _objectConfiguration;
-
-	@Reference
-	private ObjectFieldLocalService _objectFieldLocalService;
 
 	@Reference
 	private ObjectFieldSettingLocalService _objectFieldSettingLocalService;
