@@ -13,6 +13,7 @@ import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLAppService;
+import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.document.library.kernel.service.DLFolderService;
 import com.liferay.document.library.kernel.util.DLUtil;
@@ -31,6 +32,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
@@ -48,9 +51,13 @@ import com.liferay.portlet.documentlibrary.util.DLAppUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.Serializable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -66,6 +73,63 @@ import org.osgi.service.component.annotations.Reference;
 	service = AttachmentManager.class
 )
 public class AttachmentManagerImpl implements AttachmentManager {
+
+	@Override
+	public void deleteFileEntries(
+		List<ObjectField> objectFields,
+		Supplier<Map<String, Serializable>> valuesSupplier) {
+
+		Map<String, Serializable> values = null;
+
+		for (ObjectField objectField : objectFields) {
+			if (objectField.isSystem() || !isFileEntryDeletable(objectField)) {
+				continue;
+			}
+
+			if (values == null) {
+				values = valuesSupplier.get();
+			}
+
+			List<Long> orphanedFileEntryIds = new ArrayList<>();
+
+			if (objectField.isLocalized()) {
+				Map<String, Serializable> localizedValues =
+					(Map<String, Serializable>)values.get(
+						objectField.getI18nObjectFieldName());
+
+				if (localizedValues == null) {
+					continue;
+				}
+
+				for (Map.Entry<String, Serializable> entry :
+						localizedValues.entrySet()) {
+
+					orphanedFileEntryIds.add(
+						GetterUtil.getLong(entry.getValue()));
+				}
+			}
+			else {
+				orphanedFileEntryIds.add(
+					GetterUtil.getLong(values.get(objectField.getName())));
+			}
+
+			try {
+				for (Long orphanedFileEntryId : orphanedFileEntryIds) {
+					if (orphanedFileEntryId == 0) {
+						continue;
+					}
+
+					_dlFileEntryLocalService.deleteFileEntry(
+						orphanedFileEntryId);
+				}
+			}
+			catch (PortalException portalException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(portalException);
+				}
+			}
+		}
+	}
 
 	@Override
 	public String[] getAcceptedFileExtensions(long objectFieldId) {
@@ -440,11 +504,17 @@ public class AttachmentManagerImpl implements AttachmentManager {
 
 	private static final long _FILE_LENGTH_MB = 1024 * 1024;
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		AttachmentManagerImpl.class);
+
 	@Reference
 	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
 	private DLAppService _dlAppService;
+
+	@Reference
+	private DLFileEntryLocalService _dlFileEntryLocalService;
 
 	@Reference
 	private DLFolderLocalService _dlFolderLocalService;

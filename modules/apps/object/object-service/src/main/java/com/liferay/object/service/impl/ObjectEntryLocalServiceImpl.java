@@ -294,7 +294,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -694,7 +693,7 @@ public class ObjectEntryLocalServiceImpl
 				objectEntry.getObjectEntryId());
 		}
 
-		_deleteFileEntries(
+		_attachmentManager.deleteFileEntries(
 			_objectFieldPersistence.findByODI_BT(
 				objectDefinition.getObjectDefinitionId(),
 				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT),
@@ -2778,67 +2777,9 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	private void _deleteFileEntries(
-		List<ObjectField> objectFields,
-		Supplier<Map<String, Serializable>> valuesSupplier) {
-
-		Map<String, Serializable> values = null;
-
-		for (ObjectField objectField : objectFields) {
-			if (objectField.isSystem() ||
-				!_attachmentManager.isFileEntryDeletable(objectField)) {
-
-				continue;
-			}
-
-			if (values == null) {
-				values = valuesSupplier.get();
-			}
-
-			List<Long> orphanedFileEntryIds = new ArrayList<>();
-
-			if (objectField.isLocalized()) {
-				Map<String, Serializable> localizedValues =
-					(Map<String, Serializable>)values.get(
-						objectField.getI18nObjectFieldName());
-
-				if (localizedValues == null) {
-					continue;
-				}
-
-				for (Map.Entry<String, Serializable> entry :
-						localizedValues.entrySet()) {
-
-					orphanedFileEntryIds.add(
-						GetterUtil.getLong(entry.getValue()));
-				}
-			}
-			else {
-				orphanedFileEntryIds.add(
-					GetterUtil.getLong(values.get(objectField.getName())));
-			}
-
-			try {
-				for (Long orphanedFileEntryId : orphanedFileEntryIds) {
-					if (orphanedFileEntryId == 0) {
-						continue;
-					}
-
-					_dlFileEntryLocalService.deleteFileEntry(
-						orphanedFileEntryId);
-				}
-			}
-			catch (PortalException portalException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(portalException);
-				}
-			}
-		}
-	}
-
-	private void _deleteFileEntries(
 		long objectDefinitionId, Map<String, Serializable> values) {
 
-		_deleteFileEntries(
+		_attachmentManager.deleteFileEntries(
 			_objectFieldPersistence.findByODI_BT(
 				objectDefinitionId,
 				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT),
