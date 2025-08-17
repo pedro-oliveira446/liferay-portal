@@ -104,13 +104,12 @@ public class AttachmentManagerImpl implements AttachmentManager {
 				for (Map.Entry<String, Serializable> entry :
 						localizedValues.entrySet()) {
 
-					orphanedFileEntryIds.add(
-						GetterUtil.getLong(entry.getValue()));
+					orphanedFileEntryIds.add(_getFileEntryId(entry.getValue()));
 				}
 			}
 			else {
 				orphanedFileEntryIds.add(
-					GetterUtil.getLong(values.get(objectField.getName())));
+					_getFileEntryId(values.get(objectField.getName())));
 			}
 
 			try {
@@ -366,6 +365,20 @@ public class AttachmentManagerImpl implements AttachmentManager {
 	protected void activate(Map<String, Object> properties) {
 		_objectConfiguration = ConfigurableUtil.createConfigurable(
 			ObjectConfiguration.class, properties);
+	}
+
+	private long _getFileEntryId(Object value) {
+		if (value instanceof Number) {
+			return GetterUtil.getLong(value);
+		}
+
+		if (value instanceof Map) {
+			Map<String, Object> valueMap = (Map<String, Object>)value;
+
+			return GetterUtil.getLong(valueMap.get("id"));
+		}
+
+		return 0;
 	}
 
 	private long _getObjectFieldSettingMaximumFileSize(long objectFieldId) {
