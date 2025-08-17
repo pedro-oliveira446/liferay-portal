@@ -695,7 +695,10 @@ public class ObjectEntryLocalServiceImpl
 		}
 
 		_deleteFileEntries(
-			Collections.emptyMap(), objectDefinition.getObjectDefinitionId(),
+			Collections.emptyMap(),
+			_objectFieldPersistence.findByODI_BT(
+				objectDefinition.getObjectDefinitionId(),
+				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT),
 			objectEntry::getValues);
 
 		if (!ObjectDefinitionThreadLocal.isDeleteObjectDefinitionId(
@@ -2776,28 +2779,13 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	private void _deleteFileEntries(
-		Map<String, Serializable> newValues, long objectDefinitionId,
-		Map<String, Serializable> oldValues) {
-
-		_deleteFileEntries(newValues, objectDefinitionId, () -> oldValues);
-	}
-
-	private void _deleteFileEntries(
-		Map<String, Serializable> newValues, long objectDefinitionId,
+		Map<String, Serializable> newValues, List<ObjectField> objectFields,
 		Supplier<Map<String, Serializable>> oldValuesSupplier) {
-
-		List<ObjectField> objectFields =
-			_objectFieldPersistence.findByObjectDefinitionId(
-				objectDefinitionId);
 
 		Map<String, Serializable> oldValues = null;
 
 		for (ObjectField objectField : objectFields) {
-			if (objectField.isSystem() ||
-				!Objects.equals(
-					objectField.getBusinessType(),
-					ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
-
+			if (objectField.isSystem()) {
 				continue;
 			}
 
@@ -2883,6 +2871,18 @@ public class ObjectEntryLocalServiceImpl
 				}
 			}
 		}
+	}
+
+	private void _deleteFileEntries(
+		Map<String, Serializable> newValues, long objectDefinitionId,
+		Map<String, Serializable> oldValues) {
+
+		_deleteFileEntries(
+			newValues,
+			_objectFieldPersistence.findByODI_BT(
+				objectDefinitionId,
+				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT),
+			() -> oldValues);
 	}
 
 	private void _deleteFromLocalizationTable(
