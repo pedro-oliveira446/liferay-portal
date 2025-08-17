@@ -51,6 +51,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import java.util.Map;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -230,6 +231,32 @@ public class AttachmentManagerImpl implements AttachmentManager {
 				mimeType, title, StringPool.BLANK, null, null, fileContent,
 				null, null, null, cloneServiceContext);
 		}
+	}
+
+	@Override
+	public boolean isFileEntryDeletable(ObjectField objectField) {
+		ObjectFieldSetting objectFieldSetting =
+			_objectFieldSettingLocalService.fetchObjectFieldSetting(
+				objectField.getObjectFieldId(),
+				ObjectFieldSettingConstants.NAME_FILE_SOURCE);
+
+		if (!Objects.equals(
+				objectFieldSetting.getValue(),
+				ObjectFieldSettingConstants.VALUE_USER_COMPUTER)) {
+
+			return false;
+		}
+
+		objectFieldSetting =
+			_objectFieldSettingLocalService.fetchObjectFieldSetting(
+				objectField.getObjectFieldId(),
+				ObjectFieldSettingConstants.NAME_SHOW_FILES_IN_DOCS_AND_MEDIA);
+
+		if (objectFieldSetting == null) {
+			return true;
+		}
+
+		return !GetterUtil.getBoolean(objectFieldSetting.getValue());
 	}
 
 	@Override

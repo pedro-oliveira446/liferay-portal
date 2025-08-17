@@ -9,6 +9,7 @@ import com.liferay.document.library.kernel.exception.FileExtensionException;
 import com.liferay.document.library.kernel.exception.FileNameException;
 import com.liferay.document.library.kernel.exception.FileSizeException;
 import com.liferay.document.library.kernel.model.DLFolder;
+import com.liferay.object.model.ObjectField;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -38,6 +39,8 @@ public interface AttachmentManager {
 			String fileName, String folderExternalReferenceCode, long groupId,
 			long objectFieldId, ServiceContext serviceContext)
 		throws Exception;
+
+	public boolean isFileEntryDeletable(ObjectField objectField);
 
 	public void validateFileExtension(String fileName, long objectFieldId)
 		throws FileExtensionException;

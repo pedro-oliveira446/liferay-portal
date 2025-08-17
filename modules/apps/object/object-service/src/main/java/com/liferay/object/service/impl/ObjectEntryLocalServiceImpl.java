@@ -2785,31 +2785,14 @@ public class ObjectEntryLocalServiceImpl
 		Map<String, Serializable> oldValues = null;
 
 		for (ObjectField objectField : objectFields) {
-			if (objectField.isSystem()) {
+			if (objectField.isSystem() ||
+				!_attachmentManager.isFileEntryDeletable(objectField)) {
+
 				continue;
 			}
 
 			if (oldValues == null) {
 				oldValues = oldValuesSupplier.get();
-			}
-
-			ObjectFieldSetting objectFieldSetting =
-				_objectFieldSettingPersistence.fetchByOFI_N(
-					objectField.getObjectFieldId(), "fileSource");
-
-			if (!Objects.equals(
-					objectFieldSetting.getValue(), "userComputer")) {
-
-				continue;
-			}
-
-			objectFieldSetting = _objectFieldSettingPersistence.fetchByOFI_N(
-				objectField.getObjectFieldId(), "showFilesInDocumentsAndMedia");
-
-			if ((objectFieldSetting != null) &&
-				GetterUtil.getBoolean(objectFieldSetting.getValue())) {
-
-				continue;
 			}
 
 			List<Long> orphanedFileEntryIds = new ArrayList<>();

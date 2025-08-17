@@ -30,6 +30,7 @@ import com.liferay.object.exception.ObjectFieldSettingValueException;
 import com.liferay.object.exception.ObjectFieldStateException;
 import com.liferay.object.exception.ObjectFieldSystemException;
 import com.liferay.object.exception.RequiredObjectFieldException;
+import com.liferay.object.field.attachment.AttachmentManager;
 import com.liferay.object.field.business.type.ObjectFieldBusinessType;
 import com.liferay.object.field.business.type.ObjectFieldBusinessTypeRegistry;
 import com.liferay.object.field.util.ObjectFieldUtil;
@@ -1134,32 +1135,26 @@ public class ObjectFieldLocalServiceImpl
 
 		if (Objects.equals(
 				objectField.getBusinessType(),
-				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
+				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT) &&
+			_attachmentManager.isFileEntryDeletable(objectField)) {
 
-			ObjectFieldSetting objectFieldSetting =
-				_objectFieldSettingPersistence.fetchByOFI_N(
-					objectField.getObjectFieldId(), "fileSource");
+			List<ObjectEntry> objectEntries =
+				_objectEntryPersistence.findByObjectDefinitionId(
+					objectField.getObjectDefinitionId());
 
-			if (Objects.equals(objectFieldSetting.getValue(), "userComputer")) {
-				List<ObjectEntry> objectEntries =
-					_objectEntryPersistence.findByObjectDefinitionId(
-						objectField.getObjectDefinitionId());
+			for (ObjectEntry objectEntry : objectEntries) {
 
-				for (ObjectEntry objectEntry : objectEntries) {
+				// getValues must be called before deleting the object field
 
-					// getValues must be called before deleting the object field
+				Map<String, Serializable> values = objectEntry.getValues();
 
-					Map<String, Serializable> values = objectEntry.getValues();
-
-					try {
-						_dlFileEntryLocalService.deleteFileEntry(
-							GetterUtil.getLong(
-								values.get(objectField.getName())));
-					}
-					catch (PortalException portalException) {
-						if (_log.isDebugEnabled()) {
-							_log.debug(portalException);
-						}
+				try {
+					_dlFileEntryLocalService.deleteFileEntry(
+						GetterUtil.getLong(values.get(objectField.getName())));
+				}
+				catch (PortalException portalException) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(portalException);
 					}
 				}
 			}
@@ -1843,6 +1838,9 @@ public class ObjectFieldLocalServiceImpl
 		_objectRelationshipLocalServiceSnapshot = new Snapshot<>(
 			ObjectFieldLocalServiceImpl.class,
 			ObjectRelationshipLocalService.class, null, true);
+
+	@Reference
+	private AttachmentManager _attachmentManager;
 
 	private final Map<String, String> _businessTypes = HashMapBuilder.put(
 		"BigDecimal", "PrecisionDecimal"
