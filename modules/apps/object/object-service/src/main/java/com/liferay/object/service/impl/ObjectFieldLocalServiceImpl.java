@@ -40,6 +40,7 @@ import com.liferay.object.internal.field.setting.contributor.StateFlowObjectFiel
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryTable;
+import com.liferay.object.model.ObjectEntryVersion;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldSetting;
 import com.liferay.object.model.ObjectRelationship;
@@ -58,6 +59,7 @@ import com.liferay.object.service.ObjectViewLocalService;
 import com.liferay.object.service.base.ObjectFieldLocalServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
 import com.liferay.object.service.persistence.ObjectEntryPersistence;
+import com.liferay.object.service.persistence.ObjectEntryVersionPersistence;
 import com.liferay.object.service.persistence.ObjectFieldSettingPersistence;
 import com.liferay.object.service.persistence.ObjectLayoutColumnPersistence;
 import com.liferay.object.service.persistence.ObjectRelationshipPersistence;
@@ -95,6 +97,8 @@ import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PropsValues;
+
+import java.io.Serializable;
 
 import java.sql.Connection;
 
@@ -1144,6 +1148,34 @@ public class ObjectFieldLocalServiceImpl
 				_attachmentManager.deleteFileEntries(
 					Collections.singletonList(objectField),
 					objectEntry::getValues);
+
+				if (!objectDefinition.isEnableObjectEntryVersioning()) {
+					continue;
+				}
+
+				List<ObjectEntryVersion> objectEntryVersions =
+					_objectEntryVersionPersistence.findByObjectEntryId(
+						objectEntry.getObjectEntryId());
+
+				for (ObjectEntryVersion objectEntryVersion :
+						objectEntryVersions) {
+
+					_attachmentManager.deleteFileEntries(
+						Collections.singletonList(objectField),
+						() -> {
+							com.liferay.object.rest.dto.v1_0.ObjectEntry
+								objectEntryDTO =
+									com.liferay.object.rest.dto.v1_0.
+										ObjectEntry.unsafeToDTO(
+											objectEntryVersion.getContent());
+
+							Map<String, Object> properties =
+								objectEntryDTO.getProperties();
+
+							return (Map<String, Serializable>)properties.get(
+								"properties");
+						});
+				}
 			}
 		}
 
@@ -1867,6 +1899,9 @@ public class ObjectFieldLocalServiceImpl
 
 	@Reference
 	private ObjectEntryPersistence _objectEntryPersistence;
+
+	@Reference
+	private ObjectEntryVersionPersistence _objectEntryVersionPersistence;
 
 	@Reference
 	private ObjectFieldBusinessTypeRegistry _objectFieldBusinessTypeRegistry;
