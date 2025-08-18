@@ -7,11 +7,16 @@ package com.liferay.object.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.counter.kernel.service.CounterLocalService;
+import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
+import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.object.configuration.ObjectEntryVersionConfiguration;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.constants.ObjectFieldSettingConstants;
 import com.liferay.object.exception.RequiredObjectEntryVersionException;
+import com.liferay.object.field.builder.AttachmentObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
+import com.liferay.object.field.setting.builder.ObjectFieldSettingBuilder;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryVersion;
@@ -19,6 +24,8 @@ import com.liferay.object.related.models.test.util.ObjectEntryTestUtil;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryVersionLocalService;
+import com.liferay.object.test.util.ObjectDefinitionTestUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.audit.AuditMessage;
@@ -31,6 +38,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.scheduler.TimeUnit;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -43,10 +51,14 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
@@ -56,6 +68,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
+import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.portal.workflow.manager.WorkflowDefinitionManager;
 
 import java.io.Serializable;
@@ -68,6 +81,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import org.junit.AfterClass;
@@ -759,6 +773,169 @@ public class ObjectEntryVersionLocalServiceTest {
 				objectEntry.getObjectEntryId()));
 	}
 
+	@FeatureFlag("LPD-32050")
+	@Test
+	public void testDeleteObjectEntryVersionWithAttachmentObjectField()
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionTestUtil.publishObjectDefinition(
+				false, true,
+				Arrays.asList(
+					new AttachmentObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
+						"attachmentObjectFieldName"
+					).objectFieldSettings(
+						Arrays.asList(
+							new ObjectFieldSettingBuilder(
+							).name(
+								ObjectFieldSettingConstants.
+									NAME_ACCEPTED_FILE_EXTENSIONS
+							).value(
+								"txt"
+							).build(),
+							new ObjectFieldSettingBuilder(
+							).name(
+								ObjectFieldSettingConstants.NAME_FILE_SOURCE
+							).value(
+								ObjectFieldSettingConstants.VALUE_USER_COMPUTER
+							).build(),
+							new ObjectFieldSettingBuilder(
+							).name(
+								ObjectFieldSettingConstants.NAME_MAX_FILE_SIZE
+							).value(
+								"100"
+							).build())
+					).build(),
+					new AttachmentObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).localized(
+						true
+					).name(
+						"localizedAttachmentObjectFieldName"
+					).objectFieldSettings(
+						Arrays.asList(
+							new ObjectFieldSettingBuilder(
+							).name(
+								ObjectFieldSettingConstants.
+									NAME_ACCEPTED_FILE_EXTENSIONS
+							).value(
+								"txt"
+							).build(),
+							new ObjectFieldSettingBuilder(
+							).name(
+								ObjectFieldSettingConstants.NAME_FILE_SOURCE
+							).value(
+								ObjectFieldSettingConstants.VALUE_USER_COMPUTER
+							).build(),
+							new ObjectFieldSettingBuilder(
+							).name(
+								ObjectFieldSettingConstants.NAME_MAX_FILE_SIZE
+							).value(
+								"100"
+							).build())
+					).build()),
+				ObjectDefinitionConstants.SCOPE_COMPANY);
+
+		ObjectEntry objectEntry = ObjectEntryTestUtil.addObjectEntry(
+			0, objectDefinition.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				"attachmentObjectFieldName",
+				() -> {
+					FileEntry tempFileEntry = _addTempFileEntry(
+						objectDefinition, StringUtil.randomString());
+
+					return tempFileEntry.getFileEntryId();
+				}
+			).put(
+				"localizedAttachmentObjectFieldName_i18n",
+				HashMapBuilder.put(
+					"en_US",
+					() -> {
+						FileEntry tempFileEntry = _addTempFileEntry(
+							objectDefinition, StringUtil.randomString());
+
+						return tempFileEntry.getFileEntryId();
+					}
+				).put(
+					"pt_BR",
+					() -> {
+						FileEntry tempFileEntry = _addTempFileEntry(
+							objectDefinition, StringUtil.randomString());
+
+						return tempFileEntry.getFileEntryId();
+					}
+				).build()
+			).build());
+
+		_objectEntryLocalService.updateObjectEntry(
+			TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
+			Collections.emptyMap(), ServiceContextTestUtil.getServiceContext());
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		long fileEntryId1 = MapUtil.getLong(
+			values, "attachmentObjectFieldName");
+
+		Assert.assertNotNull(_dlAppLocalService.getFileEntry(fileEntryId1));
+
+		Map<String, Serializable> localizedValues =
+			(Map<String, Serializable>)values.get(
+				"localizedAttachmentObjectFieldName_i18n");
+
+		com.liferay.object.rest.dto.v1_0.FileEntry fileEntry2 =
+			(com.liferay.object.rest.dto.v1_0.FileEntry)localizedValues.get(
+				"en_US");
+
+		Assert.assertNotNull(
+			_dlAppLocalService.getFileEntry(fileEntry2.getId()));
+
+		com.liferay.object.rest.dto.v1_0.FileEntry fileEntry3 =
+			(com.liferay.object.rest.dto.v1_0.FileEntry)localizedValues.get(
+				"pt_BR");
+
+		Assert.assertNotNull(
+			_dlAppLocalService.getFileEntry(fileEntry3.getId()));
+
+		_objectEntryVersionLocalService.deleteObjectEntryVersion(
+			objectEntry.getObjectEntryId(), 1);
+
+		Assert.assertNotNull(_dlAppLocalService.getFileEntry(fileEntryId1));
+		Assert.assertNotNull(
+			_dlAppLocalService.getFileEntry(fileEntry2.getId()));
+		Assert.assertNotNull(
+			_dlAppLocalService.getFileEntry(fileEntry3.getId()));
+
+		_objectEntryVersionLocalService.deleteObjectEntryVersions(
+			objectEntry.getObjectEntryId());
+
+		AssertUtils.assertFailure(
+			NoSuchFileEntryException.class,
+			StringBundler.concat(
+				"No FileEntry exists with the key {fileEntryId=", fileEntryId1,
+				"}"),
+			() -> _dlAppLocalService.getFileEntry(fileEntryId1));
+		AssertUtils.assertFailure(
+			NoSuchFileEntryException.class,
+			StringBundler.concat(
+				"No FileEntry exists with the key {fileEntryId=",
+				fileEntry2.getId(), "}"),
+			() -> _dlAppLocalService.getFileEntry(fileEntry2.getId()));
+		AssertUtils.assertFailure(
+			NoSuchFileEntryException.class,
+			StringBundler.concat(
+				"No FileEntry exists with the key {fileEntryId=",
+				fileEntry3.getId(), "}"),
+			() -> _dlAppLocalService.getFileEntry(fileEntry3.getId()));
+
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
+	}
+
 	@Test
 	public void testIsLatestObjectEntryVersion() throws Exception {
 		ObjectEntry objectEntry = ObjectEntryTestUtil.addObjectEntry(
@@ -786,6 +963,18 @@ public class ObjectEntryVersionLocalServiceTest {
 		Assert.assertTrue(
 			_objectEntryVersionLocalService.isLatestObjectEntryVersion(
 				objectEntry.getObjectEntryId(), 2));
+	}
+
+	private FileEntry _addTempFileEntry(
+			ObjectDefinition objectDefinition, String title)
+		throws Exception {
+
+		return TempFileEntryUtil.addTempFileEntry(
+			TestPropsValues.getGroupId(), TestPropsValues.getUserId(),
+			objectDefinition.getPortletId(),
+			TempFileEntryUtil.getTempFileName(title + ".txt"),
+			FileUtil.createTempFile(RandomTestUtil.randomBytes()),
+			ContentTypes.TEXT_PLAIN);
 	}
 
 	private void _assertEquals(
@@ -1152,6 +1341,9 @@ public class ObjectEntryVersionLocalServiceTest {
 
 	@Inject
 	private CounterLocalService _counterLocalService;
+
+	@Inject
+	private DLAppService _dlAppLocalService;
 
 	@Inject
 	private DTOConverterRegistry _dtoConverterRegistry;
