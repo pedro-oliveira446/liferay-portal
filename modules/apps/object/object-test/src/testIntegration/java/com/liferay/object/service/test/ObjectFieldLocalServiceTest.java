@@ -1440,6 +1440,12 @@ public class ObjectFieldLocalServiceTest {
 
 		// Delete object field business type attachment
 
+		customObjectDefinition.setEnableObjectEntryVersioning(true);
+
+		customObjectDefinition =
+			_objectDefinitionLocalService.updateObjectDefinition(
+				customObjectDefinition);
+
 		ObjectField attachmentObjectField = _addCustomObjectField(
 			new AttachmentObjectFieldBuilder(
 			).labelMap(
@@ -1492,11 +1498,35 @@ public class ObjectFieldLocalServiceTest {
 			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
-		long persistedFileEntryId = MapUtil.getLong(
+		long persistedFileEntryId1 = MapUtil.getLong(
 			objectEntry.getValues(), "upload");
 
 		Assert.assertNotNull(
-			_dlAppLocalService.getFileEntry(persistedFileEntryId));
+			_dlAppLocalService.getFileEntry(persistedFileEntryId1));
+
+		objectEntry = _objectEntryLocalService.updateObjectEntry(
+			TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
+			HashMapBuilder.<String, Serializable>put(
+				"upload",
+				() -> {
+					FileEntry fileEntry = TempFileEntryUtil.addTempFileEntry(
+						TestPropsValues.getGroupId(),
+						TestPropsValues.getUserId(), StringUtil.randomString(),
+						TempFileEntryUtil.getTempFileName(
+							StringUtil.randomString() + ".txt"),
+						FileUtil.createTempFile(RandomTestUtil.randomBytes()),
+						ContentTypes.TEXT_PLAIN);
+
+					return fileEntry.getFileEntryId();
+				}
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+
+		long persistedFileEntryId2 = MapUtil.getLong(
+			objectEntry.getValues(), "upload");
+
+		Assert.assertNotNull(
+			_dlAppLocalService.getFileEntry(persistedFileEntryId2));
 
 		_objectFieldLocalService.deleteObjectField(
 			attachmentObjectField.getObjectFieldId());
@@ -1505,8 +1535,14 @@ public class ObjectFieldLocalServiceTest {
 			NoSuchFileEntryException.class,
 			StringBundler.concat(
 				"No FileEntry exists with the key {fileEntryId=",
-				persistedFileEntryId, "}"),
-			() -> _dlAppLocalService.getFileEntry(persistedFileEntryId));
+				persistedFileEntryId1, "}"),
+			() -> _dlAppLocalService.getFileEntry(persistedFileEntryId1));
+		AssertUtils.assertFailure(
+			NoSuchFileEntryException.class,
+			StringBundler.concat(
+				"No FileEntry exists with the key {fileEntryId=",
+				persistedFileEntryId2, "}"),
+			() -> _dlAppLocalService.getFileEntry(persistedFileEntryId2));
 
 		// Delete object field business type auto increment
 
