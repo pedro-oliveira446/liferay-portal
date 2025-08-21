@@ -115,6 +115,8 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.odata.filter.expression.Expression;
 import com.liferay.portal.search.aggregation.Aggregations;
 import com.liferay.portal.search.aggregation.bucket.FilterAggregation;
@@ -122,6 +124,7 @@ import com.liferay.portal.search.aggregation.bucket.NestedAggregation;
 import com.liferay.portal.search.legacy.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.query.Queries;
 import com.liferay.portal.search.searcher.SearchRequestBuilder;
+import com.liferay.portal.search.searcher.Searcher;
 import com.liferay.portal.service.PersistedModelLocalServiceRegistryUtil;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.aggregation.Facet;
@@ -588,6 +591,66 @@ public class DefaultObjectEntryManagerImpl
 	}
 
 	@Override
+	public Page<ObjectEntry> getApprovedObjectEntries(
+			long companyId, ObjectDefinition objectDefinition, String scopeKey,
+			Aggregation aggregation, DTOConverterContext dtoConverterContext,
+			Filter filter, Pagination pagination, String search,
+			Sort[] sorts)
+		throws Exception {
+
+		long groupId = getGroupId(objectDefinition, scopeKey);
+
+		return SearchUtil.search(
+			_getActions(dtoConverterContext, groupId, objectDefinition),
+			booleanQuery -> {
+				BooleanFilter booleanFilter =
+					booleanQuery.getPreBooleanFilter();
+
+				booleanFilter.add(
+					new TermFilter(
+						"objectDefinitionId",
+						String.valueOf(
+							objectDefinition.getObjectDefinitionId())),
+					BooleanClauseOccur.MUST);
+			},
+			filter, objectDefinition.getClassName(), search, pagination,
+			queryConfig -> queryConfig.setSelectedFieldNames(
+				Field.ENTRY_CLASS_PK),
+			searchContext -> {
+				searchContext.addVulcanAggregation(aggregation);
+				searchContext.setAttribute(
+					Field.STATUS, WorkflowConstants.STATUS_APPROVED);
+				searchContext.setAttribute(
+					"objectDefinitionId",
+					objectDefinition.getObjectDefinitionId());
+
+				UriInfo uriInfo = dtoConverterContext.getUriInfo();
+
+				if (uriInfo != null) {
+					MultivaluedMap<String, String> queryParameters =
+						uriInfo.getQueryParameters();
+
+					searchContext.setAttribute(
+						"searchByObjectView",
+						queryParameters.containsKey("searchByObjectView"));
+				}
+
+				searchContext.setCompanyId(companyId);
+				searchContext.setGroupIds(new long[] {groupId});
+
+				SearchRequestBuilder searchRequestBuilder =
+					_searchRequestBuilderFactory.builder(searchContext);
+
+				_processVulcanAggregation(
+					_aggregations, _queries, searchRequestBuilder, aggregation);
+			},
+			sorts,
+			document -> _getObjectEntry(
+				dtoConverterContext, objectDefinition,
+				GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK))));
+	}
+
+	@Override
 	public Page<ObjectEntry> getObjectEntries(
 			long companyId, ObjectDefinition objectDefinition, String scopeKey,
 			Aggregation aggregation, DTOConverterContext dtoConverterContext,
@@ -652,44 +715,7 @@ public class DefaultObjectEntryManagerImpl
 		}
 
 		return Page.of(
-			HashMapBuilder.put(
-				"create",
-				ActionUtil.addAction(
-					"ADD_OBJECT_ENTRY", ObjectEntryResourceImpl.class, 0L,
-					"postObjectEntry", null, objectDefinition.getUserId(),
-					objectDefinition.getResourceName(), groupId,
-					dtoConverterContext.getUriInfo())
-			).put(
-				"createBatch",
-				ActionUtil.addAction(
-					"ADD_OBJECT_ENTRY", ObjectEntryResourceImpl.class, 0L,
-					"postObjectEntryBatch", null, objectDefinition.getUserId(),
-					objectDefinition.getResourceName(), groupId,
-					dtoConverterContext.getUriInfo())
-			).put(
-				"deleteBatch",
-				ActionUtil.addAction(
-					ActionKeys.DELETE, ObjectEntryResourceImpl.class, null,
-					"deleteObjectEntryBatch", null,
-					objectDefinition.getUserId(),
-					objectDefinition.getResourceName(), groupId,
-					dtoConverterContext.getUriInfo())
-			).put(
-				"get",
-				ActionUtil.addAction(
-					ActionKeys.VIEW, ObjectEntryResourceImpl.class, 0L,
-					"getObjectEntriesPage", null, objectDefinition.getUserId(),
-					objectDefinition.getResourceName(), groupId,
-					dtoConverterContext.getUriInfo())
-			).put(
-				"updateBatch",
-				ActionUtil.addAction(
-					ActionKeys.UPDATE, ObjectEntryResourceImpl.class, null,
-					"putObjectEntryBatch", null, objectDefinition.getUserId(),
-					objectDefinition.getResourceName(), groupId,
-					dtoConverterContext.getUriInfo())
-			).build(),
-			facets,
+			_getActions(dtoConverterContext, groupId, objectDefinition), facets,
 			TransformUtil.transform(
 				objectEntryLocalService.getPrimaryKeys(
 					groupIds, companyId, dtoConverterContext.getUserId(),
@@ -713,21 +739,7 @@ public class DefaultObjectEntryManagerImpl
 		long groupId = getGroupId(objectDefinition, scopeKey);
 
 		return SearchUtil.search(
-			HashMapBuilder.put(
-				"create",
-				ActionUtil.addAction(
-					"ADD_OBJECT_ENTRY", ObjectEntryResourceImpl.class, 0L,
-					"postObjectEntry", null, objectDefinition.getUserId(),
-					objectDefinition.getResourceName(), groupId,
-					dtoConverterContext.getUriInfo())
-			).put(
-				"get",
-				ActionUtil.addAction(
-					ActionKeys.VIEW, ObjectEntryResourceImpl.class, 0L,
-					"getObjectEntriesPage", null, objectDefinition.getUserId(),
-					objectDefinition.getResourceName(), groupId,
-					dtoConverterContext.getUriInfo())
-			).build(),
+			_getActions(dtoConverterContext, groupId, objectDefinition),
 			booleanQuery -> {
 				BooleanFilter booleanFilter =
 					booleanQuery.getPreBooleanFilter();
@@ -1907,6 +1919,48 @@ public class DefaultObjectEntryManagerImpl
 
 		return _objectEntryDTOConverter.toDTO(
 			dtoConverterContext, serviceBuilderObjectEntry);
+	}
+
+	private HashMap<String, Map<String, String>> _getActions(
+		DTOConverterContext dtoConverterContext, Long groupId,
+		ObjectDefinition objectDefinition) {
+
+		return HashMapBuilder.<String, Map<String, String>>put(
+			"create",
+			ActionUtil.addAction(
+				"ADD_OBJECT_ENTRY", ObjectEntryResourceImpl.class, 0L,
+				"postObjectEntry", null, objectDefinition.getUserId(),
+				objectDefinition.getResourceName(), groupId,
+				dtoConverterContext.getUriInfo())
+		).put(
+			"createBatch",
+			ActionUtil.addAction(
+				"ADD_OBJECT_ENTRY", ObjectEntryResourceImpl.class, 0L,
+				"postObjectEntryBatch", null, objectDefinition.getUserId(),
+				objectDefinition.getResourceName(), groupId,
+				dtoConverterContext.getUriInfo())
+		).put(
+			"deleteBatch",
+			ActionUtil.addAction(
+				ActionKeys.DELETE, ObjectEntryResourceImpl.class, null,
+				"deleteObjectEntryBatch", null, objectDefinition.getUserId(),
+				objectDefinition.getResourceName(), groupId,
+				dtoConverterContext.getUriInfo())
+		).put(
+			"get",
+			ActionUtil.addAction(
+				ActionKeys.VIEW, ObjectEntryResourceImpl.class, 0L,
+				"getObjectEntriesPage", null, objectDefinition.getUserId(),
+				objectDefinition.getResourceName(), groupId,
+				dtoConverterContext.getUriInfo())
+		).put(
+			"updateBatch",
+			ActionUtil.addAction(
+				ActionKeys.UPDATE, ObjectEntryResourceImpl.class, null,
+				"putObjectEntryBatch", null, objectDefinition.getUserId(),
+				objectDefinition.getResourceName(), groupId,
+				dtoConverterContext.getUriInfo())
+		).build();
 	}
 
 	private String _getDateString(Date date) {
@@ -3223,6 +3277,9 @@ public class DefaultObjectEntryManagerImpl
 	private RoleTypeContributorProvider _roleTypeContributorProvider;
 
 	@Reference
+	private Searcher _searcher;
+
+	@Reference
 	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
 	@Reference
@@ -3231,6 +3288,9 @@ public class DefaultObjectEntryManagerImpl
 	@Reference
 	private SystemObjectDefinitionManagerRegistry
 		_systemObjectDefinitionManagerRegistry;
+
+	@Reference
+	private FilterParserProvider _filterParserProvider;
 
 	@Reference
 	private UserLocalService _userLocalService;

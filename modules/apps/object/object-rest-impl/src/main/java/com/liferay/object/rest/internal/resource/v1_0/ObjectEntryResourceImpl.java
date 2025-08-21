@@ -37,7 +37,11 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
@@ -48,10 +52,12 @@ import jakarta.ws.rs.NotSupportedException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import org.osgi.service.component.annotations.Reference;
 
 import java.io.Serializable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -295,6 +301,54 @@ public class ObjectEntryResourceImpl
 	}
 
 	@Override
+	public Page<ObjectEntry> getApprovedPage(
+			String search, Aggregation aggregation, Filter filter,
+			Pagination pagination, Sort[] sorts)
+		throws Exception {
+
+		DefaultObjectEntryManager defaultObjectEntryManager =
+			DefaultObjectEntryManagerProvider.provide(
+				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getStorageType()));
+
+		DefaultDTOConverterContext defaultDTOConverterContext =
+			_getDTOConverterContext(null);
+
+		Filter filter2 =  null;
+
+		if(!Validator.isNull(_getFilterString())){
+			FilterParser filterParser = _filterParserProvider.provide(getEntityModel(
+				Collections.emptyMap()));
+
+			if (_log.isDebugEnabled()) {
+				_log.debug("OData filter parser: " + filterParser);
+			}
+
+			com.liferay.portal.odata.filter.Filter oDataFilter =
+				new com.liferay.portal.odata.filter.Filter(
+					filterParser.parse(_getFilterString()));
+
+			if (_log.isDebugEnabled()) {
+				_log.debug("OData filter: " + oDataFilter);
+			}
+
+			filter2 = _expressionConvert.convert(
+				oDataFilter.getExpression(), contextAcceptLanguage.getPreferredLocale(),
+				getEntityModel(
+					Collections.emptyMap()));
+		}
+		return defaultObjectEntryManager.getApprovedObjectEntries(
+			contextCompany.getCompanyId(), _objectDefinition, null, aggregation,
+			defaultDTOConverterContext, filter2, pagination, search,
+			sorts);
+	}
+
+
+	@Reference(
+		target = "(result.class.name=com.liferay.portal.kernel.search.filter.Filter)"
+	)
+	private ExpressionConvert<Filter> _expressionConvert;
+	@Override
 	public ObjectEntry getByExternalReferenceCode(String externalReferenceCode)
 		throws Exception {
 
@@ -307,6 +361,8 @@ public class ObjectEntryResourceImpl
 			externalReferenceCode, _objectDefinition, null);
 	}
 
+	@Reference
+	private FilterParserProvider _filterParserProvider;
 	@Override
 	public ObjectEntry getByExternalReferenceCodeByVersion(
 			String externalReferenceCode, Integer version)
@@ -456,6 +512,23 @@ public class ObjectEntryResourceImpl
 		}
 
 		return Scope.SITE;
+	}
+
+	@Override
+	public Page<ObjectEntry> getScopeScopeKeyApprovedPage(
+			String scopeKey, String search, Aggregation aggregation,
+			Filter filter, Pagination pagination, Sort[] sorts)
+		throws Exception {
+
+		DefaultObjectEntryManager defaultObjectEntryManager =
+			DefaultObjectEntryManagerProvider.provide(
+				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getStorageType()));
+
+		return defaultObjectEntryManager.getApprovedObjectEntries(
+			contextCompany.getCompanyId(), _objectDefinition, scopeKey,
+			aggregation, _getDTOConverterContext(null), filter,
+			pagination, search, sorts);
 	}
 
 	@Override

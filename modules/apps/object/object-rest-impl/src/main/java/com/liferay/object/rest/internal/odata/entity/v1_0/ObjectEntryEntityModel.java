@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -160,6 +161,68 @@ public class ObjectEntryEntityModel implements EntityModel {
 			"Unable to get entity field for object field " + objectField);
 	}
 
+
+	private EntityField _getEntityField2(ObjectField objectField) {
+		if (objectField.isIndexedAsKeyword()) {
+			return new StringEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_keyword#" +
+						objectField.getName());
+		}
+		else if (Objects.equals(objectField.getDBType(), "BigDecimal") ||
+				 Objects.equals(objectField.getDBType(), "Double")) {
+
+			return new DoubleEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_double#" +
+						objectField.getName());
+		}
+		else if (Objects.equals(objectField.getDBType(), "Boolean")) {
+			return new BooleanEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_boolean#" +
+						objectField.getName());
+		}
+		else if (Objects.equals(objectField.getDBType(), "Clob") ||
+				 Objects.equals(objectField.getDBType(), "String")) {
+
+			return new StringEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_keyword_lowercase#" +
+						objectField.getName());
+		}
+		else if (Objects.equals(objectField.getDBType(), "Date")) {
+			return new DateEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_date#" + objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_date#" +
+						objectField.getName());
+		}
+		else if (Objects.equals(objectField.getDBType(), "Integer")) {
+			return new IntegerEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_integer#" +
+						objectField.getName());
+		}
+		else if (Objects.equals(objectField.getDBType(), "Long")) {
+			return new IntegerEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_long#" +
+						objectField.getName());
+		}
+
+		throw new BadRequestException(
+			"Unable to get entity field for object field " + objectField);
+	}
+
 	private Function<Locale, String> _getExternalReferenceCodeFunction() {
 		return locale -> "externalReferenceCode";
 	}
@@ -261,7 +324,7 @@ public class ObjectEntryEntityModel implements EntityModel {
 					objectField.getRelationshipType(),
 					ObjectRelationshipConstants.TYPE_ONE_TO_MANY)) {
 
-				EntityField entityField = _getEntityField(objectField);
+				EntityField entityField = _getEntityField2(objectField);
 
 				if (entityField != null) {
 					entityFieldsMap.putIfAbsent(
