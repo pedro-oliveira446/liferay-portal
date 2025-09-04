@@ -250,8 +250,10 @@
 
 		<column name="objectDefinitionId" type="long" />
 		<column name="objectEntryFolderId" type="long" />
+		<column name="parentObjectEntryId" type="long" />
 		<column name="rootObjectEntryId" type="long" />
 		<column name="defaultLanguageId" type="String" />
+		<column name="latest" type="boolean" />
 		<column name="displayDate" type="Date" />
 		<column name="expirationDate" type="Date" />
 		<column name="reviewDate" type="Date" />
@@ -273,6 +275,9 @@
 
 		<finder name="ObjectDefinitionId" return-type="Collection">
 			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="ParentObjectEntryId" return-type="Collection">
+			<finder-column name="parentObjectEntryId" />
 		</finder>
 		<finder name="G_ODI" return-type="Collection">
 			<finder-column name="groupId" />
