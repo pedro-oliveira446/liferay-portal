@@ -72,6 +72,19 @@ public class ObjectEntryLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.object.model.ObjectEntry addObjectEntry(
+			String externalReferenceCode, long groupId, long userId,
+			com.liferay.object.model.ObjectDefinition objectDefinition,
+			long objectEntryFolderId, long parentObjectEntryId, int version,
+			java.util.Map<String, java.io.Serializable> values)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectEntryLocalService.addObjectEntry(
+			externalReferenceCode, groupId, userId, objectDefinition,
+			objectEntryFolderId, parentObjectEntryId, version, values);
+	}
+
+	@Override
 	public void addOrUpdateExtensionDynamicObjectDefinitionTableValues(
 			long userId,
 			com.liferay.object.model.ObjectDefinition objectDefinition,
