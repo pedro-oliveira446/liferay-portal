@@ -48,8 +48,10 @@ public class ObjectEntryWrapper
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("objectDefinitionId", getObjectDefinitionId());
 		attributes.put("objectEntryFolderId", getObjectEntryFolderId());
+		attributes.put("parentObjectEntryId", getParentObjectEntryId());
 		attributes.put("rootObjectEntryId", getRootObjectEntryId());
 		attributes.put("defaultLanguageId", getDefaultLanguageId());
+		attributes.put("latest", isLatest());
 		attributes.put("displayDate", getDisplayDate());
 		attributes.put("expirationDate", getExpirationDate());
 		attributes.put("reviewDate", getReviewDate());
@@ -139,6 +141,12 @@ public class ObjectEntryWrapper
 			setObjectEntryFolderId(objectEntryFolderId);
 		}
 
+		Long parentObjectEntryId = (Long)attributes.get("parentObjectEntryId");
+
+		if (parentObjectEntryId != null) {
+			setParentObjectEntryId(parentObjectEntryId);
+		}
+
 		Long rootObjectEntryId = (Long)attributes.get("rootObjectEntryId");
 
 		if (rootObjectEntryId != null) {
@@ -149,6 +157,12 @@ public class ObjectEntryWrapper
 
 		if (defaultLanguageId != null) {
 			setDefaultLanguageId(defaultLanguageId);
+		}
+
+		Boolean latest = (Boolean)attributes.get("latest");
+
+		if (latest != null) {
+			setLatest(latest);
 		}
 
 		Date displayDate = (Date)attributes.get("displayDate");
@@ -304,6 +318,16 @@ public class ObjectEntryWrapper
 		return model.getLastPublishDate();
 	}
 
+	/**
+	 * Returns the latest of this object entry.
+	 *
+	 * @return the latest of this object entry
+	 */
+	@Override
+	public boolean getLatest() {
+		return model.getLatest();
+	}
+
 	@Override
 	public String getModelClassName() {
 		return model.getModelClassName();
@@ -364,6 +388,16 @@ public class ObjectEntryWrapper
 	@Override
 	public long getObjectEntryId() {
 		return model.getObjectEntryId();
+	}
+
+	/**
+	 * Returns the parent object entry ID of this object entry.
+	 *
+	 * @return the parent object entry ID of this object entry
+	 */
+	@Override
+	public long getParentObjectEntryId() {
+		return model.getParentObjectEntryId();
 	}
 
 	/**
@@ -630,6 +664,16 @@ public class ObjectEntryWrapper
 	}
 
 	/**
+	 * Returns <code>true</code> if this object entry is latest.
+	 *
+	 * @return <code>true</code> if this object entry is latest; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isLatest() {
+		return model.isLatest();
+	}
+
+	/**
 	 * Returns <code>true</code> if this object entry is pending.
 	 *
 	 * @return <code>true</code> if this object entry is pending; <code>false</code> otherwise
@@ -740,6 +784,16 @@ public class ObjectEntryWrapper
 	}
 
 	/**
+	 * Sets whether this object entry is latest.
+	 *
+	 * @param latest the latest of this object entry
+	 */
+	@Override
+	public void setLatest(boolean latest) {
+		model.setLatest(latest);
+	}
+
+	/**
 	 * Sets the modified date of this object entry.
 	 *
 	 * @param modifiedDate the modified date of this object entry
@@ -787,6 +841,16 @@ public class ObjectEntryWrapper
 	@Override
 	public void setObjectEntryId(long objectEntryId) {
 		model.setObjectEntryId(objectEntryId);
+	}
+
+	/**
+	 * Sets the parent object entry ID of this object entry.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID of this object entry
+	 */
+	@Override
+	public void setParentObjectEntryId(long parentObjectEntryId) {
+		model.setParentObjectEntryId(parentObjectEntryId);
 	}
 
 	/**

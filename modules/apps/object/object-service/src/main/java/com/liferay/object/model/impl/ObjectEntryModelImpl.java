@@ -72,13 +72,14 @@ public class ObjectEntryModelImpl
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
 		{"modifiedDate", Types.TIMESTAMP}, {"objectDefinitionId", Types.BIGINT},
 		{"objectEntryFolderId", Types.BIGINT},
+		{"parentObjectEntryId", Types.BIGINT},
 		{"rootObjectEntryId", Types.BIGINT},
-		{"defaultLanguageId", Types.VARCHAR}, {"displayDate", Types.TIMESTAMP},
-		{"expirationDate", Types.TIMESTAMP}, {"reviewDate", Types.TIMESTAMP},
-		{"treePath", Types.VARCHAR}, {"version", Types.INTEGER},
-		{"lastPublishDate", Types.TIMESTAMP}, {"status", Types.INTEGER},
-		{"statusByUserId", Types.BIGINT}, {"statusByUserName", Types.VARCHAR},
-		{"statusDate", Types.TIMESTAMP}
+		{"defaultLanguageId", Types.VARCHAR}, {"latest", Types.BOOLEAN},
+		{"displayDate", Types.TIMESTAMP}, {"expirationDate", Types.TIMESTAMP},
+		{"reviewDate", Types.TIMESTAMP}, {"treePath", Types.VARCHAR},
+		{"version", Types.INTEGER}, {"lastPublishDate", Types.TIMESTAMP},
+		{"status", Types.INTEGER}, {"statusByUserId", Types.BIGINT},
+		{"statusByUserName", Types.VARCHAR}, {"statusDate", Types.TIMESTAMP}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -97,8 +98,10 @@ public class ObjectEntryModelImpl
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("objectDefinitionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("objectEntryFolderId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("parentObjectEntryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("rootObjectEntryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("defaultLanguageId", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("latest", Types.BOOLEAN);
 		TABLE_COLUMNS_MAP.put("displayDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("expirationDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("reviewDate", Types.TIMESTAMP);
@@ -112,7 +115,7 @@ public class ObjectEntryModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table ObjectEntry (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(1000) null,objectEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,objectDefinitionId LONG,objectEntryFolderId LONG,rootObjectEntryId LONG,defaultLanguageId VARCHAR(75) null,displayDate DATE null,expirationDate DATE null,reviewDate DATE null,treePath STRING null,version INTEGER,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table ObjectEntry (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(1000) null,objectEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,objectDefinitionId LONG,objectEntryFolderId LONG,parentObjectEntryId LONG,rootObjectEntryId LONG,defaultLanguageId VARCHAR(75) null,latest BOOLEAN,displayDate DATE null,expirationDate DATE null,reviewDate DATE null,treePath STRING null,version INTEGER,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 
 	public static final String TABLE_SQL_DROP = "drop table ObjectEntry";
 
@@ -168,32 +171,38 @@ public class ObjectEntryModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long ROOTOBJECTENTRYID_COLUMN_BITMASK = 64L;
+	public static final long PARENTOBJECTENTRYID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long STATUS_COLUMN_BITMASK = 128L;
+	public static final long ROOTOBJECTENTRYID_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long USERID_COLUMN_BITMASK = 256L;
+	public static final long STATUS_COLUMN_BITMASK = 256L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 512L;
+	public static final long USERID_COLUMN_BITMASK = 512L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 1024L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long OBJECTENTRYID_COLUMN_BITMASK = 1024L;
+	public static final long OBJECTENTRYID_COLUMN_BITMASK = 2048L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -325,9 +334,12 @@ public class ObjectEntryModelImpl
 			attributeGetterFunctions.put(
 				"objectEntryFolderId", ObjectEntry::getObjectEntryFolderId);
 			attributeGetterFunctions.put(
+				"parentObjectEntryId", ObjectEntry::getParentObjectEntryId);
+			attributeGetterFunctions.put(
 				"rootObjectEntryId", ObjectEntry::getRootObjectEntryId);
 			attributeGetterFunctions.put(
 				"defaultLanguageId", ObjectEntry::getDefaultLanguageId);
+			attributeGetterFunctions.put("latest", ObjectEntry::getLatest);
 			attributeGetterFunctions.put(
 				"displayDate", ObjectEntry::getDisplayDate);
 			attributeGetterFunctions.put(
@@ -400,6 +412,10 @@ public class ObjectEntryModelImpl
 				(BiConsumer<ObjectEntry, Long>)
 					ObjectEntry::setObjectEntryFolderId);
 			attributeSetterBiConsumers.put(
+				"parentObjectEntryId",
+				(BiConsumer<ObjectEntry, Long>)
+					ObjectEntry::setParentObjectEntryId);
+			attributeSetterBiConsumers.put(
 				"rootObjectEntryId",
 				(BiConsumer<ObjectEntry, Long>)
 					ObjectEntry::setRootObjectEntryId);
@@ -407,6 +423,9 @@ public class ObjectEntryModelImpl
 				"defaultLanguageId",
 				(BiConsumer<ObjectEntry, String>)
 					ObjectEntry::setDefaultLanguageId);
+			attributeSetterBiConsumers.put(
+				"latest",
+				(BiConsumer<ObjectEntry, Boolean>)ObjectEntry::setLatest);
 			attributeSetterBiConsumers.put(
 				"displayDate",
 				(BiConsumer<ObjectEntry, Date>)ObjectEntry::setDisplayDate);
@@ -739,6 +758,31 @@ public class ObjectEntryModelImpl
 
 	@JSON
 	@Override
+	public long getParentObjectEntryId() {
+		return _parentObjectEntryId;
+	}
+
+	@Override
+	public void setParentObjectEntryId(long parentObjectEntryId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_parentObjectEntryId = parentObjectEntryId;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalParentObjectEntryId() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("parentObjectEntryId"));
+	}
+
+	@JSON
+	@Override
 	public long getRootObjectEntryId() {
 		return _rootObjectEntryId;
 	}
@@ -780,6 +824,27 @@ public class ObjectEntryModelImpl
 		}
 
 		_defaultLanguageId = defaultLanguageId;
+	}
+
+	@JSON
+	@Override
+	public boolean getLatest() {
+		return _latest;
+	}
+
+	@JSON
+	@Override
+	public boolean isLatest() {
+		return _latest;
+	}
+
+	@Override
+	public void setLatest(boolean latest) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_latest = latest;
 	}
 
 	@JSON
@@ -1137,8 +1202,10 @@ public class ObjectEntryModelImpl
 		objectEntryImpl.setModifiedDate(getModifiedDate());
 		objectEntryImpl.setObjectDefinitionId(getObjectDefinitionId());
 		objectEntryImpl.setObjectEntryFolderId(getObjectEntryFolderId());
+		objectEntryImpl.setParentObjectEntryId(getParentObjectEntryId());
 		objectEntryImpl.setRootObjectEntryId(getRootObjectEntryId());
 		objectEntryImpl.setDefaultLanguageId(getDefaultLanguageId());
+		objectEntryImpl.setLatest(isLatest());
 		objectEntryImpl.setDisplayDate(getDisplayDate());
 		objectEntryImpl.setExpirationDate(getExpirationDate());
 		objectEntryImpl.setReviewDate(getReviewDate());
@@ -1181,10 +1248,14 @@ public class ObjectEntryModelImpl
 			this.<Long>getColumnOriginalValue("objectDefinitionId"));
 		objectEntryImpl.setObjectEntryFolderId(
 			this.<Long>getColumnOriginalValue("objectEntryFolderId"));
+		objectEntryImpl.setParentObjectEntryId(
+			this.<Long>getColumnOriginalValue("parentObjectEntryId"));
 		objectEntryImpl.setRootObjectEntryId(
 			this.<Long>getColumnOriginalValue("rootObjectEntryId"));
 		objectEntryImpl.setDefaultLanguageId(
 			this.<String>getColumnOriginalValue("defaultLanguageId"));
+		objectEntryImpl.setLatest(
+			this.<Boolean>getColumnOriginalValue("latest"));
 		objectEntryImpl.setDisplayDate(
 			this.<Date>getColumnOriginalValue("displayDate"));
 		objectEntryImpl.setExpirationDate(
@@ -1349,6 +1420,8 @@ public class ObjectEntryModelImpl
 
 		objectEntryCacheModel.objectEntryFolderId = getObjectEntryFolderId();
 
+		objectEntryCacheModel.parentObjectEntryId = getParentObjectEntryId();
+
 		objectEntryCacheModel.rootObjectEntryId = getRootObjectEntryId();
 
 		objectEntryCacheModel.defaultLanguageId = getDefaultLanguageId();
@@ -1358,6 +1431,8 @@ public class ObjectEntryModelImpl
 		if ((defaultLanguageId != null) && (defaultLanguageId.length() == 0)) {
 			objectEntryCacheModel.defaultLanguageId = null;
 		}
+
+		objectEntryCacheModel.latest = isLatest();
 
 		Date displayDate = getDisplayDate();
 
@@ -1500,8 +1575,10 @@ public class ObjectEntryModelImpl
 	private boolean _setModifiedDate;
 	private long _objectDefinitionId;
 	private long _objectEntryFolderId;
+	private long _parentObjectEntryId;
 	private long _rootObjectEntryId;
 	private String _defaultLanguageId;
+	private boolean _latest;
 	private Date _displayDate;
 	private Date _expirationDate;
 	private Date _reviewDate;
@@ -1556,8 +1633,10 @@ public class ObjectEntryModelImpl
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
 		_columnOriginalValues.put("objectDefinitionId", _objectDefinitionId);
 		_columnOriginalValues.put("objectEntryFolderId", _objectEntryFolderId);
+		_columnOriginalValues.put("parentObjectEntryId", _parentObjectEntryId);
 		_columnOriginalValues.put("rootObjectEntryId", _rootObjectEntryId);
 		_columnOriginalValues.put("defaultLanguageId", _defaultLanguageId);
+		_columnOriginalValues.put("latest", _latest);
 		_columnOriginalValues.put("displayDate", _displayDate);
 		_columnOriginalValues.put("expirationDate", _expirationDate);
 		_columnOriginalValues.put("reviewDate", _reviewDate);
@@ -1615,29 +1694,33 @@ public class ObjectEntryModelImpl
 
 		columnBitmasks.put("objectEntryFolderId", 2048L);
 
-		columnBitmasks.put("rootObjectEntryId", 4096L);
+		columnBitmasks.put("parentObjectEntryId", 4096L);
 
-		columnBitmasks.put("defaultLanguageId", 8192L);
+		columnBitmasks.put("rootObjectEntryId", 8192L);
 
-		columnBitmasks.put("displayDate", 16384L);
+		columnBitmasks.put("defaultLanguageId", 16384L);
 
-		columnBitmasks.put("expirationDate", 32768L);
+		columnBitmasks.put("latest", 32768L);
 
-		columnBitmasks.put("reviewDate", 65536L);
+		columnBitmasks.put("displayDate", 65536L);
 
-		columnBitmasks.put("treePath", 131072L);
+		columnBitmasks.put("expirationDate", 131072L);
 
-		columnBitmasks.put("version", 262144L);
+		columnBitmasks.put("reviewDate", 262144L);
 
-		columnBitmasks.put("lastPublishDate", 524288L);
+		columnBitmasks.put("treePath", 524288L);
 
-		columnBitmasks.put("status", 1048576L);
+		columnBitmasks.put("version", 1048576L);
 
-		columnBitmasks.put("statusByUserId", 2097152L);
+		columnBitmasks.put("lastPublishDate", 2097152L);
 
-		columnBitmasks.put("statusByUserName", 4194304L);
+		columnBitmasks.put("status", 4194304L);
 
-		columnBitmasks.put("statusDate", 8388608L);
+		columnBitmasks.put("statusByUserId", 8388608L);
+
+		columnBitmasks.put("statusByUserName", 16777216L);
+
+		columnBitmasks.put("statusDate", 33554432L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

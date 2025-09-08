@@ -68,7 +68,7 @@ public class ObjectEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(49);
+		StringBundler sb = new StringBundler(53);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -94,10 +94,14 @@ public class ObjectEntryCacheModel
 		sb.append(objectDefinitionId);
 		sb.append(", objectEntryFolderId=");
 		sb.append(objectEntryFolderId);
+		sb.append(", parentObjectEntryId=");
+		sb.append(parentObjectEntryId);
 		sb.append(", rootObjectEntryId=");
 		sb.append(rootObjectEntryId);
 		sb.append(", defaultLanguageId=");
 		sb.append(defaultLanguageId);
+		sb.append(", latest=");
+		sb.append(latest);
 		sb.append(", displayDate=");
 		sb.append(displayDate);
 		sb.append(", expirationDate=");
@@ -171,6 +175,7 @@ public class ObjectEntryCacheModel
 
 		objectEntryImpl.setObjectDefinitionId(objectDefinitionId);
 		objectEntryImpl.setObjectEntryFolderId(objectEntryFolderId);
+		objectEntryImpl.setParentObjectEntryId(parentObjectEntryId);
 		objectEntryImpl.setRootObjectEntryId(rootObjectEntryId);
 
 		if (defaultLanguageId == null) {
@@ -179,6 +184,8 @@ public class ObjectEntryCacheModel
 		else {
 			objectEntryImpl.setDefaultLanguageId(defaultLanguageId);
 		}
+
+		objectEntryImpl.setLatest(latest);
 
 		if (displayDate == Long.MIN_VALUE) {
 			objectEntryImpl.setDisplayDate(null);
@@ -260,8 +267,12 @@ public class ObjectEntryCacheModel
 
 		objectEntryFolderId = objectInput.readLong();
 
+		parentObjectEntryId = objectInput.readLong();
+
 		rootObjectEntryId = objectInput.readLong();
 		defaultLanguageId = objectInput.readUTF();
+
+		latest = objectInput.readBoolean();
 		displayDate = objectInput.readLong();
 		expirationDate = objectInput.readLong();
 		reviewDate = objectInput.readLong();
@@ -317,6 +328,8 @@ public class ObjectEntryCacheModel
 
 		objectOutput.writeLong(objectEntryFolderId);
 
+		objectOutput.writeLong(parentObjectEntryId);
+
 		objectOutput.writeLong(rootObjectEntryId);
 
 		if (defaultLanguageId == null) {
@@ -326,6 +339,7 @@ public class ObjectEntryCacheModel
 			objectOutput.writeUTF(defaultLanguageId);
 		}
 
+		objectOutput.writeBoolean(latest);
 		objectOutput.writeLong(displayDate);
 		objectOutput.writeLong(expirationDate);
 		objectOutput.writeLong(reviewDate);
@@ -366,8 +380,10 @@ public class ObjectEntryCacheModel
 	public long modifiedDate;
 	public long objectDefinitionId;
 	public long objectEntryFolderId;
+	public long parentObjectEntryId;
 	public long rootObjectEntryId;
 	public String defaultLanguageId;
+	public boolean latest;
 	public long displayDate;
 	public long expirationDate;
 	public long reviewDate;

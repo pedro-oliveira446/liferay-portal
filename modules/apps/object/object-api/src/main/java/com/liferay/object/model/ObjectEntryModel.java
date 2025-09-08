@@ -260,6 +260,20 @@ public interface ObjectEntryModel
 	public void setObjectEntryFolderId(long objectEntryFolderId);
 
 	/**
+	 * Returns the parent object entry ID of this object entry.
+	 *
+	 * @return the parent object entry ID of this object entry
+	 */
+	public long getParentObjectEntryId();
+
+	/**
+	 * Sets the parent object entry ID of this object entry.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID of this object entry
+	 */
+	public void setParentObjectEntryId(long parentObjectEntryId);
+
+	/**
 	 * Returns the root object entry ID of this object entry.
 	 *
 	 * @return the root object entry ID of this object entry
@@ -287,6 +301,27 @@ public interface ObjectEntryModel
 	 * @param defaultLanguageId the default language ID of this object entry
 	 */
 	public void setDefaultLanguageId(String defaultLanguageId);
+
+	/**
+	 * Returns the latest of this object entry.
+	 *
+	 * @return the latest of this object entry
+	 */
+	public boolean getLatest();
+
+	/**
+	 * Returns <code>true</code> if this object entry is latest.
+	 *
+	 * @return <code>true</code> if this object entry is latest; <code>false</code> otherwise
+	 */
+	public boolean isLatest();
+
+	/**
+	 * Sets whether this object entry is latest.
+	 *
+	 * @param latest the latest of this object entry
+	 */
+	public void setLatest(boolean latest);
 
 	/**
 	 * Returns the display date of this object entry.

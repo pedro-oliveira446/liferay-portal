@@ -7,6 +7,11 @@ package com.liferay.object.model.impl;
 
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectEntryLocalServiceUtil;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.exception.PortalException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The extended model base implementation for the ObjectEntry service. Represents a row in the &quot;ObjectEntry&quot; database table, with each column mapped to a property of this class.
@@ -36,6 +41,34 @@ public abstract class ObjectEntryBaseImpl
 		else {
 			ObjectEntryLocalServiceUtil.updateObjectEntry(this);
 		}
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public String buildTreePath() throws PortalException {
+		List<ObjectEntry> objectEntries = new ArrayList<ObjectEntry>();
+
+		ObjectEntry objectEntry = this;
+
+		while (objectEntry != null) {
+			objectEntries.add(objectEntry);
+
+			objectEntry = ObjectEntryLocalServiceUtil.fetchObjectEntry(
+				objectEntry.getParentObjectEntryId());
+		}
+
+		StringBundler sb = new StringBundler((objectEntries.size() * 2) + 1);
+
+		sb.append("/");
+
+		for (int i = objectEntries.size() - 1; i >= 0; i--) {
+			objectEntry = objectEntries.get(i);
+
+			sb.append(objectEntry.getObjectEntryId());
+			sb.append("/");
+		}
+
+		return sb.toString();
 	}
 
 	@Override

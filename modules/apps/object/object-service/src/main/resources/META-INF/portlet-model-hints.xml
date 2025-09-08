@@ -114,8 +114,10 @@
 		<field name="modifiedDate" type="Date" />
 		<field name="objectDefinitionId" type="long" />
 		<field name="objectEntryFolderId" type="long" />
+		<field name="parentObjectEntryId" type="long" />
 		<field name="rootObjectEntryId" type="long" />
 		<field name="defaultLanguageId" type="String" />
+		<field name="latest" type="boolean" />
 		<field name="displayDate" type="Date" />
 		<field name="expirationDate" type="Date" />
 		<field name="reviewDate" type="Date" />

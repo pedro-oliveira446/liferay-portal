@@ -53,6 +53,10 @@ public class ObjectEntryTable extends BaseTable<ObjectEntryTable> {
 		createColumn(
 			"objectEntryFolderId", Long.class, Types.BIGINT,
 			Column.FLAG_DEFAULT);
+	public final Column<ObjectEntryTable, Long> parentObjectEntryId =
+		createColumn(
+			"parentObjectEntryId", Long.class, Types.BIGINT,
+			Column.FLAG_DEFAULT);
 	public final Column<ObjectEntryTable, Long> rootObjectEntryId =
 		createColumn(
 			"rootObjectEntryId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
@@ -60,6 +64,8 @@ public class ObjectEntryTable extends BaseTable<ObjectEntryTable> {
 		createColumn(
 			"defaultLanguageId", String.class, Types.VARCHAR,
 			Column.FLAG_DEFAULT);
+	public final Column<ObjectEntryTable, Boolean> latest = createColumn(
+		"latest", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
 	public final Column<ObjectEntryTable, Date> displayDate = createColumn(
 		"displayDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
 	public final Column<ObjectEntryTable, Date> expirationDate = createColumn(

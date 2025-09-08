@@ -137,9 +137,13 @@ public class ObjectEntryPersistenceTest {
 
 		newObjectEntry.setObjectEntryFolderId(RandomTestUtil.nextLong());
 
+		newObjectEntry.setParentObjectEntryId(RandomTestUtil.nextLong());
+
 		newObjectEntry.setRootObjectEntryId(RandomTestUtil.nextLong());
 
 		newObjectEntry.setDefaultLanguageId(RandomTestUtil.randomString());
+
+		newObjectEntry.setLatest(RandomTestUtil.randomBoolean());
 
 		newObjectEntry.setDisplayDate(RandomTestUtil.nextDate());
 
@@ -198,11 +202,16 @@ public class ObjectEntryPersistenceTest {
 			existingObjectEntry.getObjectEntryFolderId(),
 			newObjectEntry.getObjectEntryFolderId());
 		Assert.assertEquals(
+			existingObjectEntry.getParentObjectEntryId(),
+			newObjectEntry.getParentObjectEntryId());
+		Assert.assertEquals(
 			existingObjectEntry.getRootObjectEntryId(),
 			newObjectEntry.getRootObjectEntryId());
 		Assert.assertEquals(
 			existingObjectEntry.getDefaultLanguageId(),
 			newObjectEntry.getDefaultLanguageId());
+		Assert.assertEquals(
+			existingObjectEntry.isLatest(), newObjectEntry.isLatest());
 		Assert.assertEquals(
 			Time.getShortTimestamp(existingObjectEntry.getDisplayDate()),
 			Time.getShortTimestamp(newObjectEntry.getDisplayDate()));
@@ -264,6 +273,13 @@ public class ObjectEntryPersistenceTest {
 		_persistence.countByObjectDefinitionId(RandomTestUtil.nextLong());
 
 		_persistence.countByObjectDefinitionId(0L);
+	}
+
+	@Test
+	public void testCountByParentObjectEntryId() throws Exception {
+		_persistence.countByParentObjectEntryId(RandomTestUtil.nextLong());
+
+		_persistence.countByParentObjectEntryId(0L);
 	}
 
 	@Test
@@ -373,11 +389,12 @@ public class ObjectEntryPersistenceTest {
 			"externalReferenceCode", true, "objectEntryId", true, "groupId",
 			true, "companyId", true, "userId", true, "userName", true,
 			"createDate", true, "modifiedDate", true, "objectDefinitionId",
-			true, "objectEntryFolderId", true, "rootObjectEntryId", true,
-			"defaultLanguageId", true, "displayDate", true, "expirationDate",
-			true, "reviewDate", true, "treePath", true, "version", true,
-			"lastPublishDate", true, "status", true, "statusByUserId", true,
-			"statusByUserName", true, "statusDate", true);
+			true, "objectEntryFolderId", true, "parentObjectEntryId", true,
+			"rootObjectEntryId", true, "defaultLanguageId", true, "latest",
+			true, "displayDate", true, "expirationDate", true, "reviewDate",
+			true, "treePath", true, "version", true, "lastPublishDate", true,
+			"status", true, "statusByUserId", true, "statusByUserName", true,
+			"statusDate", true);
 	}
 
 	@Test
@@ -702,9 +719,13 @@ public class ObjectEntryPersistenceTest {
 
 		objectEntry.setObjectEntryFolderId(RandomTestUtil.nextLong());
 
+		objectEntry.setParentObjectEntryId(RandomTestUtil.nextLong());
+
 		objectEntry.setRootObjectEntryId(RandomTestUtil.nextLong());
 
 		objectEntry.setDefaultLanguageId(RandomTestUtil.randomString());
+
+		objectEntry.setLatest(RandomTestUtil.randomBoolean());
 
 		objectEntry.setDisplayDate(RandomTestUtil.nextDate());
 
