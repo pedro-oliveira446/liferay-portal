@@ -507,7 +507,7 @@ public class ObjectEntryLocalServiceImpl
 		ObjectEntry objectEntry = _addObjectEntry(
 			externalReferenceCode, groupId, userId,
 			objectDefinition.getObjectDefinitionId(), objectEntryFolderId,
-			parentObjectEntryId, true, version,
+			parentObjectEntryId, false, version,
 			WorkflowConstants.STATUS_APPROVED);
 
 		_addResourcePermissions(objectDefinition, objectEntry);
