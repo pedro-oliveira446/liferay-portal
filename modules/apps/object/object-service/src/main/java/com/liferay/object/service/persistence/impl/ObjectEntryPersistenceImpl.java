@@ -1403,514 +1403,6 @@ public class ObjectEntryPersistenceImpl
 	private static final String _FINDER_COLUMN_UUID_C_COMPANYID_2 =
 		"objectEntry.companyId = ?";
 
-	private FinderPath _finderPathWithPaginationFindByObjectDefinitionId;
-	private FinderPath _finderPathWithoutPaginationFindByObjectDefinitionId;
-	private FinderPath _finderPathCountByObjectDefinitionId;
-
-	/**
-	 * Returns all the object entries where objectDefinitionId = &#63;.
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @return the matching object entries
-	 */
-	@Override
-	public List<ObjectEntry> findByObjectDefinitionId(long objectDefinitionId) {
-		return findByObjectDefinitionId(
-			objectDefinitionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
-	}
-
-	/**
-	 * Returns a range of all the object entries where objectDefinitionId = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
-	 * </p>
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @param start the lower bound of the range of object entries
-	 * @param end the upper bound of the range of object entries (not inclusive)
-	 * @return the range of matching object entries
-	 */
-	@Override
-	public List<ObjectEntry> findByObjectDefinitionId(
-		long objectDefinitionId, int start, int end) {
-
-		return findByObjectDefinitionId(objectDefinitionId, start, end, null);
-	}
-
-	/**
-	 * Returns an ordered range of all the object entries where objectDefinitionId = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
-	 * </p>
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @param start the lower bound of the range of object entries
-	 * @param end the upper bound of the range of object entries (not inclusive)
-	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @return the ordered range of matching object entries
-	 */
-	@Override
-	public List<ObjectEntry> findByObjectDefinitionId(
-		long objectDefinitionId, int start, int end,
-		OrderByComparator<ObjectEntry> orderByComparator) {
-
-		return findByObjectDefinitionId(
-			objectDefinitionId, start, end, orderByComparator, true);
-	}
-
-	/**
-	 * Returns an ordered range of all the object entries where objectDefinitionId = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
-	 * </p>
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @param start the lower bound of the range of object entries
-	 * @param end the upper bound of the range of object entries (not inclusive)
-	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param useFinderCache whether to use the finder cache
-	 * @return the ordered range of matching object entries
-	 */
-	@Override
-	public List<ObjectEntry> findByObjectDefinitionId(
-		long objectDefinitionId, int start, int end,
-		OrderByComparator<ObjectEntry> orderByComparator,
-		boolean useFinderCache) {
-
-		FinderPath finderPath = null;
-		Object[] finderArgs = null;
-
-		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
-			(orderByComparator == null)) {
-
-			if (useFinderCache) {
-				finderPath =
-					_finderPathWithoutPaginationFindByObjectDefinitionId;
-				finderArgs = new Object[] {objectDefinitionId};
-			}
-		}
-		else if (useFinderCache) {
-			finderPath = _finderPathWithPaginationFindByObjectDefinitionId;
-			finderArgs = new Object[] {
-				objectDefinitionId, start, end, orderByComparator
-			};
-		}
-
-		List<ObjectEntry> list = null;
-
-		if (useFinderCache) {
-			list = (List<ObjectEntry>)finderCache.getResult(
-				finderPath, finderArgs, this);
-
-			if ((list != null) && !list.isEmpty()) {
-				for (ObjectEntry objectEntry : list) {
-					if (objectDefinitionId !=
-							objectEntry.getObjectDefinitionId()) {
-
-						list = null;
-
-						break;
-					}
-				}
-			}
-		}
-
-		if (list == null) {
-			StringBundler sb = null;
-
-			if (orderByComparator != null) {
-				sb = new StringBundler(
-					3 + (orderByComparator.getOrderByFields().length * 2));
-			}
-			else {
-				sb = new StringBundler(3);
-			}
-
-			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
-
-			sb.append(_FINDER_COLUMN_OBJECTDEFINITIONID_OBJECTDEFINITIONID_2);
-
-			if (orderByComparator != null) {
-				appendOrderByComparator(
-					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
-			}
-			else {
-				sb.append(ObjectEntryModelImpl.ORDER_BY_JPQL);
-			}
-
-			String sql = sb.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query query = session.createQuery(sql);
-
-				QueryPos queryPos = QueryPos.getInstance(query);
-
-				queryPos.add(objectDefinitionId);
-
-				list = (List<ObjectEntry>)QueryUtil.list(
-					query, getDialect(), start, end);
-
-				cacheResult(list);
-
-				if (useFinderCache) {
-					finderCache.putResult(finderPath, finderArgs, list);
-				}
-			}
-			catch (Exception exception) {
-				throw processException(exception);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return list;
-	}
-
-	/**
-	 * Returns the first object entry in the ordered set where objectDefinitionId = &#63;.
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the first matching object entry
-	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry findByObjectDefinitionId_First(
-			long objectDefinitionId,
-			OrderByComparator<ObjectEntry> orderByComparator)
-		throws NoSuchObjectEntryException {
-
-		ObjectEntry objectEntry = fetchByObjectDefinitionId_First(
-			objectDefinitionId, orderByComparator);
-
-		if (objectEntry != null) {
-			return objectEntry;
-		}
-
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("objectDefinitionId=");
-		sb.append(objectDefinitionId);
-
-		sb.append("}");
-
-		throw new NoSuchObjectEntryException(sb.toString());
-	}
-
-	/**
-	 * Returns the first object entry in the ordered set where objectDefinitionId = &#63;.
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry fetchByObjectDefinitionId_First(
-		long objectDefinitionId,
-		OrderByComparator<ObjectEntry> orderByComparator) {
-
-		List<ObjectEntry> list = findByObjectDefinitionId(
-			objectDefinitionId, 0, 1, orderByComparator);
-
-		if (!list.isEmpty()) {
-			return list.get(0);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the last object entry in the ordered set where objectDefinitionId = &#63;.
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the last matching object entry
-	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry findByObjectDefinitionId_Last(
-			long objectDefinitionId,
-			OrderByComparator<ObjectEntry> orderByComparator)
-		throws NoSuchObjectEntryException {
-
-		ObjectEntry objectEntry = fetchByObjectDefinitionId_Last(
-			objectDefinitionId, orderByComparator);
-
-		if (objectEntry != null) {
-			return objectEntry;
-		}
-
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("objectDefinitionId=");
-		sb.append(objectDefinitionId);
-
-		sb.append("}");
-
-		throw new NoSuchObjectEntryException(sb.toString());
-	}
-
-	/**
-	 * Returns the last object entry in the ordered set where objectDefinitionId = &#63;.
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry fetchByObjectDefinitionId_Last(
-		long objectDefinitionId,
-		OrderByComparator<ObjectEntry> orderByComparator) {
-
-		int count = countByObjectDefinitionId(objectDefinitionId);
-
-		if (count == 0) {
-			return null;
-		}
-
-		List<ObjectEntry> list = findByObjectDefinitionId(
-			objectDefinitionId, count - 1, count, orderByComparator);
-
-		if (!list.isEmpty()) {
-			return list.get(0);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where objectDefinitionId = &#63;.
-	 *
-	 * @param objectEntryId the primary key of the current object entry
-	 * @param objectDefinitionId the object definition ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the previous, current, and next object entry
-	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
-	 */
-	@Override
-	public ObjectEntry[] findByObjectDefinitionId_PrevAndNext(
-			long objectEntryId, long objectDefinitionId,
-			OrderByComparator<ObjectEntry> orderByComparator)
-		throws NoSuchObjectEntryException {
-
-		ObjectEntry objectEntry = findByPrimaryKey(objectEntryId);
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			ObjectEntry[] array = new ObjectEntryImpl[3];
-
-			array[0] = getByObjectDefinitionId_PrevAndNext(
-				session, objectEntry, objectDefinitionId, orderByComparator,
-				true);
-
-			array[1] = objectEntry;
-
-			array[2] = getByObjectDefinitionId_PrevAndNext(
-				session, objectEntry, objectDefinitionId, orderByComparator,
-				false);
-
-			return array;
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
-		}
-	}
-
-	protected ObjectEntry getByObjectDefinitionId_PrevAndNext(
-		Session session, ObjectEntry objectEntry, long objectDefinitionId,
-		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
-
-		StringBundler sb = null;
-
-		if (orderByComparator != null) {
-			sb = new StringBundler(
-				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
-					(orderByComparator.getOrderByFields().length * 3));
-		}
-		else {
-			sb = new StringBundler(3);
-		}
-
-		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
-
-		sb.append(_FINDER_COLUMN_OBJECTDEFINITIONID_OBJECTDEFINITIONID_2);
-
-		if (orderByComparator != null) {
-			String[] orderByConditionFields =
-				orderByComparator.getOrderByConditionFields();
-
-			if (orderByConditionFields.length > 0) {
-				sb.append(WHERE_AND);
-			}
-
-			for (int i = 0; i < orderByConditionFields.length; i++) {
-				sb.append(_ORDER_BY_ENTITY_ALIAS);
-				sb.append(orderByConditionFields[i]);
-
-				if ((i + 1) < orderByConditionFields.length) {
-					if (orderByComparator.isAscending() ^ previous) {
-						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
-					}
-					else {
-						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
-					}
-				}
-				else {
-					if (orderByComparator.isAscending() ^ previous) {
-						sb.append(WHERE_GREATER_THAN);
-					}
-					else {
-						sb.append(WHERE_LESSER_THAN);
-					}
-				}
-			}
-
-			sb.append(ORDER_BY_CLAUSE);
-
-			String[] orderByFields = orderByComparator.getOrderByFields();
-
-			for (int i = 0; i < orderByFields.length; i++) {
-				sb.append(_ORDER_BY_ENTITY_ALIAS);
-				sb.append(orderByFields[i]);
-
-				if ((i + 1) < orderByFields.length) {
-					if (orderByComparator.isAscending() ^ previous) {
-						sb.append(ORDER_BY_ASC_HAS_NEXT);
-					}
-					else {
-						sb.append(ORDER_BY_DESC_HAS_NEXT);
-					}
-				}
-				else {
-					if (orderByComparator.isAscending() ^ previous) {
-						sb.append(ORDER_BY_ASC);
-					}
-					else {
-						sb.append(ORDER_BY_DESC);
-					}
-				}
-			}
-		}
-		else {
-			sb.append(ObjectEntryModelImpl.ORDER_BY_JPQL);
-		}
-
-		String sql = sb.toString();
-
-		Query query = session.createQuery(sql);
-
-		query.setFirstResult(0);
-		query.setMaxResults(2);
-
-		QueryPos queryPos = QueryPos.getInstance(query);
-
-		queryPos.add(objectDefinitionId);
-
-		if (orderByComparator != null) {
-			for (Object orderByConditionValue :
-					orderByComparator.getOrderByConditionValues(objectEntry)) {
-
-				queryPos.add(orderByConditionValue);
-			}
-		}
-
-		List<ObjectEntry> list = query.list();
-
-		if (list.size() == 2) {
-			return list.get(1);
-		}
-		else {
-			return null;
-		}
-	}
-
-	/**
-	 * Removes all the object entries where objectDefinitionId = &#63; from the database.
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 */
-	@Override
-	public void removeByObjectDefinitionId(long objectDefinitionId) {
-		for (ObjectEntry objectEntry :
-				findByObjectDefinitionId(
-					objectDefinitionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-					null)) {
-
-			remove(objectEntry);
-		}
-	}
-
-	/**
-	 * Returns the number of object entries where objectDefinitionId = &#63;.
-	 *
-	 * @param objectDefinitionId the object definition ID
-	 * @return the number of matching object entries
-	 */
-	@Override
-	public int countByObjectDefinitionId(long objectDefinitionId) {
-		FinderPath finderPath = _finderPathCountByObjectDefinitionId;
-
-		Object[] finderArgs = new Object[] {objectDefinitionId};
-
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
-
-		if (count == null) {
-			StringBundler sb = new StringBundler(2);
-
-			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
-
-			sb.append(_FINDER_COLUMN_OBJECTDEFINITIONID_OBJECTDEFINITIONID_2);
-
-			String sql = sb.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query query = session.createQuery(sql);
-
-				QueryPos queryPos = QueryPos.getInstance(query);
-
-				queryPos.add(objectDefinitionId);
-
-				count = (Long)query.uniqueResult();
-
-				finderCache.putResult(finderPath, finderArgs, count);
-			}
-			catch (Exception exception) {
-				throw processException(exception);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
-	}
-
-	private static final String
-		_FINDER_COLUMN_OBJECTDEFINITIONID_OBJECTDEFINITIONID_2 =
-			"objectEntry.objectDefinitionId = ?";
-
 	private FinderPath _finderPathFetchByParentObjectEntryId;
 
 	/**
@@ -2096,78 +1588,78 @@ public class ObjectEntryPersistenceImpl
 		_FINDER_COLUMN_PARENTOBJECTENTRYID_PARENTOBJECTENTRYID_2 =
 			"objectEntry.parentObjectEntryId = ?";
 
-	private FinderPath _finderPathWithPaginationFindByG_ODI;
-	private FinderPath _finderPathWithoutPaginationFindByG_ODI;
-	private FinderPath _finderPathCountByG_ODI;
+	private FinderPath _finderPathWithPaginationFindByODI_L;
+	private FinderPath _finderPathWithoutPaginationFindByODI_L;
+	private FinderPath _finderPathCountByODI_L;
 
 	/**
-	 * Returns all the object entries where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns all the object entries where objectDefinitionId = &#63; and latest = &#63;.
 	 *
-	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_ODI(
-		long groupId, long objectDefinitionId) {
+	public List<ObjectEntry> findByODI_L(
+		long objectDefinitionId, boolean latest) {
 
-		return findByG_ODI(
-			groupId, objectDefinitionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+		return findByODI_L(
+			objectDefinitionId, latest, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
 
 	/**
-	 * Returns a range of all the object entries where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns a range of all the object entries where objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
-	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @return the range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_ODI(
-		long groupId, long objectDefinitionId, int start, int end) {
+	public List<ObjectEntry> findByODI_L(
+		long objectDefinitionId, boolean latest, int start, int end) {
 
-		return findByG_ODI(groupId, objectDefinitionId, start, end, null);
+		return findByODI_L(objectDefinitionId, latest, start, end, null);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns an ordered range of all the object entries where objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
-	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_ODI(
-		long groupId, long objectDefinitionId, int start, int end,
+	public List<ObjectEntry> findByODI_L(
+		long objectDefinitionId, boolean latest, int start, int end,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		return findByG_ODI(
-			groupId, objectDefinitionId, start, end, orderByComparator, true);
+		return findByODI_L(
+			objectDefinitionId, latest, start, end, orderByComparator, true);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns an ordered range of all the object entries where objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
-	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -2175,8 +1667,8 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_ODI(
-		long groupId, long objectDefinitionId, int start, int end,
+	public List<ObjectEntry> findByODI_L(
+		long objectDefinitionId, boolean latest, int start, int end,
 		OrderByComparator<ObjectEntry> orderByComparator,
 		boolean useFinderCache) {
 
@@ -2187,14 +1679,14 @@ public class ObjectEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache) {
-				finderPath = _finderPathWithoutPaginationFindByG_ODI;
-				finderArgs = new Object[] {groupId, objectDefinitionId};
+				finderPath = _finderPathWithoutPaginationFindByODI_L;
+				finderArgs = new Object[] {objectDefinitionId, latest};
 			}
 		}
 		else if (useFinderCache) {
-			finderPath = _finderPathWithPaginationFindByG_ODI;
+			finderPath = _finderPathWithPaginationFindByODI_L;
 			finderArgs = new Object[] {
-				groupId, objectDefinitionId, start, end, orderByComparator
+				objectDefinitionId, latest, start, end, orderByComparator
 			};
 		}
 
@@ -2206,9 +1698,9 @@ public class ObjectEntryPersistenceImpl
 
 			if ((list != null) && !list.isEmpty()) {
 				for (ObjectEntry objectEntry : list) {
-					if ((groupId != objectEntry.getGroupId()) ||
-						(objectDefinitionId !=
-							objectEntry.getObjectDefinitionId())) {
+					if ((objectDefinitionId !=
+							objectEntry.getObjectDefinitionId()) ||
+						(latest != objectEntry.isLatest())) {
 
 						list = null;
 
@@ -2231,9 +1723,563 @@ public class ObjectEntryPersistenceImpl
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_G_ODI_GROUPID_2);
+			sb.append(_FINDER_COLUMN_ODI_L_OBJECTDEFINITIONID_2);
 
-			sb.append(_FINDER_COLUMN_G_ODI_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_ODI_L_LATEST_2);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(ObjectEntryModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(objectDefinitionId);
+
+				queryPos.add(latest);
+
+				list = (List<ObjectEntry>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry findByODI_L_First(
+			long objectDefinitionId, boolean latest,
+			OrderByComparator<ObjectEntry> orderByComparator)
+		throws NoSuchObjectEntryException {
+
+		ObjectEntry objectEntry = fetchByODI_L_First(
+			objectDefinitionId, latest, orderByComparator);
+
+		if (objectEntry != null) {
+			return objectEntry;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("objectDefinitionId=");
+		sb.append(objectDefinitionId);
+
+		sb.append(", latest=");
+		sb.append(latest);
+
+		sb.append("}");
+
+		throw new NoSuchObjectEntryException(sb.toString());
+	}
+
+	/**
+	 * Returns the first object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry fetchByODI_L_First(
+		long objectDefinitionId, boolean latest,
+		OrderByComparator<ObjectEntry> orderByComparator) {
+
+		List<ObjectEntry> list = findByODI_L(
+			objectDefinitionId, latest, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry findByODI_L_Last(
+			long objectDefinitionId, boolean latest,
+			OrderByComparator<ObjectEntry> orderByComparator)
+		throws NoSuchObjectEntryException {
+
+		ObjectEntry objectEntry = fetchByODI_L_Last(
+			objectDefinitionId, latest, orderByComparator);
+
+		if (objectEntry != null) {
+			return objectEntry;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("objectDefinitionId=");
+		sb.append(objectDefinitionId);
+
+		sb.append(", latest=");
+		sb.append(latest);
+
+		sb.append("}");
+
+		throw new NoSuchObjectEntryException(sb.toString());
+	}
+
+	/**
+	 * Returns the last object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry fetchByODI_L_Last(
+		long objectDefinitionId, boolean latest,
+		OrderByComparator<ObjectEntry> orderByComparator) {
+
+		int count = countByODI_L(objectDefinitionId, latest);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<ObjectEntry> list = findByODI_L(
+			objectDefinitionId, latest, count - 1, count, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the object entries before and after the current object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param objectEntryId the primary key of the current object entry
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object entry
+	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
+	 */
+	@Override
+	public ObjectEntry[] findByODI_L_PrevAndNext(
+			long objectEntryId, long objectDefinitionId, boolean latest,
+			OrderByComparator<ObjectEntry> orderByComparator)
+		throws NoSuchObjectEntryException {
+
+		ObjectEntry objectEntry = findByPrimaryKey(objectEntryId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			ObjectEntry[] array = new ObjectEntryImpl[3];
+
+			array[0] = getByODI_L_PrevAndNext(
+				session, objectEntry, objectDefinitionId, latest,
+				orderByComparator, true);
+
+			array[1] = objectEntry;
+
+			array[2] = getByODI_L_PrevAndNext(
+				session, objectEntry, objectDefinitionId, latest,
+				orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected ObjectEntry getByODI_L_PrevAndNext(
+		Session session, ObjectEntry objectEntry, long objectDefinitionId,
+		boolean latest, OrderByComparator<ObjectEntry> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
+
+		sb.append(_FINDER_COLUMN_ODI_L_OBJECTDEFINITIONID_2);
+
+		sb.append(_FINDER_COLUMN_ODI_L_LATEST_2);
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(ObjectEntryModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(objectDefinitionId);
+
+		queryPos.add(latest);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(objectEntry)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<ObjectEntry> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Removes all the object entries where objectDefinitionId = &#63; and latest = &#63; from the database.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 */
+	@Override
+	public void removeByODI_L(long objectDefinitionId, boolean latest) {
+		for (ObjectEntry objectEntry :
+				findByODI_L(
+					objectDefinitionId, latest, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS, null)) {
+
+			remove(objectEntry);
+		}
+	}
+
+	/**
+	 * Returns the number of object entries where objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @return the number of matching object entries
+	 */
+	@Override
+	public int countByODI_L(long objectDefinitionId, boolean latest) {
+		FinderPath finderPath = _finderPathCountByODI_L;
+
+		Object[] finderArgs = new Object[] {objectDefinitionId, latest};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
+
+			sb.append(_FINDER_COLUMN_ODI_L_OBJECTDEFINITIONID_2);
+
+			sb.append(_FINDER_COLUMN_ODI_L_LATEST_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(objectDefinitionId);
+
+				queryPos.add(latest);
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_ODI_L_OBJECTDEFINITIONID_2 =
+		"objectEntry.objectDefinitionId = ? AND ";
+
+	private static final String _FINDER_COLUMN_ODI_L_LATEST_2 =
+		"objectEntry.latest = ?";
+
+	private FinderPath _finderPathWithPaginationFindByG_ODI_L;
+	private FinderPath _finderPathWithoutPaginationFindByG_ODI_L;
+	private FinderPath _finderPathCountByG_ODI_L;
+
+	/**
+	 * Returns all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @return the matching object entries
+	 */
+	@Override
+	public List<ObjectEntry> findByG_ODI_L(
+		long groupId, long objectDefinitionId, boolean latest) {
+
+		return findByG_ODI_L(
+			groupId, objectDefinitionId, latest, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param start the lower bound of the range of object entries
+	 * @param end the upper bound of the range of object entries (not inclusive)
+	 * @return the range of matching object entries
+	 */
+	@Override
+	public List<ObjectEntry> findByG_ODI_L(
+		long groupId, long objectDefinitionId, boolean latest, int start,
+		int end) {
+
+		return findByG_ODI_L(
+			groupId, objectDefinitionId, latest, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param start the lower bound of the range of object entries
+	 * @param end the upper bound of the range of object entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object entries
+	 */
+	@Override
+	public List<ObjectEntry> findByG_ODI_L(
+		long groupId, long objectDefinitionId, boolean latest, int start,
+		int end, OrderByComparator<ObjectEntry> orderByComparator) {
+
+		return findByG_ODI_L(
+			groupId, objectDefinitionId, latest, start, end, orderByComparator,
+			true);
+	}
+
+	/**
+	 * Returns an ordered range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param start the lower bound of the range of object entries
+	 * @param end the upper bound of the range of object entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object entries
+	 */
+	@Override
+	public List<ObjectEntry> findByG_ODI_L(
+		long groupId, long objectDefinitionId, boolean latest, int start,
+		int end, OrderByComparator<ObjectEntry> orderByComparator,
+		boolean useFinderCache) {
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_ODI_L;
+				finderArgs = new Object[] {groupId, objectDefinitionId, latest};
+			}
+		}
+		else if (useFinderCache) {
+			finderPath = _finderPathWithPaginationFindByG_ODI_L;
+			finderArgs = new Object[] {
+				groupId, objectDefinitionId, latest, start, end,
+				orderByComparator
+			};
+		}
+
+		List<ObjectEntry> list = null;
+
+		if (useFinderCache) {
+			list = (List<ObjectEntry>)finderCache.getResult(
+				finderPath, finderArgs, this);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (ObjectEntry objectEntry : list) {
+					if ((groupId != objectEntry.getGroupId()) ||
+						(objectDefinitionId !=
+							objectEntry.getObjectDefinitionId()) ||
+						(latest != objectEntry.isLatest())) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					5 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(5);
+			}
+
+			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
+
+			sb.append(_FINDER_COLUMN_G_ODI_L_GROUPID_2);
+
+			sb.append(_FINDER_COLUMN_G_ODI_L_OBJECTDEFINITIONID_2);
+
+			sb.append(_FINDER_COLUMN_G_ODI_L_LATEST_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -2258,6 +2304,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectDefinitionId);
 
+				queryPos.add(latest);
+
 				list = (List<ObjectEntry>)QueryUtil.list(
 					query, getDialect(), start, end);
 
@@ -2279,28 +2327,29 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the first object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByG_ODI_First(
-			long groupId, long objectDefinitionId,
+	public ObjectEntry findByG_ODI_L_First(
+			long groupId, long objectDefinitionId, boolean latest,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByG_ODI_First(
-			groupId, objectDefinitionId, orderByComparator);
+		ObjectEntry objectEntry = fetchByG_ODI_L_First(
+			groupId, objectDefinitionId, latest, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -2310,26 +2359,30 @@ public class ObjectEntryPersistenceImpl
 		sb.append(", objectDefinitionId=");
 		sb.append(objectDefinitionId);
 
+		sb.append(", latest=");
+		sb.append(latest);
+
 		sb.append("}");
 
 		throw new NoSuchObjectEntryException(sb.toString());
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the first object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByG_ODI_First(
-		long groupId, long objectDefinitionId,
+	public ObjectEntry fetchByG_ODI_L_First(
+		long groupId, long objectDefinitionId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		List<ObjectEntry> list = findByG_ODI(
-			groupId, objectDefinitionId, 0, 1, orderByComparator);
+		List<ObjectEntry> list = findByG_ODI_L(
+			groupId, objectDefinitionId, latest, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -2339,28 +2392,29 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the last object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByG_ODI_Last(
-			long groupId, long objectDefinitionId,
+	public ObjectEntry findByG_ODI_L_Last(
+			long groupId, long objectDefinitionId, boolean latest,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByG_ODI_Last(
-			groupId, objectDefinitionId, orderByComparator);
+		ObjectEntry objectEntry = fetchByG_ODI_L_Last(
+			groupId, objectDefinitionId, latest, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -2370,32 +2424,37 @@ public class ObjectEntryPersistenceImpl
 		sb.append(", objectDefinitionId=");
 		sb.append(objectDefinitionId);
 
+		sb.append(", latest=");
+		sb.append(latest);
+
 		sb.append("}");
 
 		throw new NoSuchObjectEntryException(sb.toString());
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the last object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByG_ODI_Last(
-		long groupId, long objectDefinitionId,
+	public ObjectEntry fetchByG_ODI_L_Last(
+		long groupId, long objectDefinitionId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		int count = countByG_ODI(groupId, objectDefinitionId);
+		int count = countByG_ODI_L(groupId, objectDefinitionId, latest);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<ObjectEntry> list = findByG_ODI(
-			groupId, objectDefinitionId, count - 1, count, orderByComparator);
+		List<ObjectEntry> list = findByG_ODI_L(
+			groupId, objectDefinitionId, latest, count - 1, count,
+			orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -2405,19 +2464,20 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the object entries before and after the current object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param objectEntryId the primary key of the current object entry
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object entry
 	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
 	 */
 	@Override
-	public ObjectEntry[] findByG_ODI_PrevAndNext(
+	public ObjectEntry[] findByG_ODI_L_PrevAndNext(
 			long objectEntryId, long groupId, long objectDefinitionId,
-			OrderByComparator<ObjectEntry> orderByComparator)
+			boolean latest, OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
 		ObjectEntry objectEntry = findByPrimaryKey(objectEntryId);
@@ -2429,14 +2489,14 @@ public class ObjectEntryPersistenceImpl
 
 			ObjectEntry[] array = new ObjectEntryImpl[3];
 
-			array[0] = getByG_ODI_PrevAndNext(
-				session, objectEntry, groupId, objectDefinitionId,
+			array[0] = getByG_ODI_L_PrevAndNext(
+				session, objectEntry, groupId, objectDefinitionId, latest,
 				orderByComparator, true);
 
 			array[1] = objectEntry;
 
-			array[2] = getByG_ODI_PrevAndNext(
-				session, objectEntry, groupId, objectDefinitionId,
+			array[2] = getByG_ODI_L_PrevAndNext(
+				session, objectEntry, groupId, objectDefinitionId, latest,
 				orderByComparator, false);
 
 			return array;
@@ -2449,27 +2509,29 @@ public class ObjectEntryPersistenceImpl
 		}
 	}
 
-	protected ObjectEntry getByG_ODI_PrevAndNext(
+	protected ObjectEntry getByG_ODI_L_PrevAndNext(
 		Session session, ObjectEntry objectEntry, long groupId,
-		long objectDefinitionId,
+		long objectDefinitionId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
 
 		StringBundler sb = null;
 
 		if (orderByComparator != null) {
 			sb = new StringBundler(
-				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			sb = new StringBundler(4);
+			sb = new StringBundler(5);
 		}
 
 		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-		sb.append(_FINDER_COLUMN_G_ODI_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_ODI_L_GROUPID_2);
 
-		sb.append(_FINDER_COLUMN_G_ODI_OBJECTDEFINITIONID_2);
+		sb.append(_FINDER_COLUMN_G_ODI_L_OBJECTDEFINITIONID_2);
+
+		sb.append(_FINDER_COLUMN_G_ODI_L_LATEST_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -2544,6 +2606,8 @@ public class ObjectEntryPersistenceImpl
 
 		queryPos.add(objectDefinitionId);
 
+		queryPos.add(latest);
+
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(objectEntry)) {
@@ -2563,16 +2627,19 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes all the object entries where groupId = &#63; and objectDefinitionId = &#63; from the database.
+	 * Removes all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; from the database.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 */
 	@Override
-	public void removeByG_ODI(long groupId, long objectDefinitionId) {
+	public void removeByG_ODI_L(
+		long groupId, long objectDefinitionId, boolean latest) {
+
 		for (ObjectEntry objectEntry :
-				findByG_ODI(
-					groupId, objectDefinitionId, QueryUtil.ALL_POS,
+				findByG_ODI_L(
+					groupId, objectDefinitionId, latest, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null)) {
 
 			remove(objectEntry);
@@ -2580,28 +2647,35 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the number of object entries where groupId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the number of object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByG_ODI(long groupId, long objectDefinitionId) {
-		FinderPath finderPath = _finderPathCountByG_ODI;
+	public int countByG_ODI_L(
+		long groupId, long objectDefinitionId, boolean latest) {
 
-		Object[] finderArgs = new Object[] {groupId, objectDefinitionId};
+		FinderPath finderPath = _finderPathCountByG_ODI_L;
+
+		Object[] finderArgs = new Object[] {
+			groupId, objectDefinitionId, latest
+		};
 
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler sb = new StringBundler(3);
+			StringBundler sb = new StringBundler(4);
 
 			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_G_ODI_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_ODI_L_GROUPID_2);
 
-			sb.append(_FINDER_COLUMN_G_ODI_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_G_ODI_L_OBJECTDEFINITIONID_2);
+
+			sb.append(_FINDER_COLUMN_G_ODI_L_LATEST_2);
 
 			String sql = sb.toString();
 
@@ -2618,6 +2692,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectDefinitionId);
 
+				queryPos.add(latest);
+
 				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
@@ -2633,34 +2709,38 @@ public class ObjectEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_G_ODI_GROUPID_2 =
+	private static final String _FINDER_COLUMN_G_ODI_L_GROUPID_2 =
 		"objectEntry.groupId = ? AND ";
 
-	private static final String _FINDER_COLUMN_G_ODI_OBJECTDEFINITIONID_2 =
-		"objectEntry.objectDefinitionId = ?";
+	private static final String _FINDER_COLUMN_G_ODI_L_OBJECTDEFINITIONID_2 =
+		"objectEntry.objectDefinitionId = ? AND ";
 
-	private FinderPath _finderPathWithPaginationFindByG_OEFI;
-	private FinderPath _finderPathWithoutPaginationFindByG_OEFI;
-	private FinderPath _finderPathCountByG_OEFI;
+	private static final String _FINDER_COLUMN_G_ODI_L_LATEST_2 =
+		"objectEntry.latest = ?";
+
+	private FinderPath _finderPathWithPaginationFindByG_OEFI_L;
+	private FinderPath _finderPathWithoutPaginationFindByG_OEFI_L;
+	private FinderPath _finderPathCountByG_OEFI_L;
 
 	/**
-	 * Returns all the object entries where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns all the object entries where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @return the matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_OEFI(
-		long groupId, long objectEntryFolderId) {
+	public List<ObjectEntry> findByG_OEFI_L(
+		long groupId, long objectEntryFolderId, boolean latest) {
 
-		return findByG_OEFI(
-			groupId, objectEntryFolderId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			null);
+		return findByG_OEFI_L(
+			groupId, objectEntryFolderId, latest, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
 	}
 
 	/**
-	 * Returns a range of all the object entries where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns a range of all the object entries where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -2668,19 +2748,22 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @return the range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_OEFI(
-		long groupId, long objectEntryFolderId, int start, int end) {
+	public List<ObjectEntry> findByG_OEFI_L(
+		long groupId, long objectEntryFolderId, boolean latest, int start,
+		int end) {
 
-		return findByG_OEFI(groupId, objectEntryFolderId, start, end, null);
+		return findByG_OEFI_L(
+			groupId, objectEntryFolderId, latest, start, end, null);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns an ordered range of all the object entries where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -2688,22 +2771,24 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_OEFI(
-		long groupId, long objectEntryFolderId, int start, int end,
-		OrderByComparator<ObjectEntry> orderByComparator) {
+	public List<ObjectEntry> findByG_OEFI_L(
+		long groupId, long objectEntryFolderId, boolean latest, int start,
+		int end, OrderByComparator<ObjectEntry> orderByComparator) {
 
-		return findByG_OEFI(
-			groupId, objectEntryFolderId, start, end, orderByComparator, true);
+		return findByG_OEFI_L(
+			groupId, objectEntryFolderId, latest, start, end, orderByComparator,
+			true);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns an ordered range of all the object entries where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -2711,6 +2796,7 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -2718,9 +2804,9 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_OEFI(
-		long groupId, long objectEntryFolderId, int start, int end,
-		OrderByComparator<ObjectEntry> orderByComparator,
+	public List<ObjectEntry> findByG_OEFI_L(
+		long groupId, long objectEntryFolderId, boolean latest, int start,
+		int end, OrderByComparator<ObjectEntry> orderByComparator,
 		boolean useFinderCache) {
 
 		FinderPath finderPath = null;
@@ -2730,14 +2816,17 @@ public class ObjectEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache) {
-				finderPath = _finderPathWithoutPaginationFindByG_OEFI;
-				finderArgs = new Object[] {groupId, objectEntryFolderId};
+				finderPath = _finderPathWithoutPaginationFindByG_OEFI_L;
+				finderArgs = new Object[] {
+					groupId, objectEntryFolderId, latest
+				};
 			}
 		}
 		else if (useFinderCache) {
-			finderPath = _finderPathWithPaginationFindByG_OEFI;
+			finderPath = _finderPathWithPaginationFindByG_OEFI_L;
 			finderArgs = new Object[] {
-				groupId, objectEntryFolderId, start, end, orderByComparator
+				groupId, objectEntryFolderId, latest, start, end,
+				orderByComparator
 			};
 		}
 
@@ -2751,7 +2840,8 @@ public class ObjectEntryPersistenceImpl
 				for (ObjectEntry objectEntry : list) {
 					if ((groupId != objectEntry.getGroupId()) ||
 						(objectEntryFolderId !=
-							objectEntry.getObjectEntryFolderId())) {
+							objectEntry.getObjectEntryFolderId()) ||
+						(latest != objectEntry.isLatest())) {
 
 						list = null;
 
@@ -2766,17 +2856,19 @@ public class ObjectEntryPersistenceImpl
 
 			if (orderByComparator != null) {
 				sb = new StringBundler(
-					4 + (orderByComparator.getOrderByFields().length * 2));
+					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				sb = new StringBundler(4);
+				sb = new StringBundler(5);
 			}
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_G_OEFI_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_OEFI_L_GROUPID_2);
 
-			sb.append(_FINDER_COLUMN_G_OEFI_OBJECTENTRYFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_OEFI_L_OBJECTENTRYFOLDERID_2);
+
+			sb.append(_FINDER_COLUMN_G_OEFI_L_LATEST_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -2801,6 +2893,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectEntryFolderId);
 
+				queryPos.add(latest);
+
 				list = (List<ObjectEntry>)QueryUtil.list(
 					query, getDialect(), start, end);
 
@@ -2822,28 +2916,29 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the first object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByG_OEFI_First(
-			long groupId, long objectEntryFolderId,
+	public ObjectEntry findByG_OEFI_L_First(
+			long groupId, long objectEntryFolderId, boolean latest,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByG_OEFI_First(
-			groupId, objectEntryFolderId, orderByComparator);
+		ObjectEntry objectEntry = fetchByG_OEFI_L_First(
+			groupId, objectEntryFolderId, latest, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -2853,26 +2948,30 @@ public class ObjectEntryPersistenceImpl
 		sb.append(", objectEntryFolderId=");
 		sb.append(objectEntryFolderId);
 
+		sb.append(", latest=");
+		sb.append(latest);
+
 		sb.append("}");
 
 		throw new NoSuchObjectEntryException(sb.toString());
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the first object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByG_OEFI_First(
-		long groupId, long objectEntryFolderId,
+	public ObjectEntry fetchByG_OEFI_L_First(
+		long groupId, long objectEntryFolderId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		List<ObjectEntry> list = findByG_OEFI(
-			groupId, objectEntryFolderId, 0, 1, orderByComparator);
+		List<ObjectEntry> list = findByG_OEFI_L(
+			groupId, objectEntryFolderId, latest, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -2882,28 +2981,29 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the last object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByG_OEFI_Last(
-			long groupId, long objectEntryFolderId,
+	public ObjectEntry findByG_OEFI_L_Last(
+			long groupId, long objectEntryFolderId, boolean latest,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByG_OEFI_Last(
-			groupId, objectEntryFolderId, orderByComparator);
+		ObjectEntry objectEntry = fetchByG_OEFI_L_Last(
+			groupId, objectEntryFolderId, latest, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -2913,32 +3013,37 @@ public class ObjectEntryPersistenceImpl
 		sb.append(", objectEntryFolderId=");
 		sb.append(objectEntryFolderId);
 
+		sb.append(", latest=");
+		sb.append(latest);
+
 		sb.append("}");
 
 		throw new NoSuchObjectEntryException(sb.toString());
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the last object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByG_OEFI_Last(
-		long groupId, long objectEntryFolderId,
+	public ObjectEntry fetchByG_OEFI_L_Last(
+		long groupId, long objectEntryFolderId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		int count = countByG_OEFI(groupId, objectEntryFolderId);
+		int count = countByG_OEFI_L(groupId, objectEntryFolderId, latest);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<ObjectEntry> list = findByG_OEFI(
-			groupId, objectEntryFolderId, count - 1, count, orderByComparator);
+		List<ObjectEntry> list = findByG_OEFI_L(
+			groupId, objectEntryFolderId, latest, count - 1, count,
+			orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -2948,19 +3053,20 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the object entries before and after the current object entry in the ordered set where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param objectEntryId the primary key of the current object entry
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object entry
 	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
 	 */
 	@Override
-	public ObjectEntry[] findByG_OEFI_PrevAndNext(
+	public ObjectEntry[] findByG_OEFI_L_PrevAndNext(
 			long objectEntryId, long groupId, long objectEntryFolderId,
-			OrderByComparator<ObjectEntry> orderByComparator)
+			boolean latest, OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
 		ObjectEntry objectEntry = findByPrimaryKey(objectEntryId);
@@ -2972,14 +3078,14 @@ public class ObjectEntryPersistenceImpl
 
 			ObjectEntry[] array = new ObjectEntryImpl[3];
 
-			array[0] = getByG_OEFI_PrevAndNext(
-				session, objectEntry, groupId, objectEntryFolderId,
+			array[0] = getByG_OEFI_L_PrevAndNext(
+				session, objectEntry, groupId, objectEntryFolderId, latest,
 				orderByComparator, true);
 
 			array[1] = objectEntry;
 
-			array[2] = getByG_OEFI_PrevAndNext(
-				session, objectEntry, groupId, objectEntryFolderId,
+			array[2] = getByG_OEFI_L_PrevAndNext(
+				session, objectEntry, groupId, objectEntryFolderId, latest,
 				orderByComparator, false);
 
 			return array;
@@ -2992,27 +3098,29 @@ public class ObjectEntryPersistenceImpl
 		}
 	}
 
-	protected ObjectEntry getByG_OEFI_PrevAndNext(
+	protected ObjectEntry getByG_OEFI_L_PrevAndNext(
 		Session session, ObjectEntry objectEntry, long groupId,
-		long objectEntryFolderId,
+		long objectEntryFolderId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
 
 		StringBundler sb = null;
 
 		if (orderByComparator != null) {
 			sb = new StringBundler(
-				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			sb = new StringBundler(4);
+			sb = new StringBundler(5);
 		}
 
 		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-		sb.append(_FINDER_COLUMN_G_OEFI_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_OEFI_L_GROUPID_2);
 
-		sb.append(_FINDER_COLUMN_G_OEFI_OBJECTENTRYFOLDERID_2);
+		sb.append(_FINDER_COLUMN_G_OEFI_L_OBJECTENTRYFOLDERID_2);
+
+		sb.append(_FINDER_COLUMN_G_OEFI_L_LATEST_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -3087,6 +3195,8 @@ public class ObjectEntryPersistenceImpl
 
 		queryPos.add(objectEntryFolderId);
 
+		queryPos.add(latest);
+
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(objectEntry)) {
@@ -3106,16 +3216,19 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes all the object entries where groupId = &#63; and objectEntryFolderId = &#63; from the database.
+	 * Removes all the object entries where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63; from the database.
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 */
 	@Override
-	public void removeByG_OEFI(long groupId, long objectEntryFolderId) {
+	public void removeByG_OEFI_L(
+		long groupId, long objectEntryFolderId, boolean latest) {
+
 		for (ObjectEntry objectEntry :
-				findByG_OEFI(
-					groupId, objectEntryFolderId, QueryUtil.ALL_POS,
+				findByG_OEFI_L(
+					groupId, objectEntryFolderId, latest, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null)) {
 
 			remove(objectEntry);
@@ -3123,28 +3236,35 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the number of object entries where groupId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the number of object entries where groupId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByG_OEFI(long groupId, long objectEntryFolderId) {
-		FinderPath finderPath = _finderPathCountByG_OEFI;
+	public int countByG_OEFI_L(
+		long groupId, long objectEntryFolderId, boolean latest) {
 
-		Object[] finderArgs = new Object[] {groupId, objectEntryFolderId};
+		FinderPath finderPath = _finderPathCountByG_OEFI_L;
+
+		Object[] finderArgs = new Object[] {
+			groupId, objectEntryFolderId, latest
+		};
 
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler sb = new StringBundler(3);
+			StringBundler sb = new StringBundler(4);
 
 			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_G_OEFI_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_OEFI_L_GROUPID_2);
 
-			sb.append(_FINDER_COLUMN_G_OEFI_OBJECTENTRYFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_OEFI_L_OBJECTENTRYFOLDERID_2);
+
+			sb.append(_FINDER_COLUMN_G_OEFI_L_LATEST_2);
 
 			String sql = sb.toString();
 
@@ -3161,6 +3281,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectEntryFolderId);
 
+				queryPos.add(latest);
+
 				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
@@ -3176,32 +3298,38 @@ public class ObjectEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_G_OEFI_GROUPID_2 =
+	private static final String _FINDER_COLUMN_G_OEFI_L_GROUPID_2 =
 		"objectEntry.groupId = ? AND ";
 
-	private static final String _FINDER_COLUMN_G_OEFI_OBJECTENTRYFOLDERID_2 =
-		"objectEntry.objectEntryFolderId = ?";
+	private static final String _FINDER_COLUMN_G_OEFI_L_OBJECTENTRYFOLDERID_2 =
+		"objectEntry.objectEntryFolderId = ? AND ";
 
-	private FinderPath _finderPathWithPaginationFindByU_ODI;
-	private FinderPath _finderPathWithoutPaginationFindByU_ODI;
-	private FinderPath _finderPathCountByU_ODI;
+	private static final String _FINDER_COLUMN_G_OEFI_L_LATEST_2 =
+		"objectEntry.latest = ?";
+
+	private FinderPath _finderPathWithPaginationFindByU_ODI_L;
+	private FinderPath _finderPathWithoutPaginationFindByU_ODI_L;
+	private FinderPath _finderPathCountByU_ODI_L;
 
 	/**
-	 * Returns all the object entries where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns all the object entries where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByU_ODI(long userId, long objectDefinitionId) {
-		return findByU_ODI(
-			userId, objectDefinitionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			null);
+	public List<ObjectEntry> findByU_ODI_L(
+		long userId, long objectDefinitionId, boolean latest) {
+
+		return findByU_ODI_L(
+			userId, objectDefinitionId, latest, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
 	}
 
 	/**
-	 * Returns a range of all the object entries where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns a range of all the object entries where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -3209,19 +3337,22 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @return the range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByU_ODI(
-		long userId, long objectDefinitionId, int start, int end) {
+	public List<ObjectEntry> findByU_ODI_L(
+		long userId, long objectDefinitionId, boolean latest, int start,
+		int end) {
 
-		return findByU_ODI(userId, objectDefinitionId, start, end, null);
+		return findByU_ODI_L(
+			userId, objectDefinitionId, latest, start, end, null);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns an ordered range of all the object entries where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -3229,22 +3360,24 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByU_ODI(
-		long userId, long objectDefinitionId, int start, int end,
-		OrderByComparator<ObjectEntry> orderByComparator) {
+	public List<ObjectEntry> findByU_ODI_L(
+		long userId, long objectDefinitionId, boolean latest, int start,
+		int end, OrderByComparator<ObjectEntry> orderByComparator) {
 
-		return findByU_ODI(
-			userId, objectDefinitionId, start, end, orderByComparator, true);
+		return findByU_ODI_L(
+			userId, objectDefinitionId, latest, start, end, orderByComparator,
+			true);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns an ordered range of all the object entries where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -3252,6 +3385,7 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3259,9 +3393,9 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByU_ODI(
-		long userId, long objectDefinitionId, int start, int end,
-		OrderByComparator<ObjectEntry> orderByComparator,
+	public List<ObjectEntry> findByU_ODI_L(
+		long userId, long objectDefinitionId, boolean latest, int start,
+		int end, OrderByComparator<ObjectEntry> orderByComparator,
 		boolean useFinderCache) {
 
 		FinderPath finderPath = null;
@@ -3271,14 +3405,15 @@ public class ObjectEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache) {
-				finderPath = _finderPathWithoutPaginationFindByU_ODI;
-				finderArgs = new Object[] {userId, objectDefinitionId};
+				finderPath = _finderPathWithoutPaginationFindByU_ODI_L;
+				finderArgs = new Object[] {userId, objectDefinitionId, latest};
 			}
 		}
 		else if (useFinderCache) {
-			finderPath = _finderPathWithPaginationFindByU_ODI;
+			finderPath = _finderPathWithPaginationFindByU_ODI_L;
 			finderArgs = new Object[] {
-				userId, objectDefinitionId, start, end, orderByComparator
+				userId, objectDefinitionId, latest, start, end,
+				orderByComparator
 			};
 		}
 
@@ -3292,7 +3427,8 @@ public class ObjectEntryPersistenceImpl
 				for (ObjectEntry objectEntry : list) {
 					if ((userId != objectEntry.getUserId()) ||
 						(objectDefinitionId !=
-							objectEntry.getObjectDefinitionId())) {
+							objectEntry.getObjectDefinitionId()) ||
+						(latest != objectEntry.isLatest())) {
 
 						list = null;
 
@@ -3307,17 +3443,19 @@ public class ObjectEntryPersistenceImpl
 
 			if (orderByComparator != null) {
 				sb = new StringBundler(
-					4 + (orderByComparator.getOrderByFields().length * 2));
+					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				sb = new StringBundler(4);
+				sb = new StringBundler(5);
 			}
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_U_ODI_USERID_2);
+			sb.append(_FINDER_COLUMN_U_ODI_L_USERID_2);
 
-			sb.append(_FINDER_COLUMN_U_ODI_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_U_ODI_L_OBJECTDEFINITIONID_2);
+
+			sb.append(_FINDER_COLUMN_U_ODI_L_LATEST_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -3342,6 +3480,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectDefinitionId);
 
+				queryPos.add(latest);
+
 				list = (List<ObjectEntry>)QueryUtil.list(
 					query, getDialect(), start, end);
 
@@ -3363,28 +3503,29 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the first object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByU_ODI_First(
-			long userId, long objectDefinitionId,
+	public ObjectEntry findByU_ODI_L_First(
+			long userId, long objectDefinitionId, boolean latest,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByU_ODI_First(
-			userId, objectDefinitionId, orderByComparator);
+		ObjectEntry objectEntry = fetchByU_ODI_L_First(
+			userId, objectDefinitionId, latest, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -3394,26 +3535,30 @@ public class ObjectEntryPersistenceImpl
 		sb.append(", objectDefinitionId=");
 		sb.append(objectDefinitionId);
 
+		sb.append(", latest=");
+		sb.append(latest);
+
 		sb.append("}");
 
 		throw new NoSuchObjectEntryException(sb.toString());
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the first object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByU_ODI_First(
-		long userId, long objectDefinitionId,
+	public ObjectEntry fetchByU_ODI_L_First(
+		long userId, long objectDefinitionId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		List<ObjectEntry> list = findByU_ODI(
-			userId, objectDefinitionId, 0, 1, orderByComparator);
+		List<ObjectEntry> list = findByU_ODI_L(
+			userId, objectDefinitionId, latest, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -3423,28 +3568,29 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the last object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByU_ODI_Last(
-			long userId, long objectDefinitionId,
+	public ObjectEntry findByU_ODI_L_Last(
+			long userId, long objectDefinitionId, boolean latest,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByU_ODI_Last(
-			userId, objectDefinitionId, orderByComparator);
+		ObjectEntry objectEntry = fetchByU_ODI_L_Last(
+			userId, objectDefinitionId, latest, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -3454,32 +3600,37 @@ public class ObjectEntryPersistenceImpl
 		sb.append(", objectDefinitionId=");
 		sb.append(objectDefinitionId);
 
+		sb.append(", latest=");
+		sb.append(latest);
+
 		sb.append("}");
 
 		throw new NoSuchObjectEntryException(sb.toString());
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the last object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByU_ODI_Last(
-		long userId, long objectDefinitionId,
+	public ObjectEntry fetchByU_ODI_L_Last(
+		long userId, long objectDefinitionId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		int count = countByU_ODI(userId, objectDefinitionId);
+		int count = countByU_ODI_L(userId, objectDefinitionId, latest);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<ObjectEntry> list = findByU_ODI(
-			userId, objectDefinitionId, count - 1, count, orderByComparator);
+		List<ObjectEntry> list = findByU_ODI_L(
+			userId, objectDefinitionId, latest, count - 1, count,
+			orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -3489,19 +3640,20 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the object entries before and after the current object entry in the ordered set where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param objectEntryId the primary key of the current object entry
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object entry
 	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
 	 */
 	@Override
-	public ObjectEntry[] findByU_ODI_PrevAndNext(
+	public ObjectEntry[] findByU_ODI_L_PrevAndNext(
 			long objectEntryId, long userId, long objectDefinitionId,
-			OrderByComparator<ObjectEntry> orderByComparator)
+			boolean latest, OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
 		ObjectEntry objectEntry = findByPrimaryKey(objectEntryId);
@@ -3513,14 +3665,14 @@ public class ObjectEntryPersistenceImpl
 
 			ObjectEntry[] array = new ObjectEntryImpl[3];
 
-			array[0] = getByU_ODI_PrevAndNext(
-				session, objectEntry, userId, objectDefinitionId,
+			array[0] = getByU_ODI_L_PrevAndNext(
+				session, objectEntry, userId, objectDefinitionId, latest,
 				orderByComparator, true);
 
 			array[1] = objectEntry;
 
-			array[2] = getByU_ODI_PrevAndNext(
-				session, objectEntry, userId, objectDefinitionId,
+			array[2] = getByU_ODI_L_PrevAndNext(
+				session, objectEntry, userId, objectDefinitionId, latest,
 				orderByComparator, false);
 
 			return array;
@@ -3533,27 +3685,29 @@ public class ObjectEntryPersistenceImpl
 		}
 	}
 
-	protected ObjectEntry getByU_ODI_PrevAndNext(
+	protected ObjectEntry getByU_ODI_L_PrevAndNext(
 		Session session, ObjectEntry objectEntry, long userId,
-		long objectDefinitionId,
+		long objectDefinitionId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
 
 		StringBundler sb = null;
 
 		if (orderByComparator != null) {
 			sb = new StringBundler(
-				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			sb = new StringBundler(4);
+			sb = new StringBundler(5);
 		}
 
 		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-		sb.append(_FINDER_COLUMN_U_ODI_USERID_2);
+		sb.append(_FINDER_COLUMN_U_ODI_L_USERID_2);
 
-		sb.append(_FINDER_COLUMN_U_ODI_OBJECTDEFINITIONID_2);
+		sb.append(_FINDER_COLUMN_U_ODI_L_OBJECTDEFINITIONID_2);
+
+		sb.append(_FINDER_COLUMN_U_ODI_L_LATEST_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -3628,6 +3782,8 @@ public class ObjectEntryPersistenceImpl
 
 		queryPos.add(objectDefinitionId);
 
+		queryPos.add(latest);
+
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(objectEntry)) {
@@ -3647,16 +3803,19 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes all the object entries where userId = &#63; and objectDefinitionId = &#63; from the database.
+	 * Removes all the object entries where userId = &#63; and objectDefinitionId = &#63; and latest = &#63; from the database.
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 */
 	@Override
-	public void removeByU_ODI(long userId, long objectDefinitionId) {
+	public void removeByU_ODI_L(
+		long userId, long objectDefinitionId, boolean latest) {
+
 		for (ObjectEntry objectEntry :
-				findByU_ODI(
-					userId, objectDefinitionId, QueryUtil.ALL_POS,
+				findByU_ODI_L(
+					userId, objectDefinitionId, latest, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null)) {
 
 			remove(objectEntry);
@@ -3664,28 +3823,33 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the number of object entries where userId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the number of object entries where userId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByU_ODI(long userId, long objectDefinitionId) {
-		FinderPath finderPath = _finderPathCountByU_ODI;
+	public int countByU_ODI_L(
+		long userId, long objectDefinitionId, boolean latest) {
 
-		Object[] finderArgs = new Object[] {userId, objectDefinitionId};
+		FinderPath finderPath = _finderPathCountByU_ODI_L;
+
+		Object[] finderArgs = new Object[] {userId, objectDefinitionId, latest};
 
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler sb = new StringBundler(3);
+			StringBundler sb = new StringBundler(4);
 
 			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_U_ODI_USERID_2);
+			sb.append(_FINDER_COLUMN_U_ODI_L_USERID_2);
 
-			sb.append(_FINDER_COLUMN_U_ODI_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_U_ODI_L_OBJECTDEFINITIONID_2);
+
+			sb.append(_FINDER_COLUMN_U_ODI_L_LATEST_2);
 
 			String sql = sb.toString();
 
@@ -3702,6 +3866,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectDefinitionId);
 
+				queryPos.add(latest);
+
 				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
@@ -3717,59 +3883,67 @@ public class ObjectEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_U_ODI_USERID_2 =
+	private static final String _FINDER_COLUMN_U_ODI_L_USERID_2 =
 		"objectEntry.userId = ? AND ";
 
-	private static final String _FINDER_COLUMN_U_ODI_OBJECTDEFINITIONID_2 =
-		"objectEntry.objectDefinitionId = ?";
+	private static final String _FINDER_COLUMN_U_ODI_L_OBJECTDEFINITIONID_2 =
+		"objectEntry.objectDefinitionId = ? AND ";
 
-	private FinderPath _finderPathWithPaginationFindByODI_NotS;
-	private FinderPath _finderPathWithPaginationCountByODI_NotS;
+	private static final String _FINDER_COLUMN_U_ODI_L_LATEST_2 =
+		"objectEntry.latest = ?";
+
+	private FinderPath _finderPathWithPaginationFindByODI_L_NotS;
+	private FinderPath _finderPathWithPaginationCountByODI_L_NotS;
 
 	/**
-	 * Returns all the object entries where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns all the object entries where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @return the matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByODI_NotS(
-		long objectDefinitionId, int status) {
+	public List<ObjectEntry> findByODI_L_NotS(
+		long objectDefinitionId, boolean latest, int status) {
 
-		return findByODI_NotS(
-			objectDefinitionId, status, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			null);
+		return findByODI_L_NotS(
+			objectDefinitionId, latest, status, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
 	}
 
 	/**
-	 * Returns a range of all the object entries where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns a range of all the object entries where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @return the range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByODI_NotS(
-		long objectDefinitionId, int status, int start, int end) {
+	public List<ObjectEntry> findByODI_L_NotS(
+		long objectDefinitionId, boolean latest, int status, int start,
+		int end) {
 
-		return findByODI_NotS(objectDefinitionId, status, start, end, null);
+		return findByODI_L_NotS(
+			objectDefinitionId, latest, status, start, end, null);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns an ordered range of all the object entries where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
@@ -3777,22 +3951,24 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByODI_NotS(
-		long objectDefinitionId, int status, int start, int end,
+	public List<ObjectEntry> findByODI_L_NotS(
+		long objectDefinitionId, boolean latest, int status, int start, int end,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		return findByODI_NotS(
-			objectDefinitionId, status, start, end, orderByComparator, true);
+		return findByODI_L_NotS(
+			objectDefinitionId, latest, status, start, end, orderByComparator,
+			true);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns an ordered range of all the object entries where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
@@ -3801,17 +3977,17 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByODI_NotS(
-		long objectDefinitionId, int status, int start, int end,
+	public List<ObjectEntry> findByODI_L_NotS(
+		long objectDefinitionId, boolean latest, int status, int start, int end,
 		OrderByComparator<ObjectEntry> orderByComparator,
 		boolean useFinderCache) {
 
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByODI_NotS;
+		finderPath = _finderPathWithPaginationFindByODI_L_NotS;
 		finderArgs = new Object[] {
-			objectDefinitionId, status, start, end, orderByComparator
+			objectDefinitionId, latest, status, start, end, orderByComparator
 		};
 
 		List<ObjectEntry> list = null;
@@ -3824,6 +4000,7 @@ public class ObjectEntryPersistenceImpl
 				for (ObjectEntry objectEntry : list) {
 					if ((objectDefinitionId !=
 							objectEntry.getObjectDefinitionId()) ||
+						(latest != objectEntry.isLatest()) ||
 						(status == objectEntry.getStatus())) {
 
 						list = null;
@@ -3839,17 +4016,19 @@ public class ObjectEntryPersistenceImpl
 
 			if (orderByComparator != null) {
 				sb = new StringBundler(
-					4 + (orderByComparator.getOrderByFields().length * 2));
+					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				sb = new StringBundler(4);
+				sb = new StringBundler(5);
 			}
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_ODI_NOTS_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_ODI_L_NOTS_OBJECTDEFINITIONID_2);
 
-			sb.append(_FINDER_COLUMN_ODI_NOTS_STATUS_2);
+			sb.append(_FINDER_COLUMN_ODI_L_NOTS_LATEST_2);
+
+			sb.append(_FINDER_COLUMN_ODI_L_NOTS_STATUS_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -3871,6 +4050,8 @@ public class ObjectEntryPersistenceImpl
 				QueryPos queryPos = QueryPos.getInstance(query);
 
 				queryPos.add(objectDefinitionId);
+
+				queryPos.add(latest);
 
 				queryPos.add(status);
 
@@ -3895,33 +4076,37 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns the first object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByODI_NotS_First(
-			long objectDefinitionId, int status,
+	public ObjectEntry findByODI_L_NotS_First(
+			long objectDefinitionId, boolean latest, int status,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByODI_NotS_First(
-			objectDefinitionId, status, orderByComparator);
+		ObjectEntry objectEntry = fetchByODI_L_NotS_First(
+			objectDefinitionId, latest, status, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
 		sb.append("objectDefinitionId=");
 		sb.append(objectDefinitionId);
+
+		sb.append(", latest=");
+		sb.append(latest);
 
 		sb.append(", status!=");
 		sb.append(status);
@@ -3932,20 +4117,21 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns the first object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByODI_NotS_First(
-		long objectDefinitionId, int status,
+	public ObjectEntry fetchByODI_L_NotS_First(
+		long objectDefinitionId, boolean latest, int status,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		List<ObjectEntry> list = findByODI_NotS(
-			objectDefinitionId, status, 0, 1, orderByComparator);
+		List<ObjectEntry> list = findByODI_L_NotS(
+			objectDefinitionId, latest, status, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -3955,33 +4141,37 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns the last object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByODI_NotS_Last(
-			long objectDefinitionId, int status,
+	public ObjectEntry findByODI_L_NotS_Last(
+			long objectDefinitionId, boolean latest, int status,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByODI_NotS_Last(
-			objectDefinitionId, status, orderByComparator);
+		ObjectEntry objectEntry = fetchByODI_L_NotS_Last(
+			objectDefinitionId, latest, status, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
 		sb.append("objectDefinitionId=");
 		sb.append(objectDefinitionId);
+
+		sb.append(", latest=");
+		sb.append(latest);
 
 		sb.append(", status!=");
 		sb.append(status);
@@ -3992,26 +4182,28 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns the last object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByODI_NotS_Last(
-		long objectDefinitionId, int status,
+	public ObjectEntry fetchByODI_L_NotS_Last(
+		long objectDefinitionId, boolean latest, int status,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		int count = countByODI_NotS(objectDefinitionId, status);
+		int count = countByODI_L_NotS(objectDefinitionId, latest, status);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<ObjectEntry> list = findByODI_NotS(
-			objectDefinitionId, status, count - 1, count, orderByComparator);
+		List<ObjectEntry> list = findByODI_L_NotS(
+			objectDefinitionId, latest, status, count - 1, count,
+			orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -4021,19 +4213,20 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns the object entries before and after the current object entry in the ordered set where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param objectEntryId the primary key of the current object entry
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object entry
 	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
 	 */
 	@Override
-	public ObjectEntry[] findByODI_NotS_PrevAndNext(
-			long objectEntryId, long objectDefinitionId, int status,
-			OrderByComparator<ObjectEntry> orderByComparator)
+	public ObjectEntry[] findByODI_L_NotS_PrevAndNext(
+			long objectEntryId, long objectDefinitionId, boolean latest,
+			int status, OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
 		ObjectEntry objectEntry = findByPrimaryKey(objectEntryId);
@@ -4045,14 +4238,14 @@ public class ObjectEntryPersistenceImpl
 
 			ObjectEntry[] array = new ObjectEntryImpl[3];
 
-			array[0] = getByODI_NotS_PrevAndNext(
-				session, objectEntry, objectDefinitionId, status,
+			array[0] = getByODI_L_NotS_PrevAndNext(
+				session, objectEntry, objectDefinitionId, latest, status,
 				orderByComparator, true);
 
 			array[1] = objectEntry;
 
-			array[2] = getByODI_NotS_PrevAndNext(
-				session, objectEntry, objectDefinitionId, status,
+			array[2] = getByODI_L_NotS_PrevAndNext(
+				session, objectEntry, objectDefinitionId, latest, status,
 				orderByComparator, false);
 
 			return array;
@@ -4065,27 +4258,29 @@ public class ObjectEntryPersistenceImpl
 		}
 	}
 
-	protected ObjectEntry getByODI_NotS_PrevAndNext(
+	protected ObjectEntry getByODI_L_NotS_PrevAndNext(
 		Session session, ObjectEntry objectEntry, long objectDefinitionId,
-		int status, OrderByComparator<ObjectEntry> orderByComparator,
-		boolean previous) {
+		boolean latest, int status,
+		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
 
 		StringBundler sb = null;
 
 		if (orderByComparator != null) {
 			sb = new StringBundler(
-				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			sb = new StringBundler(4);
+			sb = new StringBundler(5);
 		}
 
 		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-		sb.append(_FINDER_COLUMN_ODI_NOTS_OBJECTDEFINITIONID_2);
+		sb.append(_FINDER_COLUMN_ODI_L_NOTS_OBJECTDEFINITIONID_2);
 
-		sb.append(_FINDER_COLUMN_ODI_NOTS_STATUS_2);
+		sb.append(_FINDER_COLUMN_ODI_L_NOTS_LATEST_2);
+
+		sb.append(_FINDER_COLUMN_ODI_L_NOTS_STATUS_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -4158,6 +4353,8 @@ public class ObjectEntryPersistenceImpl
 
 		queryPos.add(objectDefinitionId);
 
+		queryPos.add(latest);
+
 		queryPos.add(status);
 
 		if (orderByComparator != null) {
@@ -4179,16 +4376,19 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes all the object entries where objectDefinitionId = &#63; and status &ne; &#63; from the database.
+	 * Removes all the object entries where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63; from the database.
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 */
 	@Override
-	public void removeByODI_NotS(long objectDefinitionId, int status) {
+	public void removeByODI_L_NotS(
+		long objectDefinitionId, boolean latest, int status) {
+
 		for (ObjectEntry objectEntry :
-				findByODI_NotS(
-					objectDefinitionId, status, QueryUtil.ALL_POS,
+				findByODI_L_NotS(
+					objectDefinitionId, latest, status, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null)) {
 
 			remove(objectEntry);
@@ -4196,28 +4396,33 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the number of object entries where objectDefinitionId = &#63; and status &ne; &#63;.
+	 * Returns the number of object entries where objectDefinitionId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByODI_NotS(long objectDefinitionId, int status) {
-		FinderPath finderPath = _finderPathWithPaginationCountByODI_NotS;
+	public int countByODI_L_NotS(
+		long objectDefinitionId, boolean latest, int status) {
 
-		Object[] finderArgs = new Object[] {objectDefinitionId, status};
+		FinderPath finderPath = _finderPathWithPaginationCountByODI_L_NotS;
+
+		Object[] finderArgs = new Object[] {objectDefinitionId, latest, status};
 
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler sb = new StringBundler(3);
+			StringBundler sb = new StringBundler(4);
 
 			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_ODI_NOTS_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_ODI_L_NOTS_OBJECTDEFINITIONID_2);
 
-			sb.append(_FINDER_COLUMN_ODI_NOTS_STATUS_2);
+			sb.append(_FINDER_COLUMN_ODI_L_NOTS_LATEST_2);
+
+			sb.append(_FINDER_COLUMN_ODI_L_NOTS_STATUS_2);
 
 			String sql = sb.toString();
 
@@ -4231,6 +4436,8 @@ public class ObjectEntryPersistenceImpl
 				QueryPos queryPos = QueryPos.getInstance(query);
 
 				queryPos.add(objectDefinitionId);
+
+				queryPos.add(latest);
 
 				queryPos.add(status);
 
@@ -4249,59 +4456,67 @@ public class ObjectEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_ODI_NOTS_OBJECTDEFINITIONID_2 =
+	private static final String _FINDER_COLUMN_ODI_L_NOTS_OBJECTDEFINITIONID_2 =
 		"objectEntry.objectDefinitionId = ? AND ";
 
-	private static final String _FINDER_COLUMN_ODI_NOTS_STATUS_2 =
+	private static final String _FINDER_COLUMN_ODI_L_NOTS_LATEST_2 =
+		"objectEntry.latest = ? AND ";
+
+	private static final String _FINDER_COLUMN_ODI_L_NOTS_STATUS_2 =
 		"objectEntry.status != ?";
 
-	private FinderPath _finderPathWithPaginationFindByROEI_NotS;
-	private FinderPath _finderPathWithPaginationCountByROEI_NotS;
+	private FinderPath _finderPathWithPaginationFindByROEI_L_NotS;
+	private FinderPath _finderPathWithPaginationCountByROEI_L_NotS;
 
 	/**
-	 * Returns all the object entries where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns all the object entries where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @return the matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByROEI_NotS(
-		long rootObjectEntryId, int status) {
+	public List<ObjectEntry> findByROEI_L_NotS(
+		long rootObjectEntryId, boolean latest, int status) {
 
-		return findByROEI_NotS(
-			rootObjectEntryId, status, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			null);
+		return findByROEI_L_NotS(
+			rootObjectEntryId, latest, status, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
 	}
 
 	/**
-	 * Returns a range of all the object entries where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns a range of all the object entries where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @return the range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByROEI_NotS(
-		long rootObjectEntryId, int status, int start, int end) {
+	public List<ObjectEntry> findByROEI_L_NotS(
+		long rootObjectEntryId, boolean latest, int status, int start,
+		int end) {
 
-		return findByROEI_NotS(rootObjectEntryId, status, start, end, null);
+		return findByROEI_L_NotS(
+			rootObjectEntryId, latest, status, start, end, null);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns an ordered range of all the object entries where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
@@ -4309,22 +4524,24 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByROEI_NotS(
-		long rootObjectEntryId, int status, int start, int end,
+	public List<ObjectEntry> findByROEI_L_NotS(
+		long rootObjectEntryId, boolean latest, int status, int start, int end,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		return findByROEI_NotS(
-			rootObjectEntryId, status, start, end, orderByComparator, true);
+		return findByROEI_L_NotS(
+			rootObjectEntryId, latest, status, start, end, orderByComparator,
+			true);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns an ordered range of all the object entries where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
@@ -4333,17 +4550,17 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByROEI_NotS(
-		long rootObjectEntryId, int status, int start, int end,
+	public List<ObjectEntry> findByROEI_L_NotS(
+		long rootObjectEntryId, boolean latest, int status, int start, int end,
 		OrderByComparator<ObjectEntry> orderByComparator,
 		boolean useFinderCache) {
 
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByROEI_NotS;
+		finderPath = _finderPathWithPaginationFindByROEI_L_NotS;
 		finderArgs = new Object[] {
-			rootObjectEntryId, status, start, end, orderByComparator
+			rootObjectEntryId, latest, status, start, end, orderByComparator
 		};
 
 		List<ObjectEntry> list = null;
@@ -4356,6 +4573,7 @@ public class ObjectEntryPersistenceImpl
 				for (ObjectEntry objectEntry : list) {
 					if ((rootObjectEntryId !=
 							objectEntry.getRootObjectEntryId()) ||
+						(latest != objectEntry.isLatest()) ||
 						(status == objectEntry.getStatus())) {
 
 						list = null;
@@ -4371,17 +4589,19 @@ public class ObjectEntryPersistenceImpl
 
 			if (orderByComparator != null) {
 				sb = new StringBundler(
-					4 + (orderByComparator.getOrderByFields().length * 2));
+					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				sb = new StringBundler(4);
+				sb = new StringBundler(5);
 			}
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_ROEI_NOTS_ROOTOBJECTENTRYID_2);
+			sb.append(_FINDER_COLUMN_ROEI_L_NOTS_ROOTOBJECTENTRYID_2);
 
-			sb.append(_FINDER_COLUMN_ROEI_NOTS_STATUS_2);
+			sb.append(_FINDER_COLUMN_ROEI_L_NOTS_LATEST_2);
+
+			sb.append(_FINDER_COLUMN_ROEI_L_NOTS_STATUS_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -4403,6 +4623,8 @@ public class ObjectEntryPersistenceImpl
 				QueryPos queryPos = QueryPos.getInstance(query);
 
 				queryPos.add(rootObjectEntryId);
+
+				queryPos.add(latest);
 
 				queryPos.add(status);
 
@@ -4427,33 +4649,37 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns the first object entry in the ordered set where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByROEI_NotS_First(
-			long rootObjectEntryId, int status,
+	public ObjectEntry findByROEI_L_NotS_First(
+			long rootObjectEntryId, boolean latest, int status,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByROEI_NotS_First(
-			rootObjectEntryId, status, orderByComparator);
+		ObjectEntry objectEntry = fetchByROEI_L_NotS_First(
+			rootObjectEntryId, latest, status, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
 		sb.append("rootObjectEntryId=");
 		sb.append(rootObjectEntryId);
+
+		sb.append(", latest=");
+		sb.append(latest);
 
 		sb.append(", status!=");
 		sb.append(status);
@@ -4464,20 +4690,21 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns the first object entry in the ordered set where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByROEI_NotS_First(
-		long rootObjectEntryId, int status,
+	public ObjectEntry fetchByROEI_L_NotS_First(
+		long rootObjectEntryId, boolean latest, int status,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		List<ObjectEntry> list = findByROEI_NotS(
-			rootObjectEntryId, status, 0, 1, orderByComparator);
+		List<ObjectEntry> list = findByROEI_L_NotS(
+			rootObjectEntryId, latest, status, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -4487,33 +4714,37 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns the last object entry in the ordered set where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByROEI_NotS_Last(
-			long rootObjectEntryId, int status,
+	public ObjectEntry findByROEI_L_NotS_Last(
+			long rootObjectEntryId, boolean latest, int status,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByROEI_NotS_Last(
-			rootObjectEntryId, status, orderByComparator);
+		ObjectEntry objectEntry = fetchByROEI_L_NotS_Last(
+			rootObjectEntryId, latest, status, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
 		sb.append("rootObjectEntryId=");
 		sb.append(rootObjectEntryId);
+
+		sb.append(", latest=");
+		sb.append(latest);
 
 		sb.append(", status!=");
 		sb.append(status);
@@ -4524,26 +4755,28 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the last object entry in the ordered set where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns the last object entry in the ordered set where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByROEI_NotS_Last(
-		long rootObjectEntryId, int status,
+	public ObjectEntry fetchByROEI_L_NotS_Last(
+		long rootObjectEntryId, boolean latest, int status,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		int count = countByROEI_NotS(rootObjectEntryId, status);
+		int count = countByROEI_L_NotS(rootObjectEntryId, latest, status);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<ObjectEntry> list = findByROEI_NotS(
-			rootObjectEntryId, status, count - 1, count, orderByComparator);
+		List<ObjectEntry> list = findByROEI_L_NotS(
+			rootObjectEntryId, latest, status, count - 1, count,
+			orderByComparator);
 
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -4553,19 +4786,20 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns the object entries before and after the current object entry in the ordered set where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param objectEntryId the primary key of the current object entry
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object entry
 	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
 	 */
 	@Override
-	public ObjectEntry[] findByROEI_NotS_PrevAndNext(
-			long objectEntryId, long rootObjectEntryId, int status,
-			OrderByComparator<ObjectEntry> orderByComparator)
+	public ObjectEntry[] findByROEI_L_NotS_PrevAndNext(
+			long objectEntryId, long rootObjectEntryId, boolean latest,
+			int status, OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
 		ObjectEntry objectEntry = findByPrimaryKey(objectEntryId);
@@ -4577,14 +4811,14 @@ public class ObjectEntryPersistenceImpl
 
 			ObjectEntry[] array = new ObjectEntryImpl[3];
 
-			array[0] = getByROEI_NotS_PrevAndNext(
-				session, objectEntry, rootObjectEntryId, status,
+			array[0] = getByROEI_L_NotS_PrevAndNext(
+				session, objectEntry, rootObjectEntryId, latest, status,
 				orderByComparator, true);
 
 			array[1] = objectEntry;
 
-			array[2] = getByROEI_NotS_PrevAndNext(
-				session, objectEntry, rootObjectEntryId, status,
+			array[2] = getByROEI_L_NotS_PrevAndNext(
+				session, objectEntry, rootObjectEntryId, latest, status,
 				orderByComparator, false);
 
 			return array;
@@ -4597,27 +4831,29 @@ public class ObjectEntryPersistenceImpl
 		}
 	}
 
-	protected ObjectEntry getByROEI_NotS_PrevAndNext(
+	protected ObjectEntry getByROEI_L_NotS_PrevAndNext(
 		Session session, ObjectEntry objectEntry, long rootObjectEntryId,
-		int status, OrderByComparator<ObjectEntry> orderByComparator,
-		boolean previous) {
+		boolean latest, int status,
+		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
 
 		StringBundler sb = null;
 
 		if (orderByComparator != null) {
 			sb = new StringBundler(
-				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			sb = new StringBundler(4);
+			sb = new StringBundler(5);
 		}
 
 		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-		sb.append(_FINDER_COLUMN_ROEI_NOTS_ROOTOBJECTENTRYID_2);
+		sb.append(_FINDER_COLUMN_ROEI_L_NOTS_ROOTOBJECTENTRYID_2);
 
-		sb.append(_FINDER_COLUMN_ROEI_NOTS_STATUS_2);
+		sb.append(_FINDER_COLUMN_ROEI_L_NOTS_LATEST_2);
+
+		sb.append(_FINDER_COLUMN_ROEI_L_NOTS_STATUS_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -4690,6 +4926,8 @@ public class ObjectEntryPersistenceImpl
 
 		queryPos.add(rootObjectEntryId);
 
+		queryPos.add(latest);
+
 		queryPos.add(status);
 
 		if (orderByComparator != null) {
@@ -4711,16 +4949,19 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes all the object entries where rootObjectEntryId = &#63; and status &ne; &#63; from the database.
+	 * Removes all the object entries where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63; from the database.
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 */
 	@Override
-	public void removeByROEI_NotS(long rootObjectEntryId, int status) {
+	public void removeByROEI_L_NotS(
+		long rootObjectEntryId, boolean latest, int status) {
+
 		for (ObjectEntry objectEntry :
-				findByROEI_NotS(
-					rootObjectEntryId, status, QueryUtil.ALL_POS,
+				findByROEI_L_NotS(
+					rootObjectEntryId, latest, status, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null)) {
 
 			remove(objectEntry);
@@ -4728,28 +4969,33 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the number of object entries where rootObjectEntryId = &#63; and status &ne; &#63;.
+	 * Returns the number of object entries where rootObjectEntryId = &#63; and latest = &#63; and status &ne; &#63;.
 	 *
 	 * @param rootObjectEntryId the root object entry ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByROEI_NotS(long rootObjectEntryId, int status) {
-		FinderPath finderPath = _finderPathWithPaginationCountByROEI_NotS;
+	public int countByROEI_L_NotS(
+		long rootObjectEntryId, boolean latest, int status) {
 
-		Object[] finderArgs = new Object[] {rootObjectEntryId, status};
+		FinderPath finderPath = _finderPathWithPaginationCountByROEI_L_NotS;
+
+		Object[] finderArgs = new Object[] {rootObjectEntryId, latest, status};
 
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler sb = new StringBundler(3);
+			StringBundler sb = new StringBundler(4);
 
 			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_ROEI_NOTS_ROOTOBJECTENTRYID_2);
+			sb.append(_FINDER_COLUMN_ROEI_L_NOTS_ROOTOBJECTENTRYID_2);
 
-			sb.append(_FINDER_COLUMN_ROEI_NOTS_STATUS_2);
+			sb.append(_FINDER_COLUMN_ROEI_L_NOTS_LATEST_2);
+
+			sb.append(_FINDER_COLUMN_ROEI_L_NOTS_STATUS_2);
 
 			String sql = sb.toString();
 
@@ -4763,6 +5009,8 @@ public class ObjectEntryPersistenceImpl
 				QueryPos queryPos = QueryPos.getInstance(query);
 
 				queryPos.add(rootObjectEntryId);
+
+				queryPos.add(latest);
 
 				queryPos.add(status);
 
@@ -4781,35 +5029,40 @@ public class ObjectEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_ROEI_NOTS_ROOTOBJECTENTRYID_2 =
+	private static final String _FINDER_COLUMN_ROEI_L_NOTS_ROOTOBJECTENTRYID_2 =
 		"objectEntry.rootObjectEntryId = ? AND ";
 
-	private static final String _FINDER_COLUMN_ROEI_NOTS_STATUS_2 =
+	private static final String _FINDER_COLUMN_ROEI_L_NOTS_LATEST_2 =
+		"objectEntry.latest = ? AND ";
+
+	private static final String _FINDER_COLUMN_ROEI_L_NOTS_STATUS_2 =
 		"objectEntry.status != ?";
 
-	private FinderPath _finderPathWithPaginationFindByG_C_OEFI;
-	private FinderPath _finderPathWithoutPaginationFindByG_C_OEFI;
-	private FinderPath _finderPathCountByG_C_OEFI;
+	private FinderPath _finderPathWithPaginationFindByG_C_OEFI_L;
+	private FinderPath _finderPathWithoutPaginationFindByG_C_OEFI_L;
+	private FinderPath _finderPathCountByG_C_OEFI_L;
 
 	/**
-	 * Returns all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @return the matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_C_OEFI(
-		long groupId, long companyId, long objectEntryFolderId) {
+	public List<ObjectEntry> findByG_C_OEFI_L(
+		long groupId, long companyId, long objectEntryFolderId,
+		boolean latest) {
 
-		return findByG_C_OEFI(
-			groupId, companyId, objectEntryFolderId, QueryUtil.ALL_POS,
+		return findByG_C_OEFI_L(
+			groupId, companyId, objectEntryFolderId, latest, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
 
 	/**
-	 * Returns a range of all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns a range of all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -4818,21 +5071,22 @@ public class ObjectEntryPersistenceImpl
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @return the range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_C_OEFI(
-		long groupId, long companyId, long objectEntryFolderId, int start,
-		int end) {
+	public List<ObjectEntry> findByG_C_OEFI_L(
+		long groupId, long companyId, long objectEntryFolderId, boolean latest,
+		int start, int end) {
 
-		return findByG_C_OEFI(
-			groupId, companyId, objectEntryFolderId, start, end, null);
+		return findByG_C_OEFI_L(
+			groupId, companyId, objectEntryFolderId, latest, start, end, null);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns an ordered range of all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -4841,23 +5095,24 @@ public class ObjectEntryPersistenceImpl
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_C_OEFI(
-		long groupId, long companyId, long objectEntryFolderId, int start,
-		int end, OrderByComparator<ObjectEntry> orderByComparator) {
+	public List<ObjectEntry> findByG_C_OEFI_L(
+		long groupId, long companyId, long objectEntryFolderId, boolean latest,
+		int start, int end, OrderByComparator<ObjectEntry> orderByComparator) {
 
-		return findByG_C_OEFI(
-			groupId, companyId, objectEntryFolderId, start, end,
+		return findByG_C_OEFI_L(
+			groupId, companyId, objectEntryFolderId, latest, start, end,
 			orderByComparator, true);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns an ordered range of all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -4866,6 +5121,7 @@ public class ObjectEntryPersistenceImpl
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -4873,9 +5129,9 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_C_OEFI(
-		long groupId, long companyId, long objectEntryFolderId, int start,
-		int end, OrderByComparator<ObjectEntry> orderByComparator,
+	public List<ObjectEntry> findByG_C_OEFI_L(
+		long groupId, long companyId, long objectEntryFolderId, boolean latest,
+		int start, int end, OrderByComparator<ObjectEntry> orderByComparator,
 		boolean useFinderCache) {
 
 		FinderPath finderPath = null;
@@ -4885,16 +5141,16 @@ public class ObjectEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache) {
-				finderPath = _finderPathWithoutPaginationFindByG_C_OEFI;
+				finderPath = _finderPathWithoutPaginationFindByG_C_OEFI_L;
 				finderArgs = new Object[] {
-					groupId, companyId, objectEntryFolderId
+					groupId, companyId, objectEntryFolderId, latest
 				};
 			}
 		}
 		else if (useFinderCache) {
-			finderPath = _finderPathWithPaginationFindByG_C_OEFI;
+			finderPath = _finderPathWithPaginationFindByG_C_OEFI_L;
 			finderArgs = new Object[] {
-				groupId, companyId, objectEntryFolderId, start, end,
+				groupId, companyId, objectEntryFolderId, latest, start, end,
 				orderByComparator
 			};
 		}
@@ -4910,7 +5166,8 @@ public class ObjectEntryPersistenceImpl
 					if ((groupId != objectEntry.getGroupId()) ||
 						(companyId != objectEntry.getCompanyId()) ||
 						(objectEntryFolderId !=
-							objectEntry.getObjectEntryFolderId())) {
+							objectEntry.getObjectEntryFolderId()) ||
+						(latest != objectEntry.isLatest())) {
 
 						list = null;
 
@@ -4925,19 +5182,21 @@ public class ObjectEntryPersistenceImpl
 
 			if (orderByComparator != null) {
 				sb = new StringBundler(
-					5 + (orderByComparator.getOrderByFields().length * 2));
+					6 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				sb = new StringBundler(5);
+				sb = new StringBundler(6);
 			}
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_G_C_OEFI_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_C_OEFI_L_GROUPID_2);
 
-			sb.append(_FINDER_COLUMN_G_C_OEFI_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_G_C_OEFI_L_COMPANYID_2);
 
-			sb.append(_FINDER_COLUMN_G_C_OEFI_OBJECTENTRYFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_C_OEFI_L_OBJECTENTRYFOLDERID_2);
+
+			sb.append(_FINDER_COLUMN_G_C_OEFI_L_LATEST_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -4964,6 +5223,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectEntryFolderId);
 
+				queryPos.add(latest);
+
 				list = (List<ObjectEntry>)QueryUtil.list(
 					query, getDialect(), start, end);
 
@@ -4985,29 +5246,30 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the first object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByG_C_OEFI_First(
+	public ObjectEntry findByG_C_OEFI_L_First(
 			long groupId, long companyId, long objectEntryFolderId,
-			OrderByComparator<ObjectEntry> orderByComparator)
+			boolean latest, OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByG_C_OEFI_First(
-			groupId, companyId, objectEntryFolderId, orderByComparator);
+		ObjectEntry objectEntry = fetchByG_C_OEFI_L_First(
+			groupId, companyId, objectEntryFolderId, latest, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(8);
+		StringBundler sb = new StringBundler(10);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -5020,98 +5282,31 @@ public class ObjectEntryPersistenceImpl
 		sb.append(", objectEntryFolderId=");
 		sb.append(objectEntryFolderId);
 
+		sb.append(", latest=");
+		sb.append(latest);
+
 		sb.append("}");
 
 		throw new NoSuchObjectEntryException(sb.toString());
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the first object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByG_C_OEFI_First(
-		long groupId, long companyId, long objectEntryFolderId,
+	public ObjectEntry fetchByG_C_OEFI_L_First(
+		long groupId, long companyId, long objectEntryFolderId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		List<ObjectEntry> list = findByG_C_OEFI(
-			groupId, companyId, objectEntryFolderId, 0, 1, orderByComparator);
-
-		if (!list.isEmpty()) {
-			return list.get(0);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the last object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
-	 *
-	 * @param groupId the group ID
-	 * @param companyId the company ID
-	 * @param objectEntryFolderId the object entry folder ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the last matching object entry
-	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry findByG_C_OEFI_Last(
-			long groupId, long companyId, long objectEntryFolderId,
-			OrderByComparator<ObjectEntry> orderByComparator)
-		throws NoSuchObjectEntryException {
-
-		ObjectEntry objectEntry = fetchByG_C_OEFI_Last(
-			groupId, companyId, objectEntryFolderId, orderByComparator);
-
-		if (objectEntry != null) {
-			return objectEntry;
-		}
-
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", companyId=");
-		sb.append(companyId);
-
-		sb.append(", objectEntryFolderId=");
-		sb.append(objectEntryFolderId);
-
-		sb.append("}");
-
-		throw new NoSuchObjectEntryException(sb.toString());
-	}
-
-	/**
-	 * Returns the last object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
-	 *
-	 * @param groupId the group ID
-	 * @param companyId the company ID
-	 * @param objectEntryFolderId the object entry folder ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry fetchByG_C_OEFI_Last(
-		long groupId, long companyId, long objectEntryFolderId,
-		OrderByComparator<ObjectEntry> orderByComparator) {
-
-		int count = countByG_C_OEFI(groupId, companyId, objectEntryFolderId);
-
-		if (count == 0) {
-			return null;
-		}
-
-		List<ObjectEntry> list = findByG_C_OEFI(
-			groupId, companyId, objectEntryFolderId, count - 1, count,
+		List<ObjectEntry> list = findByG_C_OEFI_L(
+			groupId, companyId, objectEntryFolderId, latest, 0, 1,
 			orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -5122,20 +5317,99 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the last object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param companyId the company ID
+	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry findByG_C_OEFI_L_Last(
+			long groupId, long companyId, long objectEntryFolderId,
+			boolean latest, OrderByComparator<ObjectEntry> orderByComparator)
+		throws NoSuchObjectEntryException {
+
+		ObjectEntry objectEntry = fetchByG_C_OEFI_L_Last(
+			groupId, companyId, objectEntryFolderId, latest, orderByComparator);
+
+		if (objectEntry != null) {
+			return objectEntry;
+		}
+
+		StringBundler sb = new StringBundler(10);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("groupId=");
+		sb.append(groupId);
+
+		sb.append(", companyId=");
+		sb.append(companyId);
+
+		sb.append(", objectEntryFolderId=");
+		sb.append(objectEntryFolderId);
+
+		sb.append(", latest=");
+		sb.append(latest);
+
+		sb.append("}");
+
+		throw new NoSuchObjectEntryException(sb.toString());
+	}
+
+	/**
+	 * Returns the last object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param companyId the company ID
+	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry fetchByG_C_OEFI_L_Last(
+		long groupId, long companyId, long objectEntryFolderId, boolean latest,
+		OrderByComparator<ObjectEntry> orderByComparator) {
+
+		int count = countByG_C_OEFI_L(
+			groupId, companyId, objectEntryFolderId, latest);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<ObjectEntry> list = findByG_C_OEFI_L(
+			groupId, companyId, objectEntryFolderId, latest, count - 1, count,
+			orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the object entries before and after the current object entry in the ordered set where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param objectEntryId the primary key of the current object entry
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object entry
 	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
 	 */
 	@Override
-	public ObjectEntry[] findByG_C_OEFI_PrevAndNext(
+	public ObjectEntry[] findByG_C_OEFI_L_PrevAndNext(
 			long objectEntryId, long groupId, long companyId,
-			long objectEntryFolderId,
+			long objectEntryFolderId, boolean latest,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
@@ -5148,15 +5422,15 @@ public class ObjectEntryPersistenceImpl
 
 			ObjectEntry[] array = new ObjectEntryImpl[3];
 
-			array[0] = getByG_C_OEFI_PrevAndNext(
+			array[0] = getByG_C_OEFI_L_PrevAndNext(
 				session, objectEntry, groupId, companyId, objectEntryFolderId,
-				orderByComparator, true);
+				latest, orderByComparator, true);
 
 			array[1] = objectEntry;
 
-			array[2] = getByG_C_OEFI_PrevAndNext(
+			array[2] = getByG_C_OEFI_L_PrevAndNext(
 				session, objectEntry, groupId, companyId, objectEntryFolderId,
-				orderByComparator, false);
+				latest, orderByComparator, false);
 
 			return array;
 		}
@@ -5168,29 +5442,31 @@ public class ObjectEntryPersistenceImpl
 		}
 	}
 
-	protected ObjectEntry getByG_C_OEFI_PrevAndNext(
+	protected ObjectEntry getByG_C_OEFI_L_PrevAndNext(
 		Session session, ObjectEntry objectEntry, long groupId, long companyId,
-		long objectEntryFolderId,
+		long objectEntryFolderId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
 
 		StringBundler sb = null;
 
 		if (orderByComparator != null) {
 			sb = new StringBundler(
-				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+				7 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			sb = new StringBundler(5);
+			sb = new StringBundler(6);
 		}
 
 		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-		sb.append(_FINDER_COLUMN_G_C_OEFI_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_C_OEFI_L_GROUPID_2);
 
-		sb.append(_FINDER_COLUMN_G_C_OEFI_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_G_C_OEFI_L_COMPANYID_2);
 
-		sb.append(_FINDER_COLUMN_G_C_OEFI_OBJECTENTRYFOLDERID_2);
+		sb.append(_FINDER_COLUMN_G_C_OEFI_L_OBJECTENTRYFOLDERID_2);
+
+		sb.append(_FINDER_COLUMN_G_C_OEFI_L_LATEST_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -5267,6 +5543,8 @@ public class ObjectEntryPersistenceImpl
 
 		queryPos.add(objectEntryFolderId);
 
+		queryPos.add(latest);
+
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(objectEntry)) {
@@ -5286,55 +5564,61 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; from the database.
+	 * Removes all the object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63; from the database.
 	 *
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 */
 	@Override
-	public void removeByG_C_OEFI(
-		long groupId, long companyId, long objectEntryFolderId) {
+	public void removeByG_C_OEFI_L(
+		long groupId, long companyId, long objectEntryFolderId,
+		boolean latest) {
 
 		for (ObjectEntry objectEntry :
-				findByG_C_OEFI(
-					groupId, companyId, objectEntryFolderId, QueryUtil.ALL_POS,
-					QueryUtil.ALL_POS, null)) {
+				findByG_C_OEFI_L(
+					groupId, companyId, objectEntryFolderId, latest,
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 
 			remove(objectEntry);
 		}
 	}
 
 	/**
-	 * Returns the number of object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63;.
+	 * Returns the number of object entries where groupId = &#63; and companyId = &#63; and objectEntryFolderId = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectEntryFolderId the object entry folder ID
+	 * @param latest the latest
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByG_C_OEFI(
-		long groupId, long companyId, long objectEntryFolderId) {
+	public int countByG_C_OEFI_L(
+		long groupId, long companyId, long objectEntryFolderId,
+		boolean latest) {
 
-		FinderPath finderPath = _finderPathCountByG_C_OEFI;
+		FinderPath finderPath = _finderPathCountByG_C_OEFI_L;
 
 		Object[] finderArgs = new Object[] {
-			groupId, companyId, objectEntryFolderId
+			groupId, companyId, objectEntryFolderId, latest
 		};
 
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler sb = new StringBundler(4);
+			StringBundler sb = new StringBundler(5);
 
 			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_G_C_OEFI_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_C_OEFI_L_GROUPID_2);
 
-			sb.append(_FINDER_COLUMN_G_C_OEFI_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_G_C_OEFI_L_COMPANYID_2);
 
-			sb.append(_FINDER_COLUMN_G_C_OEFI_OBJECTENTRYFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_C_OEFI_L_OBJECTENTRYFOLDERID_2);
+
+			sb.append(_FINDER_COLUMN_G_C_OEFI_L_LATEST_2);
 
 			String sql = sb.toString();
 
@@ -5353,6 +5637,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectEntryFolderId);
 
+				queryPos.add(latest);
+
 				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
@@ -5368,38 +5654,43 @@ public class ObjectEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_G_C_OEFI_GROUPID_2 =
+	private static final String _FINDER_COLUMN_G_C_OEFI_L_GROUPID_2 =
 		"objectEntry.groupId = ? AND ";
 
-	private static final String _FINDER_COLUMN_G_C_OEFI_COMPANYID_2 =
+	private static final String _FINDER_COLUMN_G_C_OEFI_L_COMPANYID_2 =
 		"objectEntry.companyId = ? AND ";
 
-	private static final String _FINDER_COLUMN_G_C_OEFI_OBJECTENTRYFOLDERID_2 =
-		"objectEntry.objectEntryFolderId = ?";
+	private static final String
+		_FINDER_COLUMN_G_C_OEFI_L_OBJECTENTRYFOLDERID_2 =
+			"objectEntry.objectEntryFolderId = ? AND ";
 
-	private FinderPath _finderPathWithPaginationFindByG_ODI_S;
-	private FinderPath _finderPathWithoutPaginationFindByG_ODI_S;
-	private FinderPath _finderPathCountByG_ODI_S;
+	private static final String _FINDER_COLUMN_G_C_OEFI_L_LATEST_2 =
+		"objectEntry.latest = ?";
+
+	private FinderPath _finderPathWithPaginationFindByG_ODI_L_S;
+	private FinderPath _finderPathWithoutPaginationFindByG_ODI_L_S;
+	private FinderPath _finderPathCountByG_ODI_L_S;
 
 	/**
-	 * Returns all the object entries where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
+	 * Returns all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @return the matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_ODI_S(
-		long groupId, long objectDefinitionId, int status) {
+	public List<ObjectEntry> findByG_ODI_L_S(
+		long groupId, long objectDefinitionId, boolean latest, int status) {
 
-		return findByG_ODI_S(
-			groupId, objectDefinitionId, status, QueryUtil.ALL_POS,
+		return findByG_ODI_L_S(
+			groupId, objectDefinitionId, latest, status, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
 
 	/**
-	 * Returns a range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
+	 * Returns a range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -5407,21 +5698,23 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @return the range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_ODI_S(
-		long groupId, long objectDefinitionId, int status, int start, int end) {
+	public List<ObjectEntry> findByG_ODI_L_S(
+		long groupId, long objectDefinitionId, boolean latest, int status,
+		int start, int end) {
 
-		return findByG_ODI_S(
-			groupId, objectDefinitionId, status, start, end, null);
+		return findByG_ODI_L_S(
+			groupId, objectDefinitionId, latest, status, start, end, null);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
+	 * Returns an ordered range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -5429,6 +5722,7 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
@@ -5436,17 +5730,17 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_ODI_S(
-		long groupId, long objectDefinitionId, int status, int start, int end,
-		OrderByComparator<ObjectEntry> orderByComparator) {
+	public List<ObjectEntry> findByG_ODI_L_S(
+		long groupId, long objectDefinitionId, boolean latest, int status,
+		int start, int end, OrderByComparator<ObjectEntry> orderByComparator) {
 
-		return findByG_ODI_S(
-			groupId, objectDefinitionId, status, start, end, orderByComparator,
-			true);
+		return findByG_ODI_L_S(
+			groupId, objectDefinitionId, latest, status, start, end,
+			orderByComparator, true);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
+	 * Returns an ordered range of all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -5454,6 +5748,7 @@ public class ObjectEntryPersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
@@ -5462,9 +5757,9 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByG_ODI_S(
-		long groupId, long objectDefinitionId, int status, int start, int end,
-		OrderByComparator<ObjectEntry> orderByComparator,
+	public List<ObjectEntry> findByG_ODI_L_S(
+		long groupId, long objectDefinitionId, boolean latest, int status,
+		int start, int end, OrderByComparator<ObjectEntry> orderByComparator,
 		boolean useFinderCache) {
 
 		FinderPath finderPath = null;
@@ -5474,14 +5769,16 @@ public class ObjectEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache) {
-				finderPath = _finderPathWithoutPaginationFindByG_ODI_S;
-				finderArgs = new Object[] {groupId, objectDefinitionId, status};
+				finderPath = _finderPathWithoutPaginationFindByG_ODI_L_S;
+				finderArgs = new Object[] {
+					groupId, objectDefinitionId, latest, status
+				};
 			}
 		}
 		else if (useFinderCache) {
-			finderPath = _finderPathWithPaginationFindByG_ODI_S;
+			finderPath = _finderPathWithPaginationFindByG_ODI_L_S;
 			finderArgs = new Object[] {
-				groupId, objectDefinitionId, status, start, end,
+				groupId, objectDefinitionId, latest, status, start, end,
 				orderByComparator
 			};
 		}
@@ -5497,6 +5794,7 @@ public class ObjectEntryPersistenceImpl
 					if ((groupId != objectEntry.getGroupId()) ||
 						(objectDefinitionId !=
 							objectEntry.getObjectDefinitionId()) ||
+						(latest != objectEntry.isLatest()) ||
 						(status != objectEntry.getStatus())) {
 
 						list = null;
@@ -5512,19 +5810,21 @@ public class ObjectEntryPersistenceImpl
 
 			if (orderByComparator != null) {
 				sb = new StringBundler(
-					5 + (orderByComparator.getOrderByFields().length * 2));
+					6 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				sb = new StringBundler(5);
+				sb = new StringBundler(6);
 			}
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_G_ODI_S_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_ODI_L_S_GROUPID_2);
 
-			sb.append(_FINDER_COLUMN_G_ODI_S_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_G_ODI_L_S_OBJECTDEFINITIONID_2);
 
-			sb.append(_FINDER_COLUMN_G_ODI_S_STATUS_2);
+			sb.append(_FINDER_COLUMN_G_ODI_L_S_LATEST_2);
+
+			sb.append(_FINDER_COLUMN_G_ODI_L_S_STATUS_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -5549,6 +5849,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectDefinitionId);
 
+				queryPos.add(latest);
+
 				queryPos.add(status);
 
 				list = (List<ObjectEntry>)QueryUtil.list(
@@ -5572,29 +5874,30 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
+	 * Returns the first object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByG_ODI_S_First(
-			long groupId, long objectDefinitionId, int status,
+	public ObjectEntry findByG_ODI_L_S_First(
+			long groupId, long objectDefinitionId, boolean latest, int status,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByG_ODI_S_First(
-			groupId, objectDefinitionId, status, orderByComparator);
+		ObjectEntry objectEntry = fetchByG_ODI_L_S_First(
+			groupId, objectDefinitionId, latest, status, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(8);
+		StringBundler sb = new StringBundler(10);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -5603,6 +5906,9 @@ public class ObjectEntryPersistenceImpl
 
 		sb.append(", objectDefinitionId=");
 		sb.append(objectDefinitionId);
+
+		sb.append(", latest=");
+		sb.append(latest);
 
 		sb.append(", status=");
 		sb.append(status);
@@ -5613,92 +5919,22 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
+	 * Returns the first object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByG_ODI_S_First(
-		long groupId, long objectDefinitionId, int status,
+	public ObjectEntry fetchByG_ODI_L_S_First(
+		long groupId, long objectDefinitionId, boolean latest, int status,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		List<ObjectEntry> list = findByG_ODI_S(
-			groupId, objectDefinitionId, status, 0, 1, orderByComparator);
-
-		if (!list.isEmpty()) {
-			return list.get(0);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the last object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
-	 *
-	 * @param groupId the group ID
-	 * @param objectDefinitionId the object definition ID
-	 * @param status the status
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the last matching object entry
-	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry findByG_ODI_S_Last(
-			long groupId, long objectDefinitionId, int status,
-			OrderByComparator<ObjectEntry> orderByComparator)
-		throws NoSuchObjectEntryException {
-
-		ObjectEntry objectEntry = fetchByG_ODI_S_Last(
-			groupId, objectDefinitionId, status, orderByComparator);
-
-		if (objectEntry != null) {
-			return objectEntry;
-		}
-
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", objectDefinitionId=");
-		sb.append(objectDefinitionId);
-
-		sb.append(", status=");
-		sb.append(status);
-
-		sb.append("}");
-
-		throw new NoSuchObjectEntryException(sb.toString());
-	}
-
-	/**
-	 * Returns the last object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
-	 *
-	 * @param groupId the group ID
-	 * @param objectDefinitionId the object definition ID
-	 * @param status the status
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry fetchByG_ODI_S_Last(
-		long groupId, long objectDefinitionId, int status,
-		OrderByComparator<ObjectEntry> orderByComparator) {
-
-		int count = countByG_ODI_S(groupId, objectDefinitionId, status);
-
-		if (count == 0) {
-			return null;
-		}
-
-		List<ObjectEntry> list = findByG_ODI_S(
-			groupId, objectDefinitionId, status, count - 1, count,
+		List<ObjectEntry> list = findByG_ODI_L_S(
+			groupId, objectDefinitionId, latest, status, 0, 1,
 			orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -5709,20 +5945,100 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
+	 * Returns the last object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param status the status
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry findByG_ODI_L_S_Last(
+			long groupId, long objectDefinitionId, boolean latest, int status,
+			OrderByComparator<ObjectEntry> orderByComparator)
+		throws NoSuchObjectEntryException {
+
+		ObjectEntry objectEntry = fetchByG_ODI_L_S_Last(
+			groupId, objectDefinitionId, latest, status, orderByComparator);
+
+		if (objectEntry != null) {
+			return objectEntry;
+		}
+
+		StringBundler sb = new StringBundler(10);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("groupId=");
+		sb.append(groupId);
+
+		sb.append(", objectDefinitionId=");
+		sb.append(objectDefinitionId);
+
+		sb.append(", latest=");
+		sb.append(latest);
+
+		sb.append(", status=");
+		sb.append(status);
+
+		sb.append("}");
+
+		throw new NoSuchObjectEntryException(sb.toString());
+	}
+
+	/**
+	 * Returns the last object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param status the status
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry fetchByG_ODI_L_S_Last(
+		long groupId, long objectDefinitionId, boolean latest, int status,
+		OrderByComparator<ObjectEntry> orderByComparator) {
+
+		int count = countByG_ODI_L_S(
+			groupId, objectDefinitionId, latest, status);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<ObjectEntry> list = findByG_ODI_L_S(
+			groupId, objectDefinitionId, latest, status, count - 1, count,
+			orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the object entries before and after the current object entry in the ordered set where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
 	 *
 	 * @param objectEntryId the primary key of the current object entry
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object entry
 	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
 	 */
 	@Override
-	public ObjectEntry[] findByG_ODI_S_PrevAndNext(
+	public ObjectEntry[] findByG_ODI_L_S_PrevAndNext(
 			long objectEntryId, long groupId, long objectDefinitionId,
-			int status, OrderByComparator<ObjectEntry> orderByComparator)
+			boolean latest, int status,
+			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
 		ObjectEntry objectEntry = findByPrimaryKey(objectEntryId);
@@ -5734,15 +6050,15 @@ public class ObjectEntryPersistenceImpl
 
 			ObjectEntry[] array = new ObjectEntryImpl[3];
 
-			array[0] = getByG_ODI_S_PrevAndNext(
-				session, objectEntry, groupId, objectDefinitionId, status,
-				orderByComparator, true);
+			array[0] = getByG_ODI_L_S_PrevAndNext(
+				session, objectEntry, groupId, objectDefinitionId, latest,
+				status, orderByComparator, true);
 
 			array[1] = objectEntry;
 
-			array[2] = getByG_ODI_S_PrevAndNext(
-				session, objectEntry, groupId, objectDefinitionId, status,
-				orderByComparator, false);
+			array[2] = getByG_ODI_L_S_PrevAndNext(
+				session, objectEntry, groupId, objectDefinitionId, latest,
+				status, orderByComparator, false);
 
 			return array;
 		}
@@ -5754,29 +6070,31 @@ public class ObjectEntryPersistenceImpl
 		}
 	}
 
-	protected ObjectEntry getByG_ODI_S_PrevAndNext(
+	protected ObjectEntry getByG_ODI_L_S_PrevAndNext(
 		Session session, ObjectEntry objectEntry, long groupId,
-		long objectDefinitionId, int status,
+		long objectDefinitionId, boolean latest, int status,
 		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
 
 		StringBundler sb = null;
 
 		if (orderByComparator != null) {
 			sb = new StringBundler(
-				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+				7 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			sb = new StringBundler(5);
+			sb = new StringBundler(6);
 		}
 
 		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-		sb.append(_FINDER_COLUMN_G_ODI_S_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_ODI_L_S_GROUPID_2);
 
-		sb.append(_FINDER_COLUMN_G_ODI_S_OBJECTDEFINITIONID_2);
+		sb.append(_FINDER_COLUMN_G_ODI_L_S_OBJECTDEFINITIONID_2);
 
-		sb.append(_FINDER_COLUMN_G_ODI_S_STATUS_2);
+		sb.append(_FINDER_COLUMN_G_ODI_L_S_LATEST_2);
+
+		sb.append(_FINDER_COLUMN_G_ODI_L_S_STATUS_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -5851,6 +6169,8 @@ public class ObjectEntryPersistenceImpl
 
 		queryPos.add(objectDefinitionId);
 
+		queryPos.add(latest);
+
 		queryPos.add(status);
 
 		if (orderByComparator != null) {
@@ -5872,55 +6192,59 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes all the object entries where groupId = &#63; and objectDefinitionId = &#63; and status = &#63; from the database.
+	 * Removes all the object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63; from the database.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 */
 	@Override
-	public void removeByG_ODI_S(
-		long groupId, long objectDefinitionId, int status) {
+	public void removeByG_ODI_L_S(
+		long groupId, long objectDefinitionId, boolean latest, int status) {
 
 		for (ObjectEntry objectEntry :
-				findByG_ODI_S(
-					groupId, objectDefinitionId, status, QueryUtil.ALL_POS,
-					QueryUtil.ALL_POS, null)) {
+				findByG_ODI_L_S(
+					groupId, objectDefinitionId, latest, status,
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 
 			remove(objectEntry);
 		}
 	}
 
 	/**
-	 * Returns the number of object entries where groupId = &#63; and objectDefinitionId = &#63; and status = &#63;.
+	 * Returns the number of object entries where groupId = &#63; and objectDefinitionId = &#63; and latest = &#63; and status = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param status the status
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByG_ODI_S(
-		long groupId, long objectDefinitionId, int status) {
+	public int countByG_ODI_L_S(
+		long groupId, long objectDefinitionId, boolean latest, int status) {
 
-		FinderPath finderPath = _finderPathCountByG_ODI_S;
+		FinderPath finderPath = _finderPathCountByG_ODI_L_S;
 
 		Object[] finderArgs = new Object[] {
-			groupId, objectDefinitionId, status
+			groupId, objectDefinitionId, latest, status
 		};
 
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler sb = new StringBundler(4);
+			StringBundler sb = new StringBundler(5);
 
 			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_G_ODI_S_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_ODI_L_S_GROUPID_2);
 
-			sb.append(_FINDER_COLUMN_G_ODI_S_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_G_ODI_L_S_OBJECTDEFINITIONID_2);
 
-			sb.append(_FINDER_COLUMN_G_ODI_S_STATUS_2);
+			sb.append(_FINDER_COLUMN_G_ODI_L_S_LATEST_2);
+
+			sb.append(_FINDER_COLUMN_G_ODI_L_S_STATUS_2);
 
 			String sql = sb.toString();
 
@@ -5936,6 +6260,8 @@ public class ObjectEntryPersistenceImpl
 				queryPos.add(groupId);
 
 				queryPos.add(objectDefinitionId);
+
+				queryPos.add(latest);
 
 				queryPos.add(status);
 
@@ -5954,37 +6280,41 @@ public class ObjectEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_G_ODI_S_GROUPID_2 =
+	private static final String _FINDER_COLUMN_G_ODI_L_S_GROUPID_2 =
 		"objectEntry.groupId = ? AND ";
 
-	private static final String _FINDER_COLUMN_G_ODI_S_OBJECTDEFINITIONID_2 =
+	private static final String _FINDER_COLUMN_G_ODI_L_S_OBJECTDEFINITIONID_2 =
 		"objectEntry.objectDefinitionId = ? AND ";
 
-	private static final String _FINDER_COLUMN_G_ODI_S_STATUS_2 =
+	private static final String _FINDER_COLUMN_G_ODI_L_S_LATEST_2 =
+		"objectEntry.latest = ? AND ";
+
+	private static final String _FINDER_COLUMN_G_ODI_L_S_STATUS_2 =
 		"objectEntry.status = ?";
 
-	private FinderPath _finderPathWithPaginationFindByU_GtCD_ODI;
-	private FinderPath _finderPathWithPaginationCountByU_GtCD_ODI;
+	private FinderPath _finderPathWithPaginationFindByU_GtCD_ODI_L;
+	private FinderPath _finderPathWithPaginationCountByU_GtCD_ODI_L;
 
 	/**
-	 * Returns all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
+	 * Returns all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByU_GtCD_ODI(
-		long userId, Date createDate, long objectDefinitionId) {
+	public List<ObjectEntry> findByU_GtCD_ODI_L(
+		long userId, Date createDate, long objectDefinitionId, boolean latest) {
 
-		return findByU_GtCD_ODI(
-			userId, createDate, objectDefinitionId, QueryUtil.ALL_POS,
+		return findByU_GtCD_ODI_L(
+			userId, createDate, objectDefinitionId, latest, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
 
 	/**
-	 * Returns a range of all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
+	 * Returns a range of all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -5993,21 +6323,22 @@ public class ObjectEntryPersistenceImpl
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @return the range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByU_GtCD_ODI(
-		long userId, Date createDate, long objectDefinitionId, int start,
-		int end) {
+	public List<ObjectEntry> findByU_GtCD_ODI_L(
+		long userId, Date createDate, long objectDefinitionId, boolean latest,
+		int start, int end) {
 
-		return findByU_GtCD_ODI(
-			userId, createDate, objectDefinitionId, start, end, null);
+		return findByU_GtCD_ODI_L(
+			userId, createDate, objectDefinitionId, latest, start, end, null);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
+	 * Returns an ordered range of all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -6016,23 +6347,24 @@ public class ObjectEntryPersistenceImpl
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByU_GtCD_ODI(
-		long userId, Date createDate, long objectDefinitionId, int start,
-		int end, OrderByComparator<ObjectEntry> orderByComparator) {
+	public List<ObjectEntry> findByU_GtCD_ODI_L(
+		long userId, Date createDate, long objectDefinitionId, boolean latest,
+		int start, int end, OrderByComparator<ObjectEntry> orderByComparator) {
 
-		return findByU_GtCD_ODI(
-			userId, createDate, objectDefinitionId, start, end,
+		return findByU_GtCD_ODI_L(
+			userId, createDate, objectDefinitionId, latest, start, end,
 			orderByComparator, true);
 	}
 
 	/**
-	 * Returns an ordered range of all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
+	 * Returns an ordered range of all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectEntryModelImpl</code>.
@@ -6041,6 +6373,7 @@ public class ObjectEntryPersistenceImpl
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param start the lower bound of the range of object entries
 	 * @param end the upper bound of the range of object entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -6048,18 +6381,18 @@ public class ObjectEntryPersistenceImpl
 	 * @return the ordered range of matching object entries
 	 */
 	@Override
-	public List<ObjectEntry> findByU_GtCD_ODI(
-		long userId, Date createDate, long objectDefinitionId, int start,
-		int end, OrderByComparator<ObjectEntry> orderByComparator,
+	public List<ObjectEntry> findByU_GtCD_ODI_L(
+		long userId, Date createDate, long objectDefinitionId, boolean latest,
+		int start, int end, OrderByComparator<ObjectEntry> orderByComparator,
 		boolean useFinderCache) {
 
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByU_GtCD_ODI;
+		finderPath = _finderPathWithPaginationFindByU_GtCD_ODI_L;
 		finderArgs = new Object[] {
-			userId, _getTime(createDate), objectDefinitionId, start, end,
-			orderByComparator
+			userId, _getTime(createDate), objectDefinitionId, latest, start,
+			end, orderByComparator
 		};
 
 		List<ObjectEntry> list = null;
@@ -6074,7 +6407,8 @@ public class ObjectEntryPersistenceImpl
 						(createDate.getTime() >= objectEntry.getCreateDate(
 						).getTime()) ||
 						(objectDefinitionId !=
-							objectEntry.getObjectDefinitionId())) {
+							objectEntry.getObjectDefinitionId()) ||
+						(latest != objectEntry.isLatest())) {
 
 						list = null;
 
@@ -6089,28 +6423,30 @@ public class ObjectEntryPersistenceImpl
 
 			if (orderByComparator != null) {
 				sb = new StringBundler(
-					5 + (orderByComparator.getOrderByFields().length * 2));
+					6 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				sb = new StringBundler(5);
+				sb = new StringBundler(6);
 			}
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_U_GTCD_ODI_USERID_2);
+			sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_USERID_2);
 
 			boolean bindCreateDate = false;
 
 			if (createDate == null) {
-				sb.append(_FINDER_COLUMN_U_GTCD_ODI_CREATEDATE_1);
+				sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_CREATEDATE_1);
 			}
 			else {
 				bindCreateDate = true;
 
-				sb.append(_FINDER_COLUMN_U_GTCD_ODI_CREATEDATE_2);
+				sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_CREATEDATE_2);
 			}
 
-			sb.append(_FINDER_COLUMN_U_GTCD_ODI_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_OBJECTDEFINITIONID_2);
+
+			sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_LATEST_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -6139,6 +6475,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectDefinitionId);
 
+				queryPos.add(latest);
+
 				list = (List<ObjectEntry>)QueryUtil.list(
 					query, getDialect(), start, end);
 
@@ -6160,29 +6498,30 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
+	 * Returns the first object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByU_GtCD_ODI_First(
+	public ObjectEntry findByU_GtCD_ODI_L_First(
 			long userId, Date createDate, long objectDefinitionId,
-			OrderByComparator<ObjectEntry> orderByComparator)
+			boolean latest, OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByU_GtCD_ODI_First(
-			userId, createDate, objectDefinitionId, orderByComparator);
+		ObjectEntry objectEntry = fetchByU_GtCD_ODI_L_First(
+			userId, createDate, objectDefinitionId, latest, orderByComparator);
 
 		if (objectEntry != null) {
 			return objectEntry;
 		}
 
-		StringBundler sb = new StringBundler(8);
+		StringBundler sb = new StringBundler(10);
 
 		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -6195,98 +6534,31 @@ public class ObjectEntryPersistenceImpl
 		sb.append(", objectDefinitionId=");
 		sb.append(objectDefinitionId);
 
+		sb.append(", latest=");
+		sb.append(latest);
+
 		sb.append("}");
 
 		throw new NoSuchObjectEntryException(sb.toString());
 	}
 
 	/**
-	 * Returns the first object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
+	 * Returns the first object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByU_GtCD_ODI_First(
-		long userId, Date createDate, long objectDefinitionId,
+	public ObjectEntry fetchByU_GtCD_ODI_L_First(
+		long userId, Date createDate, long objectDefinitionId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator) {
 
-		List<ObjectEntry> list = findByU_GtCD_ODI(
-			userId, createDate, objectDefinitionId, 0, 1, orderByComparator);
-
-		if (!list.isEmpty()) {
-			return list.get(0);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the last object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
-	 *
-	 * @param userId the user ID
-	 * @param createDate the create date
-	 * @param objectDefinitionId the object definition ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the last matching object entry
-	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry findByU_GtCD_ODI_Last(
-			long userId, Date createDate, long objectDefinitionId,
-			OrderByComparator<ObjectEntry> orderByComparator)
-		throws NoSuchObjectEntryException {
-
-		ObjectEntry objectEntry = fetchByU_GtCD_ODI_Last(
-			userId, createDate, objectDefinitionId, orderByComparator);
-
-		if (objectEntry != null) {
-			return objectEntry;
-		}
-
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("userId=");
-		sb.append(userId);
-
-		sb.append(", createDate>");
-		sb.append(createDate);
-
-		sb.append(", objectDefinitionId=");
-		sb.append(objectDefinitionId);
-
-		sb.append("}");
-
-		throw new NoSuchObjectEntryException(sb.toString());
-	}
-
-	/**
-	 * Returns the last object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
-	 *
-	 * @param userId the user ID
-	 * @param createDate the create date
-	 * @param objectDefinitionId the object definition ID
-	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
-	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
-	 */
-	@Override
-	public ObjectEntry fetchByU_GtCD_ODI_Last(
-		long userId, Date createDate, long objectDefinitionId,
-		OrderByComparator<ObjectEntry> orderByComparator) {
-
-		int count = countByU_GtCD_ODI(userId, createDate, objectDefinitionId);
-
-		if (count == 0) {
-			return null;
-		}
-
-		List<ObjectEntry> list = findByU_GtCD_ODI(
-			userId, createDate, objectDefinitionId, count - 1, count,
+		List<ObjectEntry> list = findByU_GtCD_ODI_L(
+			userId, createDate, objectDefinitionId, latest, 0, 1,
 			orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -6297,20 +6569,99 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entries before and after the current object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
+	 * Returns the last object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param userId the user ID
+	 * @param createDate the create date
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry findByU_GtCD_ODI_L_Last(
+			long userId, Date createDate, long objectDefinitionId,
+			boolean latest, OrderByComparator<ObjectEntry> orderByComparator)
+		throws NoSuchObjectEntryException {
+
+		ObjectEntry objectEntry = fetchByU_GtCD_ODI_L_Last(
+			userId, createDate, objectDefinitionId, latest, orderByComparator);
+
+		if (objectEntry != null) {
+			return objectEntry;
+		}
+
+		StringBundler sb = new StringBundler(10);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("userId=");
+		sb.append(userId);
+
+		sb.append(", createDate>");
+		sb.append(createDate);
+
+		sb.append(", objectDefinitionId=");
+		sb.append(objectDefinitionId);
+
+		sb.append(", latest=");
+		sb.append(latest);
+
+		sb.append("}");
+
+		throw new NoSuchObjectEntryException(sb.toString());
+	}
+
+	/**
+	 * Returns the last object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
+	 *
+	 * @param userId the user ID
+	 * @param createDate the create date
+	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry fetchByU_GtCD_ODI_L_Last(
+		long userId, Date createDate, long objectDefinitionId, boolean latest,
+		OrderByComparator<ObjectEntry> orderByComparator) {
+
+		int count = countByU_GtCD_ODI_L(
+			userId, createDate, objectDefinitionId, latest);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<ObjectEntry> list = findByU_GtCD_ODI_L(
+			userId, createDate, objectDefinitionId, latest, count - 1, count,
+			orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the object entries before and after the current object entry in the ordered set where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param objectEntryId the primary key of the current object entry
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object entry
 	 * @throws NoSuchObjectEntryException if a object entry with the primary key could not be found
 	 */
 	@Override
-	public ObjectEntry[] findByU_GtCD_ODI_PrevAndNext(
+	public ObjectEntry[] findByU_GtCD_ODI_L_PrevAndNext(
 			long objectEntryId, long userId, Date createDate,
-			long objectDefinitionId,
+			long objectDefinitionId, boolean latest,
 			OrderByComparator<ObjectEntry> orderByComparator)
 		throws NoSuchObjectEntryException {
 
@@ -6323,15 +6674,15 @@ public class ObjectEntryPersistenceImpl
 
 			ObjectEntry[] array = new ObjectEntryImpl[3];
 
-			array[0] = getByU_GtCD_ODI_PrevAndNext(
+			array[0] = getByU_GtCD_ODI_L_PrevAndNext(
 				session, objectEntry, userId, createDate, objectDefinitionId,
-				orderByComparator, true);
+				latest, orderByComparator, true);
 
 			array[1] = objectEntry;
 
-			array[2] = getByU_GtCD_ODI_PrevAndNext(
+			array[2] = getByU_GtCD_ODI_L_PrevAndNext(
 				session, objectEntry, userId, createDate, objectDefinitionId,
-				orderByComparator, false);
+				latest, orderByComparator, false);
 
 			return array;
 		}
@@ -6343,38 +6694,40 @@ public class ObjectEntryPersistenceImpl
 		}
 	}
 
-	protected ObjectEntry getByU_GtCD_ODI_PrevAndNext(
+	protected ObjectEntry getByU_GtCD_ODI_L_PrevAndNext(
 		Session session, ObjectEntry objectEntry, long userId, Date createDate,
-		long objectDefinitionId,
+		long objectDefinitionId, boolean latest,
 		OrderByComparator<ObjectEntry> orderByComparator, boolean previous) {
 
 		StringBundler sb = null;
 
 		if (orderByComparator != null) {
 			sb = new StringBundler(
-				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+				7 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			sb = new StringBundler(5);
+			sb = new StringBundler(6);
 		}
 
 		sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
-		sb.append(_FINDER_COLUMN_U_GTCD_ODI_USERID_2);
+		sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_USERID_2);
 
 		boolean bindCreateDate = false;
 
 		if (createDate == null) {
-			sb.append(_FINDER_COLUMN_U_GTCD_ODI_CREATEDATE_1);
+			sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_CREATEDATE_1);
 		}
 		else {
 			bindCreateDate = true;
 
-			sb.append(_FINDER_COLUMN_U_GTCD_ODI_CREATEDATE_2);
+			sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_CREATEDATE_2);
 		}
 
-		sb.append(_FINDER_COLUMN_U_GTCD_ODI_OBJECTDEFINITIONID_2);
+		sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_OBJECTDEFINITIONID_2);
+
+		sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_LATEST_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -6453,6 +6806,8 @@ public class ObjectEntryPersistenceImpl
 
 		queryPos.add(objectDefinitionId);
 
+		queryPos.add(latest);
+
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(objectEntry)) {
@@ -6472,64 +6827,68 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; from the database.
+	 * Removes all the object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63; from the database.
 	 *
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 */
 	@Override
-	public void removeByU_GtCD_ODI(
-		long userId, Date createDate, long objectDefinitionId) {
+	public void removeByU_GtCD_ODI_L(
+		long userId, Date createDate, long objectDefinitionId, boolean latest) {
 
 		for (ObjectEntry objectEntry :
-				findByU_GtCD_ODI(
-					userId, createDate, objectDefinitionId, QueryUtil.ALL_POS,
-					QueryUtil.ALL_POS, null)) {
+				findByU_GtCD_ODI_L(
+					userId, createDate, objectDefinitionId, latest,
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 
 			remove(objectEntry);
 		}
 	}
 
 	/**
-	 * Returns the number of object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63;.
+	 * Returns the number of object entries where userId = &#63; and createDate &gt; &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param userId the user ID
 	 * @param createDate the create date
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByU_GtCD_ODI(
-		long userId, Date createDate, long objectDefinitionId) {
+	public int countByU_GtCD_ODI_L(
+		long userId, Date createDate, long objectDefinitionId, boolean latest) {
 
-		FinderPath finderPath = _finderPathWithPaginationCountByU_GtCD_ODI;
+		FinderPath finderPath = _finderPathWithPaginationCountByU_GtCD_ODI_L;
 
 		Object[] finderArgs = new Object[] {
-			userId, _getTime(createDate), objectDefinitionId
+			userId, _getTime(createDate), objectDefinitionId, latest
 		};
 
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler sb = new StringBundler(4);
+			StringBundler sb = new StringBundler(5);
 
 			sb.append(_SQL_COUNT_OBJECTENTRY_WHERE);
 
-			sb.append(_FINDER_COLUMN_U_GTCD_ODI_USERID_2);
+			sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_USERID_2);
 
 			boolean bindCreateDate = false;
 
 			if (createDate == null) {
-				sb.append(_FINDER_COLUMN_U_GTCD_ODI_CREATEDATE_1);
+				sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_CREATEDATE_1);
 			}
 			else {
 				bindCreateDate = true;
 
-				sb.append(_FINDER_COLUMN_U_GTCD_ODI_CREATEDATE_2);
+				sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_CREATEDATE_2);
 			}
 
-			sb.append(_FINDER_COLUMN_U_GTCD_ODI_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_OBJECTDEFINITIONID_2);
+
+			sb.append(_FINDER_COLUMN_U_GTCD_ODI_L_LATEST_2);
 
 			String sql = sb.toString();
 
@@ -6550,6 +6909,8 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectDefinitionId);
 
+				queryPos.add(latest);
+
 				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
@@ -6565,41 +6926,47 @@ public class ObjectEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_U_GTCD_ODI_USERID_2 =
+	private static final String _FINDER_COLUMN_U_GTCD_ODI_L_USERID_2 =
 		"objectEntry.userId = ? AND ";
 
-	private static final String _FINDER_COLUMN_U_GTCD_ODI_CREATEDATE_1 =
+	private static final String _FINDER_COLUMN_U_GTCD_ODI_L_CREATEDATE_1 =
 		"objectEntry.createDate IS NULL AND ";
 
-	private static final String _FINDER_COLUMN_U_GTCD_ODI_CREATEDATE_2 =
+	private static final String _FINDER_COLUMN_U_GTCD_ODI_L_CREATEDATE_2 =
 		"objectEntry.createDate > ? AND ";
 
-	private static final String _FINDER_COLUMN_U_GTCD_ODI_OBJECTDEFINITIONID_2 =
-		"objectEntry.objectDefinitionId = ?";
+	private static final String
+		_FINDER_COLUMN_U_GTCD_ODI_L_OBJECTDEFINITIONID_2 =
+			"objectEntry.objectDefinitionId = ? AND ";
 
-	private FinderPath _finderPathFetchByERC_G_C_ODI;
+	private static final String _FINDER_COLUMN_U_GTCD_ODI_L_LATEST_2 =
+		"objectEntry.latest = ?";
+
+	private FinderPath _finderPathFetchByERC_G_C_ODI_L;
 
 	/**
-	 * Returns the object entry where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; or throws a <code>NoSuchObjectEntryException</code> if it could not be found.
+	 * Returns the object entry where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; and latest = &#63; or throws a <code>NoSuchObjectEntryException</code> if it could not be found.
 	 *
 	 * @param externalReferenceCode the external reference code
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the matching object entry
 	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry findByERC_G_C_ODI(
+	public ObjectEntry findByERC_G_C_ODI_L(
 			String externalReferenceCode, long groupId, long companyId,
-			long objectDefinitionId)
+			long objectDefinitionId, boolean latest)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = fetchByERC_G_C_ODI(
-			externalReferenceCode, groupId, companyId, objectDefinitionId);
+		ObjectEntry objectEntry = fetchByERC_G_C_ODI_L(
+			externalReferenceCode, groupId, companyId, objectDefinitionId,
+			latest);
 
 		if (objectEntry == null) {
-			StringBundler sb = new StringBundler(10);
+			StringBundler sb = new StringBundler(12);
 
 			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
@@ -6615,6 +6982,9 @@ public class ObjectEntryPersistenceImpl
 			sb.append(", objectDefinitionId=");
 			sb.append(objectDefinitionId);
 
+			sb.append(", latest=");
+			sb.append(latest);
+
 			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
@@ -6628,38 +6998,40 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Returns the object entry where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 * Returns the object entry where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; and latest = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
 	 *
 	 * @param externalReferenceCode the external reference code
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByERC_G_C_ODI(
+	public ObjectEntry fetchByERC_G_C_ODI_L(
 		String externalReferenceCode, long groupId, long companyId,
-		long objectDefinitionId) {
+		long objectDefinitionId, boolean latest) {
 
-		return fetchByERC_G_C_ODI(
+		return fetchByERC_G_C_ODI_L(
 			externalReferenceCode, groupId, companyId, objectDefinitionId,
-			true);
+			latest, true);
 	}
 
 	/**
-	 * Returns the object entry where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 * Returns the object entry where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; and latest = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param externalReferenceCode the external reference code
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching object entry, or <code>null</code> if a matching object entry could not be found
 	 */
 	@Override
-	public ObjectEntry fetchByERC_G_C_ODI(
+	public ObjectEntry fetchByERC_G_C_ODI_L(
 		String externalReferenceCode, long groupId, long companyId,
-		long objectDefinitionId, boolean useFinderCache) {
+		long objectDefinitionId, boolean latest, boolean useFinderCache) {
 
 		externalReferenceCode = Objects.toString(externalReferenceCode, "");
 
@@ -6667,7 +7039,8 @@ public class ObjectEntryPersistenceImpl
 
 		if (useFinderCache) {
 			finderArgs = new Object[] {
-				externalReferenceCode, groupId, companyId, objectDefinitionId
+				externalReferenceCode, groupId, companyId, objectDefinitionId,
+				latest
 			};
 		}
 
@@ -6675,7 +7048,7 @@ public class ObjectEntryPersistenceImpl
 
 		if (useFinderCache) {
 			result = finderCache.getResult(
-				_finderPathFetchByERC_G_C_ODI, finderArgs, this);
+				_finderPathFetchByERC_G_C_ODI_L, finderArgs, this);
 		}
 
 		if (result instanceof ObjectEntry) {
@@ -6686,33 +7059,36 @@ public class ObjectEntryPersistenceImpl
 					objectEntry.getExternalReferenceCode()) ||
 				(groupId != objectEntry.getGroupId()) ||
 				(companyId != objectEntry.getCompanyId()) ||
-				(objectDefinitionId != objectEntry.getObjectDefinitionId())) {
+				(objectDefinitionId != objectEntry.getObjectDefinitionId()) ||
+				(latest != objectEntry.isLatest())) {
 
 				result = null;
 			}
 		}
 
 		if (result == null) {
-			StringBundler sb = new StringBundler(6);
+			StringBundler sb = new StringBundler(7);
 
 			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
 
 			boolean bindExternalReferenceCode = false;
 
 			if (externalReferenceCode.isEmpty()) {
-				sb.append(_FINDER_COLUMN_ERC_G_C_ODI_EXTERNALREFERENCECODE_3);
+				sb.append(_FINDER_COLUMN_ERC_G_C_ODI_L_EXTERNALREFERENCECODE_3);
 			}
 			else {
 				bindExternalReferenceCode = true;
 
-				sb.append(_FINDER_COLUMN_ERC_G_C_ODI_EXTERNALREFERENCECODE_2);
+				sb.append(_FINDER_COLUMN_ERC_G_C_ODI_L_EXTERNALREFERENCECODE_2);
 			}
 
-			sb.append(_FINDER_COLUMN_ERC_G_C_ODI_GROUPID_2);
+			sb.append(_FINDER_COLUMN_ERC_G_C_ODI_L_GROUPID_2);
 
-			sb.append(_FINDER_COLUMN_ERC_G_C_ODI_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_ERC_G_C_ODI_L_COMPANYID_2);
 
-			sb.append(_FINDER_COLUMN_ERC_G_C_ODI_OBJECTDEFINITIONID_2);
+			sb.append(_FINDER_COLUMN_ERC_G_C_ODI_L_OBJECTDEFINITIONID_2);
+
+			sb.append(_FINDER_COLUMN_ERC_G_C_ODI_L_LATEST_2);
 
 			String sql = sb.toString();
 
@@ -6735,12 +7111,14 @@ public class ObjectEntryPersistenceImpl
 
 				queryPos.add(objectDefinitionId);
 
+				queryPos.add(latest);
+
 				List<ObjectEntry> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
 						finderCache.putResult(
-							_finderPathFetchByERC_G_C_ODI, finderArgs, list);
+							_finderPathFetchByERC_G_C_ODI_L, finderArgs, list);
 					}
 				}
 				else {
@@ -6768,42 +7146,46 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	/**
-	 * Removes the object entry where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; from the database.
+	 * Removes the object entry where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; and latest = &#63; from the database.
 	 *
 	 * @param externalReferenceCode the external reference code
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the object entry that was removed
 	 */
 	@Override
-	public ObjectEntry removeByERC_G_C_ODI(
+	public ObjectEntry removeByERC_G_C_ODI_L(
 			String externalReferenceCode, long groupId, long companyId,
-			long objectDefinitionId)
+			long objectDefinitionId, boolean latest)
 		throws NoSuchObjectEntryException {
 
-		ObjectEntry objectEntry = findByERC_G_C_ODI(
-			externalReferenceCode, groupId, companyId, objectDefinitionId);
+		ObjectEntry objectEntry = findByERC_G_C_ODI_L(
+			externalReferenceCode, groupId, companyId, objectDefinitionId,
+			latest);
 
 		return remove(objectEntry);
 	}
 
 	/**
-	 * Returns the number of object entries where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63;.
+	 * Returns the number of object entries where externalReferenceCode = &#63; and groupId = &#63; and companyId = &#63; and objectDefinitionId = &#63; and latest = &#63;.
 	 *
 	 * @param externalReferenceCode the external reference code
 	 * @param groupId the group ID
 	 * @param companyId the company ID
 	 * @param objectDefinitionId the object definition ID
+	 * @param latest the latest
 	 * @return the number of matching object entries
 	 */
 	@Override
-	public int countByERC_G_C_ODI(
+	public int countByERC_G_C_ODI_L(
 		String externalReferenceCode, long groupId, long companyId,
-		long objectDefinitionId) {
+		long objectDefinitionId, boolean latest) {
 
-		ObjectEntry objectEntry = fetchByERC_G_C_ODI(
-			externalReferenceCode, groupId, companyId, objectDefinitionId);
+		ObjectEntry objectEntry = fetchByERC_G_C_ODI_L(
+			externalReferenceCode, groupId, companyId, objectDefinitionId,
+			latest);
 
 		if (objectEntry == null) {
 			return 0;
@@ -6813,22 +7195,25 @@ public class ObjectEntryPersistenceImpl
 	}
 
 	private static final String
-		_FINDER_COLUMN_ERC_G_C_ODI_EXTERNALREFERENCECODE_2 =
+		_FINDER_COLUMN_ERC_G_C_ODI_L_EXTERNALREFERENCECODE_2 =
 			"objectEntry.externalReferenceCode = ? AND ";
 
 	private static final String
-		_FINDER_COLUMN_ERC_G_C_ODI_EXTERNALREFERENCECODE_3 =
+		_FINDER_COLUMN_ERC_G_C_ODI_L_EXTERNALREFERENCECODE_3 =
 			"(objectEntry.externalReferenceCode IS NULL OR objectEntry.externalReferenceCode = '') AND ";
 
-	private static final String _FINDER_COLUMN_ERC_G_C_ODI_GROUPID_2 =
+	private static final String _FINDER_COLUMN_ERC_G_C_ODI_L_GROUPID_2 =
 		"objectEntry.groupId = ? AND ";
 
-	private static final String _FINDER_COLUMN_ERC_G_C_ODI_COMPANYID_2 =
+	private static final String _FINDER_COLUMN_ERC_G_C_ODI_L_COMPANYID_2 =
 		"objectEntry.companyId = ? AND ";
 
 	private static final String
-		_FINDER_COLUMN_ERC_G_C_ODI_OBJECTDEFINITIONID_2 =
-			"objectEntry.objectDefinitionId = ?";
+		_FINDER_COLUMN_ERC_G_C_ODI_L_OBJECTDEFINITIONID_2 =
+			"objectEntry.objectDefinitionId = ? AND ";
+
+	private static final String _FINDER_COLUMN_ERC_G_C_ODI_L_LATEST_2 =
+		"objectEntry.latest = ?";
 
 	public ObjectEntryPersistenceImpl() {
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
@@ -6865,11 +7250,11 @@ public class ObjectEntryPersistenceImpl
 			new Object[] {objectEntry.getParentObjectEntryId()}, objectEntry);
 
 		finderCache.putResult(
-			_finderPathFetchByERC_G_C_ODI,
+			_finderPathFetchByERC_G_C_ODI_L,
 			new Object[] {
 				objectEntry.getExternalReferenceCode(),
 				objectEntry.getGroupId(), objectEntry.getCompanyId(),
-				objectEntry.getObjectDefinitionId()
+				objectEntry.getObjectDefinitionId(), objectEntry.isLatest()
 			},
 			objectEntry);
 	}
@@ -6961,11 +7346,12 @@ public class ObjectEntryPersistenceImpl
 			objectEntryModelImpl.getExternalReferenceCode(),
 			objectEntryModelImpl.getGroupId(),
 			objectEntryModelImpl.getCompanyId(),
-			objectEntryModelImpl.getObjectDefinitionId()
+			objectEntryModelImpl.getObjectDefinitionId(),
+			objectEntryModelImpl.isLatest()
 		};
 
 		finderCache.putResult(
-			_finderPathFetchByERC_G_C_ODI, args, objectEntryModelImpl);
+			_finderPathFetchByERC_G_C_ODI_L, args, objectEntryModelImpl);
 	}
 
 	/**
@@ -7515,188 +7901,237 @@ public class ObjectEntryPersistenceImpl
 			new String[] {String.class.getName(), Long.class.getName()},
 			new String[] {"uuid_", "companyId"}, false);
 
-		_finderPathWithPaginationFindByObjectDefinitionId = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByObjectDefinitionId",
-			new String[] {
-				Long.class.getName(), Integer.class.getName(),
-				Integer.class.getName(), OrderByComparator.class.getName()
-			},
-			new String[] {"objectDefinitionId"}, true);
-
-		_finderPathWithoutPaginationFindByObjectDefinitionId = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByObjectDefinitionId", new String[] {Long.class.getName()},
-			new String[] {"objectDefinitionId"}, true);
-
-		_finderPathCountByObjectDefinitionId = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"countByObjectDefinitionId", new String[] {Long.class.getName()},
-			new String[] {"objectDefinitionId"}, false);
-
 		_finderPathFetchByParentObjectEntryId = new FinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByParentObjectEntryId",
 			new String[] {Long.class.getName()},
 			new String[] {"parentObjectEntryId"}, true);
 
-		_finderPathWithPaginationFindByG_ODI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_ODI",
+		_finderPathWithPaginationFindByODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByODI_L",
+			new String[] {
+				Long.class.getName(), Boolean.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
+			},
+			new String[] {"objectDefinitionId", "latest"}, true);
+
+		_finderPathWithoutPaginationFindByODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByODI_L",
+			new String[] {Long.class.getName(), Boolean.class.getName()},
+			new String[] {"objectDefinitionId", "latest"}, true);
+
+		_finderPathCountByODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByODI_L",
+			new String[] {Long.class.getName(), Boolean.class.getName()},
+			new String[] {"objectDefinitionId", "latest"}, false);
+
+		_finderPathWithPaginationFindByG_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_ODI_L",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
-				Integer.class.getName(), Integer.class.getName(),
-				OrderByComparator.class.getName()
-			},
-			new String[] {"groupId", "objectDefinitionId"}, true);
-
-		_finderPathWithoutPaginationFindByG_ODI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_ODI",
-			new String[] {Long.class.getName(), Long.class.getName()},
-			new String[] {"groupId", "objectDefinitionId"}, true);
-
-		_finderPathCountByG_ODI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_ODI",
-			new String[] {Long.class.getName(), Long.class.getName()},
-			new String[] {"groupId", "objectDefinitionId"}, false);
-
-		_finderPathWithPaginationFindByG_OEFI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_OEFI",
-			new String[] {
-				Long.class.getName(), Long.class.getName(),
-				Integer.class.getName(), Integer.class.getName(),
-				OrderByComparator.class.getName()
-			},
-			new String[] {"groupId", "objectEntryFolderId"}, true);
-
-		_finderPathWithoutPaginationFindByG_OEFI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_OEFI",
-			new String[] {Long.class.getName(), Long.class.getName()},
-			new String[] {"groupId", "objectEntryFolderId"}, true);
-
-		_finderPathCountByG_OEFI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_OEFI",
-			new String[] {Long.class.getName(), Long.class.getName()},
-			new String[] {"groupId", "objectEntryFolderId"}, false);
-
-		_finderPathWithPaginationFindByU_ODI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByU_ODI",
-			new String[] {
-				Long.class.getName(), Long.class.getName(),
-				Integer.class.getName(), Integer.class.getName(),
-				OrderByComparator.class.getName()
-			},
-			new String[] {"userId", "objectDefinitionId"}, true);
-
-		_finderPathWithoutPaginationFindByU_ODI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByU_ODI",
-			new String[] {Long.class.getName(), Long.class.getName()},
-			new String[] {"userId", "objectDefinitionId"}, true);
-
-		_finderPathCountByU_ODI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByU_ODI",
-			new String[] {Long.class.getName(), Long.class.getName()},
-			new String[] {"userId", "objectDefinitionId"}, false);
-
-		_finderPathWithPaginationFindByODI_NotS = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByODI_NotS",
-			new String[] {
-				Long.class.getName(), Integer.class.getName(),
-				Integer.class.getName(), Integer.class.getName(),
-				OrderByComparator.class.getName()
-			},
-			new String[] {"objectDefinitionId", "status"}, true);
-
-		_finderPathWithPaginationCountByODI_NotS = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByODI_NotS",
-			new String[] {Long.class.getName(), Integer.class.getName()},
-			new String[] {"objectDefinitionId", "status"}, false);
-
-		_finderPathWithPaginationFindByROEI_NotS = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByROEI_NotS",
-			new String[] {
-				Long.class.getName(), Integer.class.getName(),
-				Integer.class.getName(), Integer.class.getName(),
-				OrderByComparator.class.getName()
-			},
-			new String[] {"rootObjectEntryId", "status"}, true);
-
-		_finderPathWithPaginationCountByROEI_NotS = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByROEI_NotS",
-			new String[] {Long.class.getName(), Integer.class.getName()},
-			new String[] {"rootObjectEntryId", "status"}, false);
-
-		_finderPathWithPaginationFindByG_C_OEFI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_OEFI",
-			new String[] {
-				Long.class.getName(), Long.class.getName(),
-				Long.class.getName(), Integer.class.getName(),
+				Boolean.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
 			},
-			new String[] {"groupId", "companyId", "objectEntryFolderId"}, true);
+			new String[] {"groupId", "objectDefinitionId", "latest"}, true);
 
-		_finderPathWithoutPaginationFindByG_C_OEFI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_C_OEFI",
+		_finderPathWithoutPaginationFindByG_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_ODI_L",
 			new String[] {
-				Long.class.getName(), Long.class.getName(), Long.class.getName()
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName()
 			},
-			new String[] {"groupId", "companyId", "objectEntryFolderId"}, true);
+			new String[] {"groupId", "objectDefinitionId", "latest"}, true);
 
-		_finderPathCountByG_C_OEFI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_C_OEFI",
+		_finderPathCountByG_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_ODI_L",
 			new String[] {
-				Long.class.getName(), Long.class.getName(), Long.class.getName()
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName()
 			},
-			new String[] {"groupId", "companyId", "objectEntryFolderId"},
+			new String[] {"groupId", "objectDefinitionId", "latest"}, false);
+
+		_finderPathWithPaginationFindByG_OEFI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_OEFI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"groupId", "objectEntryFolderId", "latest"}, true);
+
+		_finderPathWithoutPaginationFindByG_OEFI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_OEFI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName()
+			},
+			new String[] {"groupId", "objectEntryFolderId", "latest"}, true);
+
+		_finderPathCountByG_OEFI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_OEFI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName()
+			},
+			new String[] {"groupId", "objectEntryFolderId", "latest"}, false);
+
+		_finderPathWithPaginationFindByU_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByU_ODI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"userId", "objectDefinitionId", "latest"}, true);
+
+		_finderPathWithoutPaginationFindByU_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByU_ODI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName()
+			},
+			new String[] {"userId", "objectDefinitionId", "latest"}, true);
+
+		_finderPathCountByU_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByU_ODI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName()
+			},
+			new String[] {"userId", "objectDefinitionId", "latest"}, false);
+
+		_finderPathWithPaginationFindByODI_L_NotS = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByODI_L_NotS",
+			new String[] {
+				Long.class.getName(), Boolean.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"objectDefinitionId", "latest", "status"}, true);
+
+		_finderPathWithPaginationCountByODI_L_NotS = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByODI_L_NotS",
+			new String[] {
+				Long.class.getName(), Boolean.class.getName(),
+				Integer.class.getName()
+			},
+			new String[] {"objectDefinitionId", "latest", "status"}, false);
+
+		_finderPathWithPaginationFindByROEI_L_NotS = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByROEI_L_NotS",
+			new String[] {
+				Long.class.getName(), Boolean.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"rootObjectEntryId", "latest", "status"}, true);
+
+		_finderPathWithPaginationCountByROEI_L_NotS = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByROEI_L_NotS",
+			new String[] {
+				Long.class.getName(), Boolean.class.getName(),
+				Integer.class.getName()
+			},
+			new String[] {"rootObjectEntryId", "latest", "status"}, false);
+
+		_finderPathWithPaginationFindByG_C_OEFI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_OEFI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Long.class.getName(), Boolean.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
+			},
+			new String[] {
+				"groupId", "companyId", "objectEntryFolderId", "latest"
+			},
+			true);
+
+		_finderPathWithoutPaginationFindByG_C_OEFI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_C_OEFI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Long.class.getName(), Boolean.class.getName()
+			},
+			new String[] {
+				"groupId", "companyId", "objectEntryFolderId", "latest"
+			},
+			true);
+
+		_finderPathCountByG_C_OEFI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_C_OEFI_L",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Long.class.getName(), Boolean.class.getName()
+			},
+			new String[] {
+				"groupId", "companyId", "objectEntryFolderId", "latest"
+			},
 			false);
 
-		_finderPathWithPaginationFindByG_ODI_S = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_ODI_S",
+		_finderPathWithPaginationFindByG_ODI_L_S = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_ODI_L_S",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
-				Integer.class.getName(), OrderByComparator.class.getName()
+				OrderByComparator.class.getName()
 			},
-			new String[] {"groupId", "objectDefinitionId", "status"}, true);
+			new String[] {"groupId", "objectDefinitionId", "latest", "status"},
+			true);
 
-		_finderPathWithoutPaginationFindByG_ODI_S = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_ODI_S",
+		_finderPathWithoutPaginationFindByG_ODI_L_S = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_ODI_L_S",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
-				Integer.class.getName()
+				Boolean.class.getName(), Integer.class.getName()
 			},
-			new String[] {"groupId", "objectDefinitionId", "status"}, true);
+			new String[] {"groupId", "objectDefinitionId", "latest", "status"},
+			true);
 
-		_finderPathCountByG_ODI_S = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_ODI_S",
+		_finderPathCountByG_ODI_L_S = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_ODI_L_S",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
-				Integer.class.getName()
+				Boolean.class.getName(), Integer.class.getName()
 			},
-			new String[] {"groupId", "objectDefinitionId", "status"}, false);
+			new String[] {"groupId", "objectDefinitionId", "latest", "status"},
+			false);
 
-		_finderPathWithPaginationFindByU_GtCD_ODI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByU_GtCD_ODI",
+		_finderPathWithPaginationFindByU_GtCD_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByU_GtCD_ODI_L",
 			new String[] {
 				Long.class.getName(), Date.class.getName(),
-				Long.class.getName(), Integer.class.getName(),
-				Integer.class.getName(), OrderByComparator.class.getName()
+				Long.class.getName(), Boolean.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
 			},
-			new String[] {"userId", "createDate", "objectDefinitionId"}, true);
-
-		_finderPathWithPaginationCountByU_GtCD_ODI = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByU_GtCD_ODI",
 			new String[] {
-				Long.class.getName(), Date.class.getName(), Long.class.getName()
+				"userId", "createDate", "objectDefinitionId", "latest"
 			},
-			new String[] {"userId", "createDate", "objectDefinitionId"}, false);
+			true);
 
-		_finderPathFetchByERC_G_C_ODI = new FinderPath(
-			FINDER_CLASS_NAME_ENTITY, "fetchByERC_G_C_ODI",
+		_finderPathWithPaginationCountByU_GtCD_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByU_GtCD_ODI_L",
+			new String[] {
+				Long.class.getName(), Date.class.getName(),
+				Long.class.getName(), Boolean.class.getName()
+			},
+			new String[] {
+				"userId", "createDate", "objectDefinitionId", "latest"
+			},
+			false);
+
+		_finderPathFetchByERC_G_C_ODI_L = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByERC_G_C_ODI_L",
 			new String[] {
 				String.class.getName(), Long.class.getName(),
-				Long.class.getName(), Long.class.getName()
+				Long.class.getName(), Long.class.getName(),
+				Boolean.class.getName()
 			},
 			new String[] {
 				"externalReferenceCode", "groupId", "companyId",
-				"objectDefinitionId"
+				"objectDefinitionId", "latest"
 			},
 			true);
 

@@ -269,13 +269,6 @@ public class ObjectEntryPersistenceTest {
 	}
 
 	@Test
-	public void testCountByObjectDefinitionId() throws Exception {
-		_persistence.countByObjectDefinitionId(RandomTestUtil.nextLong());
-
-		_persistence.countByObjectDefinitionId(0L);
-	}
-
-	@Test
 	public void testCountByParentObjectEntryId() throws Exception {
 		_persistence.countByParentObjectEntryId(RandomTestUtil.nextLong());
 
@@ -283,81 +276,99 @@ public class ObjectEntryPersistenceTest {
 	}
 
 	@Test
-	public void testCountByG_ODI() throws Exception {
-		_persistence.countByG_ODI(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
+	public void testCountByODI_L() throws Exception {
+		_persistence.countByODI_L(
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean());
 
-		_persistence.countByG_ODI(0L, 0L);
+		_persistence.countByODI_L(0L, RandomTestUtil.randomBoolean());
 	}
 
 	@Test
-	public void testCountByG_OEFI() throws Exception {
-		_persistence.countByG_OEFI(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
-
-		_persistence.countByG_OEFI(0L, 0L);
-	}
-
-	@Test
-	public void testCountByU_ODI() throws Exception {
-		_persistence.countByU_ODI(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
-
-		_persistence.countByU_ODI(0L, 0L);
-	}
-
-	@Test
-	public void testCountByODI_NotS() throws Exception {
-		_persistence.countByODI_NotS(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
-
-		_persistence.countByODI_NotS(0L, 0);
-	}
-
-	@Test
-	public void testCountByROEI_NotS() throws Exception {
-		_persistence.countByROEI_NotS(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
-
-		_persistence.countByROEI_NotS(0L, 0);
-	}
-
-	@Test
-	public void testCountByG_C_OEFI() throws Exception {
-		_persistence.countByG_C_OEFI(
+	public void testCountByG_ODI_L() throws Exception {
+		_persistence.countByG_ODI_L(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
-			RandomTestUtil.nextLong());
+			RandomTestUtil.randomBoolean());
 
-		_persistence.countByG_C_OEFI(0L, 0L, 0L);
+		_persistence.countByG_ODI_L(0L, 0L, RandomTestUtil.randomBoolean());
 	}
 
 	@Test
-	public void testCountByG_ODI_S() throws Exception {
-		_persistence.countByG_ODI_S(
+	public void testCountByG_OEFI_L() throws Exception {
+		_persistence.countByG_OEFI_L(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+			RandomTestUtil.randomBoolean());
+
+		_persistence.countByG_OEFI_L(0L, 0L, RandomTestUtil.randomBoolean());
+	}
+
+	@Test
+	public void testCountByU_ODI_L() throws Exception {
+		_persistence.countByU_ODI_L(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+			RandomTestUtil.randomBoolean());
+
+		_persistence.countByU_ODI_L(0L, 0L, RandomTestUtil.randomBoolean());
+	}
+
+	@Test
+	public void testCountByODI_L_NotS() throws Exception {
+		_persistence.countByODI_L_NotS(
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean(),
 			RandomTestUtil.nextInt());
 
-		_persistence.countByG_ODI_S(0L, 0L, 0);
+		_persistence.countByODI_L_NotS(0L, RandomTestUtil.randomBoolean(), 0);
 	}
 
 	@Test
-	public void testCountByU_GtCD_ODI() throws Exception {
-		_persistence.countByU_GtCD_ODI(
+	public void testCountByROEI_L_NotS() throws Exception {
+		_persistence.countByROEI_L_NotS(
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean(),
+			RandomTestUtil.nextInt());
+
+		_persistence.countByROEI_L_NotS(0L, RandomTestUtil.randomBoolean(), 0);
+	}
+
+	@Test
+	public void testCountByG_C_OEFI_L() throws Exception {
+		_persistence.countByG_C_OEFI_L(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean());
+
+		_persistence.countByG_C_OEFI_L(
+			0L, 0L, 0L, RandomTestUtil.randomBoolean());
+	}
+
+	@Test
+	public void testCountByG_ODI_L_S() throws Exception {
+		_persistence.countByG_ODI_L_S(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+			RandomTestUtil.randomBoolean(), RandomTestUtil.nextInt());
+
+		_persistence.countByG_ODI_L_S(
+			0L, 0L, RandomTestUtil.randomBoolean(), 0);
+	}
+
+	@Test
+	public void testCountByU_GtCD_ODI_L() throws Exception {
+		_persistence.countByU_GtCD_ODI_L(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextDate(),
-			RandomTestUtil.nextLong());
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean());
 
-		_persistence.countByU_GtCD_ODI(0L, RandomTestUtil.nextDate(), 0L);
+		_persistence.countByU_GtCD_ODI_L(
+			0L, RandomTestUtil.nextDate(), 0L, RandomTestUtil.randomBoolean());
 	}
 
 	@Test
-	public void testCountByERC_G_C_ODI() throws Exception {
-		_persistence.countByERC_G_C_ODI(
+	public void testCountByERC_G_C_ODI_L() throws Exception {
+		_persistence.countByERC_G_C_ODI_L(
 			"", RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
-			RandomTestUtil.nextLong());
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean());
 
-		_persistence.countByERC_G_C_ODI("null", 0L, 0L, 0L);
+		_persistence.countByERC_G_C_ODI_L(
+			"null", 0L, 0L, 0L, RandomTestUtil.randomBoolean());
 
-		_persistence.countByERC_G_C_ODI((String)null, 0L, 0L, 0L);
+		_persistence.countByERC_G_C_ODI_L(
+			(String)null, 0L, 0L, 0L, RandomTestUtil.randomBoolean());
 	}
 
 	@Test
@@ -696,6 +707,11 @@ public class ObjectEntryPersistenceTest {
 			ReflectionTestUtil.<Long>invoke(
 				objectEntry, "getColumnOriginalValue",
 				new Class<?>[] {String.class}, "objectDefinitionId"));
+		Assert.assertEquals(
+			Boolean.valueOf(objectEntry.getLatest()),
+			ReflectionTestUtil.<Boolean>invoke(
+				objectEntry, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "latest"));
 	}
 
 	protected ObjectEntry addObjectEntry() throws Exception {

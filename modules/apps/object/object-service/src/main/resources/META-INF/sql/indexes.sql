@@ -23,15 +23,15 @@ create index IX_F384A765 on ObjectDefinitionSetting (name[$COLUMN_LENGTH:75$], c
 create unique index IX_BB97A04 on ObjectDefinitionSetting (objectDefinitionId, name[$COLUMN_LENGTH:75$]);
 create index IX_89F99D10 on ObjectDefinitionSetting (uuid_[$COLUMN_LENGTH:75$]);
 
-create index IX_46A48D35 on ObjectEntry (groupId, companyId, objectEntryFolderId);
-create index IX_4F10AA1B on ObjectEntry (groupId, objectEntryFolderId);
 create unique index IX_28B2B723 on ObjectEntry (groupId, uuid_[$COLUMN_LENGTH:75$]);
-create unique index IX_11E61545 on ObjectEntry (objectDefinitionId, groupId, companyId, externalReferenceCode[$COLUMN_LENGTH:1000$]);
-create index IX_622DB416 on ObjectEntry (objectDefinitionId, groupId, status);
-create index IX_A388E5A0 on ObjectEntry (objectDefinitionId, status);
-create index IX_68B7FB2 on ObjectEntry (objectDefinitionId, userId, createDate);
+create index IX_441475A on ObjectEntry (latest, groupId, companyId, objectEntryFolderId);
+create index IX_8682D516 on ObjectEntry (latest, groupId, objectEntryFolderId);
+create unique index IX_350675AA on ObjectEntry (latest, objectDefinitionId, groupId, companyId, externalReferenceCode[$COLUMN_LENGTH:1000$]);
+create index IX_119F48BB on ObjectEntry (latest, objectDefinitionId, groupId, status);
+create index IX_D9EF935B on ObjectEntry (latest, objectDefinitionId, status);
+create index IX_990C6CED on ObjectEntry (latest, objectDefinitionId, userId, createDate);
+create index IX_8CBAD22 on ObjectEntry (latest, status, rootObjectEntryId);
 create index IX_3473BBDB on ObjectEntry (parentObjectEntryId);
-create index IX_F4C7E3D on ObjectEntry (status, rootObjectEntryId);
 create index IX_BD205C3B on ObjectEntry (uuid_[$COLUMN_LENGTH:75$]);
 
 create unique index IX_9D7AE9B8 on ObjectEntryFolder (groupId, companyId, externalReferenceCode[$COLUMN_LENGTH:75$]);
