@@ -273,52 +273,62 @@
 
 		<!-- Finder methods -->
 
-		<finder name="ObjectDefinitionId" return-type="Collection">
-			<finder-column name="objectDefinitionId" />
-		</finder>
 		<finder name="ParentObjectEntryId" return-type="ObjectEntry">
 			<finder-column name="parentObjectEntryId" />
 		</finder>
-		<finder name="G_ODI" return-type="Collection">
+		<finder name="ODI_L" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="latest" />
+		</finder>
+		<finder name="G_ODI_L" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="objectDefinitionId" />
+			<finder-column name="latest" />
 		</finder>
-		<finder name="G_OEFI" return-type="Collection">
+		<finder name="G_OEFI_L" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="objectEntryFolderId" />
+			<finder-column name="latest" />
 		</finder>
-		<finder name="U_ODI" return-type="Collection">
+		<finder name="U_ODI_L" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column name="objectDefinitionId" />
+			<finder-column name="latest" />
 		</finder>
-		<finder name="ODI_NotS" return-type="Collection">
+		<finder name="ODI_L_NotS" return-type="Collection">
 			<finder-column name="objectDefinitionId" />
+			<finder-column name="latest" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-		<finder name="ROEI_NotS" return-type="Collection">
+		<finder name="ROEI_L_NotS" return-type="Collection">
 			<finder-column name="rootObjectEntryId" />
+			<finder-column name="latest" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-		<finder name="G_C_OEFI" return-type="Collection">
+		<finder name="G_C_OEFI_L" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="companyId" />
 			<finder-column name="objectEntryFolderId" />
+			<finder-column name="latest" />
 		</finder>
-		<finder name="G_ODI_S" return-type="Collection">
+		<finder name="G_ODI_L_S" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="objectDefinitionId" />
+			<finder-column name="latest" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="U_GtCD_ODI" return-type="Collection">
+		<finder name="U_GtCD_ODI_L" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column comparator="&gt;" name="createDate" />
 			<finder-column name="objectDefinitionId" />
+			<finder-column name="latest" />
 		</finder>
-		<finder name="ERC_G_C_ODI" return-type="ObjectEntry" unique="true">
+		<finder name="ERC_G_C_ODI_L" return-type="ObjectEntry" unique="true">
 			<finder-column name="externalReferenceCode" />
 			<finder-column name="groupId" />
 			<finder-column name="companyId" />
 			<finder-column name="objectDefinitionId" />
+			<finder-column name="latest" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="ObjectEntryFolder" remote-service="true" uuid="true">

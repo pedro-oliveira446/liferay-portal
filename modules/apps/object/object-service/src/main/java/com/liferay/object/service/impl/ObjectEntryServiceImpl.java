@@ -128,9 +128,9 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		ObjectEntry objectEntry = objectEntryPersistence.fetchByERC_G_C_ODI(
+		ObjectEntry objectEntry = objectEntryPersistence.fetchByERC_G_C_ODI_L(
 			externalReferenceCode, groupId, serviceContext.getCompanyId(),
-			objectDefinitionId);
+			objectDefinitionId, true);
 
 		if (objectEntry == null) {
 			_checkAddObjectEntryPortletResourcePermission(

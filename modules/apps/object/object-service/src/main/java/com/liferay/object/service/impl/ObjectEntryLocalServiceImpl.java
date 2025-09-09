@@ -615,9 +615,9 @@ public class ObjectEntryLocalServiceImpl
 		ObjectEntry objectEntry = null;
 
 		if (Validator.isNotNull(externalReferenceCode)) {
-			objectEntry = objectEntryPersistence.fetchByERC_G_C_ODI(
+			objectEntry = objectEntryPersistence.fetchByERC_G_C_ODI_L(
 				externalReferenceCode, groupId, user.getCompanyId(),
-				objectDefinitionId);
+				objectDefinitionId, true);
 
 			if (objectEntry != null) {
 				return objectEntryLocalService.updateObjectEntry(
@@ -932,9 +932,9 @@ public class ObjectEntryLocalServiceImpl
 			return null;
 		}
 
-		return objectEntryPersistence.fetchByERC_G_C_ODI(
+		return objectEntryPersistence.fetchByERC_G_C_ODI_L(
 			externalReferenceCode, groupId, objectDefinition.getCompanyId(),
-			objectDefinitionId);
+			objectDefinitionId, true);
 	}
 
 	@Override
@@ -1109,22 +1109,21 @@ public class ObjectEntryLocalServiceImpl
 	public List<ObjectEntry> getObjectEntries(
 		long groupId, long objectDefinitionId, int start, int end) {
 
-		return objectEntryPersistence.findByG_ODI(
-			groupId, objectDefinitionId, start, end);
+		return objectEntryPersistence.findByG_ODI_L(
+			groupId, objectDefinitionId, true, start, end);
 	}
 
 	@Override
 	public List<ObjectEntry> getObjectEntries(
 		long groupId, long objectDefinitionId, int status, int start, int end) {
 
-		return objectEntryPersistence.findByG_ODI_S(
-			groupId, objectDefinitionId, status, start, end);
+		return objectEntryPersistence.findByG_ODI_L_S(
+			groupId, objectDefinitionId, true, status, start, end);
 	}
 
 	@Override
 	public int getObjectEntriesCount(long objectDefinitionId) {
-		return objectEntryPersistence.countByObjectDefinitionId(
-			objectDefinitionId);
+		return objectEntryPersistence.countByODI_L(objectDefinitionId, true);
 	}
 
 	@Override
@@ -1132,13 +1131,14 @@ public class ObjectEntryLocalServiceImpl
 			long userId, Date createDate, long objectDefinitionId)
 		throws PortalException {
 
-		return objectEntryPersistence.countByU_GtCD_ODI(
-			userId, createDate, objectDefinitionId);
+		return objectEntryPersistence.countByU_GtCD_ODI_L(
+			userId, createDate, objectDefinitionId, true);
 	}
 
 	@Override
 	public int getObjectEntriesCount(long groupId, long objectDefinitionId) {
-		return objectEntryPersistence.countByG_ODI(groupId, objectDefinitionId);
+		return objectEntryPersistence.countByG_ODI_L(
+			groupId, objectDefinitionId, true);
 	}
 
 	@Override
@@ -1191,25 +1191,25 @@ public class ObjectEntryLocalServiceImpl
 		ObjectDefinition objectDefinition =
 			_objectDefinitionPersistence.findByPrimaryKey(objectDefinitionId);
 
-		return objectEntryPersistence.findByERC_G_C_ODI(
+		return objectEntryPersistence.findByERC_G_C_ODI_L(
 			externalReferenceCode, groupId, objectDefinition.getCompanyId(),
-			objectDefinitionId);
+			objectDefinitionId, true);
 	}
 
 	@Override
 	public List<ObjectEntry> getObjectEntryFolderObjectEntries(
 		long groupId, long objectEntryFolderId, int start, int end) {
 
-		return objectEntryPersistence.findByG_OEFI(
-			groupId, objectEntryFolderId, start, end);
+		return objectEntryPersistence.findByG_OEFI_L(
+			groupId, objectEntryFolderId, true, start, end);
 	}
 
 	@Override
 	public int getObjectEntryFolderObjectEntriesCount(
 		long groupId, long objectEntryFolderId) {
 
-		return objectEntryPersistence.countByG_OEFI(
-			groupId, objectEntryFolderId);
+		return objectEntryPersistence.countByG_OEFI_L(
+			groupId, objectEntryFolderId, true);
 	}
 
 	@Override
@@ -1677,10 +1677,10 @@ public class ObjectEntryLocalServiceImpl
 		throws PortalException {
 
 		for (ObjectEntry objectEntry :
-				objectEntryPersistence.findByG_C_OEFI(
+				objectEntryPersistence.findByG_C_OEFI_L(
 					objectEntryFolder.getGroupId(),
 					objectEntryFolder.getCompanyId(),
-					objectEntryFolder.getObjectEntryFolderId())) {
+					objectEntryFolder.getObjectEntryFolderId(), true)) {
 
 			if (objectEntry.isInTrash()) {
 				continue;
@@ -1738,10 +1738,10 @@ public class ObjectEntryLocalServiceImpl
 		throws PortalException {
 
 		for (ObjectEntry objectEntry :
-				objectEntryPersistence.findByG_C_OEFI(
+				objectEntryPersistence.findByG_C_OEFI_L(
 					objectEntryFolder.getGroupId(),
 					objectEntryFolder.getCompanyId(),
-					objectEntryFolder.getObjectEntryFolderId())) {
+					objectEntryFolder.getObjectEntryFolderId(), true)) {
 
 			if (!objectEntry.isInTrash()) {
 				continue;
@@ -6225,8 +6225,8 @@ public class ObjectEntryLocalServiceImpl
 			ObjectActionThreadLocal.setSkipObjectActionExecution(true);
 
 			for (ObjectEntry rootDescendantNodeObjectEntry :
-					objectEntryPersistence.findByROEI_NotS(
-						objectEntry.getObjectEntryId(),
+					objectEntryPersistence.findByROEI_L_NotS(
+						objectEntry.getObjectEntryId(), true,
 						objectEntry.getStatus())) {
 
 				updateStatus(
@@ -6465,8 +6465,9 @@ public class ObjectEntryLocalServiceImpl
 		String externalReferenceCode, long groupId, long companyId,
 		long objectDefinitionId, long objectEntryId) {
 
-		ObjectEntry objectEntry = objectEntryPersistence.fetchByERC_G_C_ODI(
-			externalReferenceCode, groupId, companyId, objectDefinitionId);
+		ObjectEntry objectEntry = objectEntryPersistence.fetchByERC_G_C_ODI_L(
+			externalReferenceCode, groupId, companyId, objectDefinitionId,
+			true);
 
 		if ((objectEntry != null) &&
 			(objectEntry.getObjectEntryId() != objectEntryId)) {

@@ -1142,8 +1142,8 @@ public class ObjectFieldLocalServiceImpl
 
 			if (Objects.equals(objectFieldSetting.getValue(), "userComputer")) {
 				List<ObjectEntry> objectEntries =
-					_objectEntryPersistence.findByObjectDefinitionId(
-						objectField.getObjectDefinitionId());
+					_objectEntryPersistence.findByODI_L(
+						objectField.getObjectDefinitionId(), true);
 
 				for (ObjectEntry objectEntry : objectEntries) {
 
