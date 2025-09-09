@@ -1174,6 +1174,8 @@ public class ObjectEntryLocalServiceImpl
 			_objectScopeProviderRegistry.getObjectScopeProvider(
 				objectDefinition.getScope());
 
+		predicate = predicate.and(_getLatestTruePredicate());
+
 		if (!objectScopeProvider.isGroupAware()) {
 			return dslQueryCount(joinStep.where(predicate));
 		}
@@ -2713,6 +2715,8 @@ public class ObjectEntryLocalServiceImpl
 						_companyIdPreviousCheckDate.get(companyId))
 				).and(
 					ObjectEntryTable.INSTANCE.reviewDate.lte(date)
+				).and(
+					_getLatestTruePredicate()
 				)
 			));
 
@@ -3498,6 +3502,12 @@ public class ObjectEntryLocalServiceImpl
 					relatedObjectDefinition));
 		}
 
+		joinStep = joinStep.innerJoinON(
+			ObjectEntryTable.INSTANCE,
+			ObjectEntryTable.INSTANCE.objectEntryId.eq(primaryKeyColumn));
+
+		predicate = predicate.and(_getLatestTruePredicate());
+
 		return joinStep.where(predicate);
 	}
 
@@ -3762,6 +3772,10 @@ public class ObjectEntryLocalServiceImpl
 			PropsValues.OBJECT_ENCRYPTION_ALGORITHM);
 	}
 
+	private Predicate _getLatestTruePredicate() {
+		return ObjectEntryTable.INSTANCE.latest.eq(true);
+	}
+
 	private Set<Locale> _getLocales(
 		long companyId, List<ObjectField> objectFields,
 		Map<String, Serializable> originalValues, boolean partialUpdate,
@@ -3984,6 +3998,8 @@ public class ObjectEntryLocalServiceImpl
 					ObjectEntryTable.INSTANCE.rootObjectEntryId.eq(0L)
 				).withParentheses()
 			).and(
+				_getLatestTruePredicate()
+			).and(
 				ObjectEntryTable.INSTANCE.status.neq(
 					WorkflowConstants.STATUS_IN_TRASH)
 			).and(
@@ -4085,6 +4101,8 @@ public class ObjectEntryLocalServiceImpl
 			).and(
 				ObjectEntryTable.INSTANCE.objectDefinitionId.eq(
 					objectRelationship.getObjectDefinitionId2())
+			).and(
+				_getLatestTruePredicate()
 			).and(
 				() -> {
 					Column<?, Long> column =
