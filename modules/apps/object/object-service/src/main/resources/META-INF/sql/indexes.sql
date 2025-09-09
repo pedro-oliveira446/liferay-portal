@@ -42,6 +42,7 @@ create index IX_56A855AD on ObjectEntryFolder (uuid_[$COLUMN_LENGTH:75$]);
 
 create index IX_494F3EFB on ObjectEntryVersion (companyId, createDate);
 create index IX_9811B7EC on ObjectEntryVersion (objectDefinitionId);
+create index IX_7D343B19 on ObjectEntryVersion (objectEntryId, status);
 create unique index IX_50DA0035 on ObjectEntryVersion (objectEntryId, version);
 create index IX_5C2CDBC9 on ObjectEntryVersion (uuid_[$COLUMN_LENGTH:75$]);
 
