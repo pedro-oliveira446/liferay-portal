@@ -262,6 +262,10 @@ public interface ObjectEntryLocalService
 	public ObjectEntry fetchObjectEntry(
 		String externalReferenceCode, long groupId, long objectDefinitionId);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectEntry fetchObjectEntryByParentObjectEntryId(
+		long parentObjectEntryId);
+
 	/**
 	 * Returns the object entry matching the UUID and group.
 	 *

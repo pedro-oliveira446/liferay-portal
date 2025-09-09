@@ -318,6 +318,13 @@ public class ObjectEntryLocalServiceUtil {
 			externalReferenceCode, groupId, objectDefinitionId);
 	}
 
+	public static ObjectEntry fetchObjectEntryByParentObjectEntryId(
+		long parentObjectEntryId) {
+
+		return getService().fetchObjectEntryByParentObjectEntryId(
+			parentObjectEntryId);
+	}
+
 	/**
 	 * Returns the object entry matching the UUID and group.
 	 *

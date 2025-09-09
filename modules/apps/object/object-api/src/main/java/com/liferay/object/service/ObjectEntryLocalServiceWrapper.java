@@ -356,6 +356,14 @@ public class ObjectEntryLocalServiceWrapper
 			externalReferenceCode, groupId, objectDefinitionId);
 	}
 
+	@Override
+	public com.liferay.object.model.ObjectEntry
+		fetchObjectEntryByParentObjectEntryId(long parentObjectEntryId) {
+
+		return _objectEntryLocalService.fetchObjectEntryByParentObjectEntryId(
+			parentObjectEntryId);
+	}
+
 	/**
 	 * Returns the object entry matching the UUID and group.
 	 *

@@ -671,6 +671,12 @@ public class ObjectEntryPersistenceTest {
 				new Class<?>[] {String.class}, "groupId"));
 
 		Assert.assertEquals(
+			Long.valueOf(objectEntry.getParentObjectEntryId()),
+			ReflectionTestUtil.<Long>invoke(
+				objectEntry, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "parentObjectEntryId"));
+
+		Assert.assertEquals(
 			objectEntry.getExternalReferenceCode(),
 			ReflectionTestUtil.invoke(
 				objectEntry, "getColumnOriginalValue",
