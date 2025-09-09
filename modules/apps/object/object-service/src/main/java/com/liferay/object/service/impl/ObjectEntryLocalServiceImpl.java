@@ -1185,6 +1185,10 @@ public class ObjectEntryLocalServiceImpl
 			_objectScopeProviderRegistry.getObjectScopeProvider(
 				objectDefinition.getScope());
 
+		predicate = predicate.and(
+			ObjectEntryTable.INSTANCE.objectEntryId.eq(
+				ObjectEntryTable.INSTANCE.parentObjectEntryId));
+
 		if (!objectScopeProvider.isGroupAware()) {
 			return dslQueryCount(joinStep.where(predicate));
 		}
@@ -2725,6 +2729,9 @@ public class ObjectEntryLocalServiceImpl
 						_companyIdPreviousCheckDate.get(companyId))
 				).and(
 					ObjectEntryTable.INSTANCE.reviewDate.lte(date)
+				).and(
+					ObjectEntryTable.INSTANCE.objectEntryId.eq(
+						ObjectEntryTable.INSTANCE.parentObjectEntryId)
 				)
 			));
 
@@ -3510,6 +3517,14 @@ public class ObjectEntryLocalServiceImpl
 					relatedObjectDefinition));
 		}
 
+		joinStep = joinStep.innerJoinON(
+			ObjectEntryTable.INSTANCE,
+			ObjectEntryTable.INSTANCE.objectEntryId.eq(primaryKeyColumn));
+
+		predicate = predicate.and(
+			ObjectEntryTable.INSTANCE.objectEntryId.eq(
+				ObjectEntryTable.INSTANCE.parentObjectEntryId));
+
 		return joinStep.where(predicate);
 	}
 
@@ -3996,6 +4011,9 @@ public class ObjectEntryLocalServiceImpl
 					ObjectEntryTable.INSTANCE.rootObjectEntryId.eq(0L)
 				).withParentheses()
 			).and(
+				ObjectEntryTable.INSTANCE.objectEntryId.eq(
+					ObjectEntryTable.INSTANCE.parentObjectEntryId)
+			).and(
 				ObjectEntryTable.INSTANCE.status.neq(
 					WorkflowConstants.STATUS_IN_TRASH)
 			).and(
@@ -4097,6 +4115,9 @@ public class ObjectEntryLocalServiceImpl
 			).and(
 				ObjectEntryTable.INSTANCE.objectDefinitionId.eq(
 					objectRelationship.getObjectDefinitionId2())
+			).and(
+				ObjectEntryTable.INSTANCE.objectEntryId.eq(
+					ObjectEntryTable.INSTANCE.parentObjectEntryId)
 			).and(
 				() -> {
 					Column<?, Long> column =
