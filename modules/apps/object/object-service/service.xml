@@ -276,7 +276,7 @@
 		<finder name="ObjectDefinitionId" return-type="Collection">
 			<finder-column name="objectDefinitionId" />
 		</finder>
-		<finder name="ParentObjectEntryId" return-type="Collection">
+		<finder name="ParentObjectEntryId" return-type="ObjectEntry">
 			<finder-column name="parentObjectEntryId" />
 		</finder>
 		<finder name="G_ODI" return-type="Collection">
