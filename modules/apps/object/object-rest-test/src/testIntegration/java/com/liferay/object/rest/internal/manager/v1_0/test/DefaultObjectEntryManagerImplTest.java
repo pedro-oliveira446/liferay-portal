@@ -9421,7 +9421,7 @@ public class DefaultObjectEntryManagerImplTest
 			NoSuchObjectEntryException.class,
 			String.format(
 				"No ObjectEntry exists with the key {externalReference" +
-					"Code=%s, groupId=%s, companyId=%s, objectDefinitionId=%s}",
+					"Code=%s, groupId=%s, companyId=%s, objectDefinitionId=%s, latest=true}",
 				parentExternalReferenceCode, groupId,
 				parentObjectDefinition.getCompanyId(),
 				parentObjectDefinition.getObjectDefinitionId()),
