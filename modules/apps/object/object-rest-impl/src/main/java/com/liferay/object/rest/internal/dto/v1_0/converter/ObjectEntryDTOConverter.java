@@ -28,6 +28,7 @@ import com.liferay.object.field.setting.util.ObjectFieldSettingUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntryFolder;
 import com.liferay.object.model.ObjectEntryModel;
+import com.liferay.object.model.ObjectEntryTable;
 import com.liferay.object.model.ObjectEntryVersion;
 import com.liferay.object.model.ObjectEntryVersionModel;
 import com.liferay.object.model.ObjectField;
@@ -61,6 +62,7 @@ import com.liferay.object.system.SystemObjectDefinitionManager;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -926,10 +928,21 @@ public class ObjectEntryDTOConverter
 					relatedObjectDefinitionGroupId = 0;
 				}
 
+				Predicate predicate = null;
+
+				if (GetterUtil.getBoolean(
+						dtoConverterContext.getAttribute("approved"))) {
+
+					predicate = ObjectEntryTable.INSTANCE.status.eq(0);
+				}
+				else {
+					predicate = ObjectEntryTable.INSTANCE.latest.eq(true);
+				}
+
 				List<?> relatedModels =
 					objectRelatedModelsProvider.getRelatedModels(
 						relatedObjectDefinitionGroupId,
-						objectRelationship.getObjectRelationshipId(), null,
+						objectRelationship.getObjectRelationshipId(), predicate,
 						primaryKey, null, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 						null);
 
@@ -1390,10 +1403,19 @@ public class ObjectEntryDTOConverter
 
 		values.remove(objectDefinition.getPKObjectFieldName());
 
+		long primaryKey = objectEntry.getObjectEntryId();
+
+		if (GetterUtil.getBoolean(
+				dtoConverterContext.getAttribute("approved")) &&
+			(objectEntry.getParentObjectEntryId() != 0)) {
+
+			primaryKey = objectEntry.getParentObjectEntryId();
+		}
+
 		Map<String, UnsafeSupplier<Object, Exception>>
 			nestedFieldsRelatedProperties = _getNestedFieldsRelatedProperties(
 				dtoConverterContext, objectEntry.getGroupId(), objectDefinition,
-				objectEntry.getObjectEntryId());
+				primaryKey);
 
 		if (nestedFieldsRelatedProperties != null) {
 			unsafeSuppliers.putAll(nestedFieldsRelatedProperties);
