@@ -4101,8 +4101,6 @@ public class ObjectEntryLocalServiceImpl
 				ObjectEntryTable.INSTANCE.objectDefinitionId.eq(
 					objectRelationship.getObjectDefinitionId2())
 			).and(
-				_getLatestTruePredicate()
-			).and(
 				() -> {
 					Column<?, Long> column =
 						(Column<?, Long>)_objectFieldLocalService.getColumn(
