@@ -29,6 +29,7 @@ import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntryFolder;
+import com.liferay.object.model.ObjectEntryTable;
 import com.liferay.object.model.ObjectEntryVersion;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
@@ -595,6 +596,23 @@ public class DefaultObjectEntryManagerImpl
 	}
 
 	@Override
+	public Page<ObjectEntry> getApprovedObjectEntries(
+			long companyId, ObjectDefinition objectDefinition, String scopeKey,
+			Aggregation aggregation, DTOConverterContext dtoConverterContext,
+			String filterString, Pagination pagination, String search,
+			Sort[] sorts)
+		throws Exception {
+
+		dtoConverterContext.setAttribute("approved", Boolean.TRUE);
+
+		return getObjectEntries(
+			companyId, objectDefinition, scopeKey, aggregation,
+			dtoConverterContext,
+			_objectDefinitionFilterParser.parse(filterString, objectDefinition),
+			pagination, search, sorts);
+	}
+
+	@Override
 	public Page<ObjectEntry> getObjectEntries(
 			long companyId, ObjectDefinition objectDefinition, String scopeKey,
 			Aggregation aggregation, DTOConverterContext dtoConverterContext,
@@ -604,6 +622,26 @@ public class DefaultObjectEntryManagerImpl
 
 		Predicate predicate = _filterFactory.create(
 			filterExpression, objectDefinition);
+
+		Predicate predicate1 = null;
+
+		if (GetterUtil.getBoolean(
+				dtoConverterContext.getAttribute("approved"))) {
+
+			predicate1 = ObjectEntryTable.INSTANCE.status.eq(0);
+		}
+		else {
+			predicate1 = ObjectEntryTable.INSTANCE.latest.eq(true);
+		}
+
+		if (predicate == null) {
+			predicate = predicate1;
+		}
+		else {
+			predicate = predicate.and(predicate1);
+		}
+
+		Predicate finalPredicate = predicate;
 
 		long groupId = getGroupId(objectDefinition, scopeKey);
 
@@ -668,18 +706,19 @@ public class DefaultObjectEntryManagerImpl
 				aggregation,
 				aggregationTerm -> objectEntryLocalService.getAggregationCounts(
 					groupId, objectDefinition.getObjectDefinitionId(),
-					aggregationTerm, predicate, start, end)),
+					aggregationTerm, finalPredicate, start, end)),
 			TransformUtil.transform(
 				objectEntryLocalService.getPrimaryKeys(
 					groupIds, companyId, dtoConverterContext.getUserId(),
-					objectDefinition.getObjectDefinitionId(), predicate, search,
-					start, end, sorts),
+					objectDefinition.getObjectDefinitionId(), finalPredicate,
+					search, start, end, sorts),
 				primaryKey -> _getObjectEntry(
 					dtoConverterContext, objectDefinition, primaryKey)),
 			pagination,
 			objectEntryLocalService.getValuesListCount(
 				groupIds, companyId, dtoConverterContext.getUserId(),
-				objectDefinition.getObjectDefinitionId(), predicate, search));
+				objectDefinition.getObjectDefinitionId(), finalPredicate,
+				search));
 	}
 
 	@Override
