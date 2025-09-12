@@ -938,6 +938,14 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	@Override
+	public ObjectEntry fetchObjectEntryByParentObjectEntryId(
+		long parentObjectEntryId) {
+
+		return objectEntryPersistence.fetchByParentObjectEntryId(
+			parentObjectEntryId, false);
+	}
+
+	@Override
 	public Map<Object, Long> getAggregationCounts(
 			long groupId, long objectDefinitionId, String aggregationTerm,
 			Predicate predicate, int start, int end)
