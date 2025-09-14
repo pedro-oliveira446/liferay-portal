@@ -804,6 +804,17 @@ public class ObjectEntryLocalServiceImpl
 
 		indexer.delete(objectEntry);
 
+		if (objectEntry.isApproved()) {
+			return objectEntry;
+		}
+
+		ObjectEntry childObjectEntryId = fetchObjectEntryByParentObjectEntryId(
+			objectEntry.getObjectEntryId());
+
+		if (childObjectEntryId != null) {
+			deleteObjectEntry(childObjectEntryId);
+		}
+
 		return objectEntry;
 	}
 
