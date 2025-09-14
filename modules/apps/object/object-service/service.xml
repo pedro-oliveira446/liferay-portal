@@ -278,42 +278,42 @@
 		<finder name="ParentObjectEntryId" return-type="ObjectEntry" where="objectEntryId != parentObjectEntryId">
 			<finder-column name="parentObjectEntryId" />
 		</finder>
-		<finder name="G_ODI" return-type="Collection">
+		<finder name="G_ODI" return-type="Collection" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="groupId" />
 			<finder-column name="objectDefinitionId" />
 		</finder>
-		<finder name="G_OEFI" return-type="Collection">
+		<finder name="G_OEFI" return-type="Collection" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="groupId" />
 			<finder-column name="objectEntryFolderId" />
 		</finder>
-		<finder name="U_ODI" return-type="Collection">
+		<finder name="U_ODI" return-type="Collection" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="userId" />
 			<finder-column name="objectDefinitionId" />
 		</finder>
-		<finder name="ODI_NotS" return-type="Collection">
+		<finder name="ODI_NotS" return-type="Collection" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="objectDefinitionId" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-		<finder name="ROEI_NotS" return-type="Collection">
+		<finder name="ROEI_NotS" return-type="Collection" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="rootObjectEntryId" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-		<finder name="G_C_OEFI" return-type="Collection">
+		<finder name="G_C_OEFI" return-type="Collection" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="groupId" />
 			<finder-column name="companyId" />
 			<finder-column name="objectEntryFolderId" />
 		</finder>
-		<finder name="G_ODI_S" return-type="Collection">
+		<finder name="G_ODI_S" return-type="Collection" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="groupId" />
 			<finder-column name="objectDefinitionId" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="U_GtCD_ODI" return-type="Collection">
+		<finder name="U_GtCD_ODI" return-type="Collection" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="userId" />
 			<finder-column comparator="&gt;" name="createDate" />
 			<finder-column name="objectDefinitionId" />
 		</finder>
-		<finder name="ERC_G_C_ODI" return-type="ObjectEntry" unique="true">
+		<finder name="ERC_G_C_ODI" return-type="ObjectEntry" unique="true" where="objectEntryId = parentObjectEntryId">
 			<finder-column name="externalReferenceCode" />
 			<finder-column name="groupId" />
 			<finder-column name="companyId" />
