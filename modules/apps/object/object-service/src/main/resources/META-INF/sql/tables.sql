@@ -94,6 +94,7 @@ create table ObjectEntry (
 	modifiedDate DATE null,
 	objectDefinitionId LONG,
 	objectEntryFolderId LONG,
+	parentObjectEntryId LONG,
 	rootObjectEntryId LONG,
 	defaultLanguageId VARCHAR(75) null,
 	displayDate DATE null,

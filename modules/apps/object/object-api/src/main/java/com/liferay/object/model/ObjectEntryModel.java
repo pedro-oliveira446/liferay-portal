@@ -260,6 +260,20 @@ public interface ObjectEntryModel
 	public void setObjectEntryFolderId(long objectEntryFolderId);
 
 	/**
+	 * Returns the parent object entry ID of this object entry.
+	 *
+	 * @return the parent object entry ID of this object entry
+	 */
+	public long getParentObjectEntryId();
+
+	/**
+	 * Sets the parent object entry ID of this object entry.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID of this object entry
+	 */
+	public void setParentObjectEntryId(long parentObjectEntryId);
+
+	/**
 	 * Returns the root object entry ID of this object entry.
 	 *
 	 * @return the root object entry ID of this object entry

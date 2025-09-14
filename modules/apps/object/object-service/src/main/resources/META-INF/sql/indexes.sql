@@ -30,6 +30,7 @@ create unique index IX_11E61545 on ObjectEntry (objectDefinitionId, groupId, com
 create index IX_622DB416 on ObjectEntry (objectDefinitionId, groupId, status);
 create index IX_A388E5A0 on ObjectEntry (objectDefinitionId, status);
 create index IX_68B7FB2 on ObjectEntry (objectDefinitionId, userId, createDate);
+create index IX_3473BBDB on ObjectEntry (parentObjectEntryId);
 create index IX_F4C7E3D on ObjectEntry (status, rootObjectEntryId);
 create index IX_BD205C3B on ObjectEntry (uuid_[$COLUMN_LENGTH:75$]);
 
@@ -41,6 +42,7 @@ create index IX_56A855AD on ObjectEntryFolder (uuid_[$COLUMN_LENGTH:75$]);
 
 create index IX_494F3EFB on ObjectEntryVersion (companyId, createDate);
 create index IX_9811B7EC on ObjectEntryVersion (objectDefinitionId);
+create index IX_7D343B19 on ObjectEntryVersion (objectEntryId, status);
 create unique index IX_50DA0035 on ObjectEntryVersion (objectEntryId, version);
 create index IX_5C2CDBC9 on ObjectEntryVersion (uuid_[$COLUMN_LENGTH:75$]);
 

@@ -137,6 +137,8 @@ public class ObjectEntryPersistenceTest {
 
 		newObjectEntry.setObjectEntryFolderId(RandomTestUtil.nextLong());
 
+		newObjectEntry.setParentObjectEntryId(RandomTestUtil.nextLong());
+
 		newObjectEntry.setRootObjectEntryId(RandomTestUtil.nextLong());
 
 		newObjectEntry.setDefaultLanguageId(RandomTestUtil.randomString());
@@ -197,6 +199,9 @@ public class ObjectEntryPersistenceTest {
 		Assert.assertEquals(
 			existingObjectEntry.getObjectEntryFolderId(),
 			newObjectEntry.getObjectEntryFolderId());
+		Assert.assertEquals(
+			existingObjectEntry.getParentObjectEntryId(),
+			newObjectEntry.getParentObjectEntryId());
 		Assert.assertEquals(
 			existingObjectEntry.getRootObjectEntryId(),
 			newObjectEntry.getRootObjectEntryId());
@@ -264,6 +269,13 @@ public class ObjectEntryPersistenceTest {
 		_persistence.countByObjectDefinitionId(RandomTestUtil.nextLong());
 
 		_persistence.countByObjectDefinitionId(0L);
+	}
+
+	@Test
+	public void testCountByParentObjectEntryId() throws Exception {
+		_persistence.countByParentObjectEntryId(RandomTestUtil.nextLong());
+
+		_persistence.countByParentObjectEntryId(0L);
 	}
 
 	@Test
@@ -373,11 +385,12 @@ public class ObjectEntryPersistenceTest {
 			"externalReferenceCode", true, "objectEntryId", true, "groupId",
 			true, "companyId", true, "userId", true, "userName", true,
 			"createDate", true, "modifiedDate", true, "objectDefinitionId",
-			true, "objectEntryFolderId", true, "rootObjectEntryId", true,
-			"defaultLanguageId", true, "displayDate", true, "expirationDate",
-			true, "reviewDate", true, "treePath", true, "version", true,
-			"lastPublishDate", true, "status", true, "statusByUserId", true,
-			"statusByUserName", true, "statusDate", true);
+			true, "objectEntryFolderId", true, "parentObjectEntryId", true,
+			"rootObjectEntryId", true, "defaultLanguageId", true, "displayDate",
+			true, "expirationDate", true, "reviewDate", true, "treePath", true,
+			"version", true, "lastPublishDate", true, "status", true,
+			"statusByUserId", true, "statusByUserName", true, "statusDate",
+			true);
 	}
 
 	@Test
@@ -654,6 +667,12 @@ public class ObjectEntryPersistenceTest {
 				new Class<?>[] {String.class}, "groupId"));
 
 		Assert.assertEquals(
+			Long.valueOf(objectEntry.getParentObjectEntryId()),
+			ReflectionTestUtil.<Long>invoke(
+				objectEntry, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "parentObjectEntryId"));
+
+		Assert.assertEquals(
 			objectEntry.getExternalReferenceCode(),
 			ReflectionTestUtil.invoke(
 				objectEntry, "getColumnOriginalValue",
@@ -701,6 +720,8 @@ public class ObjectEntryPersistenceTest {
 		objectEntry.setObjectDefinitionId(RandomTestUtil.nextLong());
 
 		objectEntry.setObjectEntryFolderId(RandomTestUtil.nextLong());
+
+		objectEntry.setParentObjectEntryId(RandomTestUtil.nextLong());
 
 		objectEntry.setRootObjectEntryId(RandomTestUtil.nextLong());
 

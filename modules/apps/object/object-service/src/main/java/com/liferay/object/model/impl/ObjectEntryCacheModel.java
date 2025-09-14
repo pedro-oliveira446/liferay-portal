@@ -68,7 +68,7 @@ public class ObjectEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(49);
+		StringBundler sb = new StringBundler(51);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -94,6 +94,8 @@ public class ObjectEntryCacheModel
 		sb.append(objectDefinitionId);
 		sb.append(", objectEntryFolderId=");
 		sb.append(objectEntryFolderId);
+		sb.append(", parentObjectEntryId=");
+		sb.append(parentObjectEntryId);
 		sb.append(", rootObjectEntryId=");
 		sb.append(rootObjectEntryId);
 		sb.append(", defaultLanguageId=");
@@ -171,6 +173,7 @@ public class ObjectEntryCacheModel
 
 		objectEntryImpl.setObjectDefinitionId(objectDefinitionId);
 		objectEntryImpl.setObjectEntryFolderId(objectEntryFolderId);
+		objectEntryImpl.setParentObjectEntryId(parentObjectEntryId);
 		objectEntryImpl.setRootObjectEntryId(rootObjectEntryId);
 
 		if (defaultLanguageId == null) {
@@ -260,6 +263,8 @@ public class ObjectEntryCacheModel
 
 		objectEntryFolderId = objectInput.readLong();
 
+		parentObjectEntryId = objectInput.readLong();
+
 		rootObjectEntryId = objectInput.readLong();
 		defaultLanguageId = objectInput.readUTF();
 		displayDate = objectInput.readLong();
@@ -317,6 +322,8 @@ public class ObjectEntryCacheModel
 
 		objectOutput.writeLong(objectEntryFolderId);
 
+		objectOutput.writeLong(parentObjectEntryId);
+
 		objectOutput.writeLong(rootObjectEntryId);
 
 		if (defaultLanguageId == null) {
@@ -366,6 +373,7 @@ public class ObjectEntryCacheModel
 	public long modifiedDate;
 	public long objectDefinitionId;
 	public long objectEntryFolderId;
+	public long parentObjectEntryId;
 	public long rootObjectEntryId;
 	public String defaultLanguageId;
 	public long displayDate;

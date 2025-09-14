@@ -89,6 +89,13 @@ public interface ObjectEntryLocalService
 			ObjectDefinition objectDefinition, long objectEntryFolderId)
 		throws PortalException;
 
+	public ObjectEntry addObjectEntry(
+			String externalReferenceCode, long groupId, long userId,
+			ObjectDefinition objectDefinition, long objectEntryFolderId,
+			long parentObjectEntryId, int version,
+			Map<String, Serializable> values)
+		throws PortalException;
+
 	public void addOrUpdateExtensionDynamicObjectDefinitionTableValues(
 			long userId, ObjectDefinition objectDefinition, long primaryKey,
 			Map<String, Serializable> values, ServiceContext serviceContext)
@@ -254,6 +261,10 @@ public interface ObjectEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ObjectEntry fetchObjectEntry(
 		String externalReferenceCode, long groupId, long objectDefinitionId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectEntry fetchObjectEntryByParentObjectEntryId(
+		long parentObjectEntryId);
 
 	/**
 	 * Returns the object entry matching the UUID and group.

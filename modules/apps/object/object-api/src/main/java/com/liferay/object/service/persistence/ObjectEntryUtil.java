@@ -699,6 +699,70 @@ public class ObjectEntryUtil {
 	}
 
 	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or throws a <code>NoSuchObjectEntryException</code> if it could not be found.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	public static ObjectEntry findByParentObjectEntryId(
+			long parentObjectEntryId)
+		throws com.liferay.object.exception.NoSuchObjectEntryException {
+
+		return getPersistence().findByParentObjectEntryId(parentObjectEntryId);
+	}
+
+	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	public static ObjectEntry fetchByParentObjectEntryId(
+		long parentObjectEntryId) {
+
+		return getPersistence().fetchByParentObjectEntryId(parentObjectEntryId);
+	}
+
+	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	public static ObjectEntry fetchByParentObjectEntryId(
+		long parentObjectEntryId, boolean useFinderCache) {
+
+		return getPersistence().fetchByParentObjectEntryId(
+			parentObjectEntryId, useFinderCache);
+	}
+
+	/**
+	 * Removes the object entry where parentObjectEntryId = &#63; from the database.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the object entry that was removed
+	 */
+	public static ObjectEntry removeByParentObjectEntryId(
+			long parentObjectEntryId)
+		throws com.liferay.object.exception.NoSuchObjectEntryException {
+
+		return getPersistence().removeByParentObjectEntryId(
+			parentObjectEntryId);
+	}
+
+	/**
+	 * Returns the number of object entries where parentObjectEntryId = &#63;.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the number of matching object entries
+	 */
+	public static int countByParentObjectEntryId(long parentObjectEntryId) {
+		return getPersistence().countByParentObjectEntryId(parentObjectEntryId);
+	}
+
+	/**
 	 * Returns all the object entries where groupId = &#63; and objectDefinitionId = &#63;.
 	 *
 	 * @param groupId the group ID

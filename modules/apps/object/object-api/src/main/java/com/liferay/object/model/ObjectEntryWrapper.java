@@ -48,6 +48,7 @@ public class ObjectEntryWrapper
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("objectDefinitionId", getObjectDefinitionId());
 		attributes.put("objectEntryFolderId", getObjectEntryFolderId());
+		attributes.put("parentObjectEntryId", getParentObjectEntryId());
 		attributes.put("rootObjectEntryId", getRootObjectEntryId());
 		attributes.put("defaultLanguageId", getDefaultLanguageId());
 		attributes.put("displayDate", getDisplayDate());
@@ -137,6 +138,12 @@ public class ObjectEntryWrapper
 
 		if (objectEntryFolderId != null) {
 			setObjectEntryFolderId(objectEntryFolderId);
+		}
+
+		Long parentObjectEntryId = (Long)attributes.get("parentObjectEntryId");
+
+		if (parentObjectEntryId != null) {
+			setParentObjectEntryId(parentObjectEntryId);
 		}
 
 		Long rootObjectEntryId = (Long)attributes.get("rootObjectEntryId");
@@ -364,6 +371,16 @@ public class ObjectEntryWrapper
 	@Override
 	public long getObjectEntryId() {
 		return model.getObjectEntryId();
+	}
+
+	/**
+	 * Returns the parent object entry ID of this object entry.
+	 *
+	 * @return the parent object entry ID of this object entry
+	 */
+	@Override
+	public long getParentObjectEntryId() {
+		return model.getParentObjectEntryId();
 	}
 
 	/**
@@ -787,6 +804,16 @@ public class ObjectEntryWrapper
 	@Override
 	public void setObjectEntryId(long objectEntryId) {
 		model.setObjectEntryId(objectEntryId);
+	}
+
+	/**
+	 * Sets the parent object entry ID of this object entry.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID of this object entry
+	 */
+	@Override
+	public void setParentObjectEntryId(long parentObjectEntryId) {
+		model.setParentObjectEntryId(parentObjectEntryId);
 	}
 
 	/**

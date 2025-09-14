@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 
@@ -50,6 +51,7 @@ import java.lang.reflect.InvocationHandler;
 
 import java.sql.Timestamp;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1909,6 +1911,191 @@ public class ObjectEntryPersistenceImpl
 		_FINDER_COLUMN_OBJECTDEFINITIONID_OBJECTDEFINITIONID_2 =
 			"objectEntry.objectDefinitionId = ?";
 
+	private FinderPath _finderPathFetchByParentObjectEntryId;
+
+	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or throws a <code>NoSuchObjectEntryException</code> if it could not be found.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry findByParentObjectEntryId(long parentObjectEntryId)
+		throws NoSuchObjectEntryException {
+
+		ObjectEntry objectEntry = fetchByParentObjectEntryId(
+			parentObjectEntryId);
+
+		if (objectEntry == null) {
+			StringBundler sb = new StringBundler(4);
+
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+			sb.append("parentObjectEntryId=");
+			sb.append(parentObjectEntryId);
+
+			sb.append("}");
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(sb.toString());
+			}
+
+			throw new NoSuchObjectEntryException(sb.toString());
+		}
+
+		return objectEntry;
+	}
+
+	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry fetchByParentObjectEntryId(long parentObjectEntryId) {
+		return fetchByParentObjectEntryId(parentObjectEntryId, true);
+	}
+
+	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	@Override
+	public ObjectEntry fetchByParentObjectEntryId(
+		long parentObjectEntryId, boolean useFinderCache) {
+
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {parentObjectEntryId};
+		}
+
+		Object result = null;
+
+		if (useFinderCache) {
+			result = finderCache.getResult(
+				_finderPathFetchByParentObjectEntryId, finderArgs, this);
+		}
+
+		if (result instanceof ObjectEntry) {
+			ObjectEntry objectEntry = (ObjectEntry)result;
+
+			if (parentObjectEntryId != objectEntry.getParentObjectEntryId()) {
+				result = null;
+			}
+		}
+
+		if (result == null) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append(_SQL_SELECT_OBJECTENTRY_WHERE);
+
+			sb.append(_FINDER_COLUMN_PARENTOBJECTENTRYID_PARENTOBJECTENTRYID_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(parentObjectEntryId);
+
+				List<ObjectEntry> list = query.list();
+
+				if (list.isEmpty()) {
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByParentObjectEntryId, finderArgs,
+							list);
+					}
+				}
+				else {
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							if (!useFinderCache) {
+								finderArgs = new Object[] {parentObjectEntryId};
+							}
+
+							_log.warn(
+								"ObjectEntryPersistenceImpl.fetchByParentObjectEntryId(long, boolean) with parameters (" +
+									StringUtil.merge(finderArgs) +
+										") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
+					}
+
+					ObjectEntry objectEntry = list.get(0);
+
+					result = objectEntry;
+
+					cacheResult(objectEntry);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		if (result instanceof List<?>) {
+			return null;
+		}
+		else {
+			return (ObjectEntry)result;
+		}
+	}
+
+	/**
+	 * Removes the object entry where parentObjectEntryId = &#63; from the database.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the object entry that was removed
+	 */
+	@Override
+	public ObjectEntry removeByParentObjectEntryId(long parentObjectEntryId)
+		throws NoSuchObjectEntryException {
+
+		ObjectEntry objectEntry = findByParentObjectEntryId(
+			parentObjectEntryId);
+
+		return remove(objectEntry);
+	}
+
+	/**
+	 * Returns the number of object entries where parentObjectEntryId = &#63;.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the number of matching object entries
+	 */
+	@Override
+	public int countByParentObjectEntryId(long parentObjectEntryId) {
+		ObjectEntry objectEntry = fetchByParentObjectEntryId(
+			parentObjectEntryId);
+
+		if (objectEntry == null) {
+			return 0;
+		}
+
+		return 1;
+	}
+
+	private static final String
+		_FINDER_COLUMN_PARENTOBJECTENTRYID_PARENTOBJECTENTRYID_2 =
+			"objectEntry.parentObjectEntryId = ? AND objectEntry.objectEntryId != objectEntry.parentObjectEntryId";
+
 	private FinderPath _finderPathWithPaginationFindByG_ODI;
 	private FinderPath _finderPathWithoutPaginationFindByG_ODI;
 	private FinderPath _finderPathCountByG_ODI;
@@ -2450,7 +2637,7 @@ public class ObjectEntryPersistenceImpl
 		"objectEntry.groupId = ? AND ";
 
 	private static final String _FINDER_COLUMN_G_ODI_OBJECTDEFINITIONID_2 =
-		"objectEntry.objectDefinitionId = ?";
+		"objectEntry.objectDefinitionId = ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	private FinderPath _finderPathWithPaginationFindByG_OEFI;
 	private FinderPath _finderPathWithoutPaginationFindByG_OEFI;
@@ -2993,7 +3180,7 @@ public class ObjectEntryPersistenceImpl
 		"objectEntry.groupId = ? AND ";
 
 	private static final String _FINDER_COLUMN_G_OEFI_OBJECTENTRYFOLDERID_2 =
-		"objectEntry.objectEntryFolderId = ?";
+		"objectEntry.objectEntryFolderId = ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	private FinderPath _finderPathWithPaginationFindByU_ODI;
 	private FinderPath _finderPathWithoutPaginationFindByU_ODI;
@@ -3534,7 +3721,7 @@ public class ObjectEntryPersistenceImpl
 		"objectEntry.userId = ? AND ";
 
 	private static final String _FINDER_COLUMN_U_ODI_OBJECTDEFINITIONID_2 =
-		"objectEntry.objectDefinitionId = ?";
+		"objectEntry.objectDefinitionId = ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	private FinderPath _finderPathWithPaginationFindByODI_NotS;
 	private FinderPath _finderPathWithPaginationCountByODI_NotS;
@@ -4066,7 +4253,7 @@ public class ObjectEntryPersistenceImpl
 		"objectEntry.objectDefinitionId = ? AND ";
 
 	private static final String _FINDER_COLUMN_ODI_NOTS_STATUS_2 =
-		"objectEntry.status != ?";
+		"objectEntry.status != ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	private FinderPath _finderPathWithPaginationFindByROEI_NotS;
 	private FinderPath _finderPathWithPaginationCountByROEI_NotS;
@@ -4598,7 +4785,7 @@ public class ObjectEntryPersistenceImpl
 		"objectEntry.rootObjectEntryId = ? AND ";
 
 	private static final String _FINDER_COLUMN_ROEI_NOTS_STATUS_2 =
-		"objectEntry.status != ?";
+		"objectEntry.status != ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	private FinderPath _finderPathWithPaginationFindByG_C_OEFI;
 	private FinderPath _finderPathWithoutPaginationFindByG_C_OEFI;
@@ -5188,7 +5375,7 @@ public class ObjectEntryPersistenceImpl
 		"objectEntry.companyId = ? AND ";
 
 	private static final String _FINDER_COLUMN_G_C_OEFI_OBJECTENTRYFOLDERID_2 =
-		"objectEntry.objectEntryFolderId = ?";
+		"objectEntry.objectEntryFolderId = ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	private FinderPath _finderPathWithPaginationFindByG_ODI_S;
 	private FinderPath _finderPathWithoutPaginationFindByG_ODI_S;
@@ -5774,7 +5961,7 @@ public class ObjectEntryPersistenceImpl
 		"objectEntry.objectDefinitionId = ? AND ";
 
 	private static final String _FINDER_COLUMN_G_ODI_S_STATUS_2 =
-		"objectEntry.status = ?";
+		"objectEntry.status = ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	private FinderPath _finderPathWithPaginationFindByU_GtCD_ODI;
 	private FinderPath _finderPathWithPaginationCountByU_GtCD_ODI;
@@ -6388,7 +6575,7 @@ public class ObjectEntryPersistenceImpl
 		"objectEntry.createDate > ? AND ";
 
 	private static final String _FINDER_COLUMN_U_GTCD_ODI_OBJECTDEFINITIONID_2 =
-		"objectEntry.objectDefinitionId = ?";
+		"objectEntry.objectDefinitionId = ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	private FinderPath _finderPathFetchByERC_G_C_ODI;
 
@@ -6641,7 +6828,7 @@ public class ObjectEntryPersistenceImpl
 
 	private static final String
 		_FINDER_COLUMN_ERC_G_C_ODI_OBJECTDEFINITIONID_2 =
-			"objectEntry.objectDefinitionId = ?";
+			"objectEntry.objectDefinitionId = ? AND objectEntry.objectEntryId = objectEntry.parentObjectEntryId";
 
 	public ObjectEntryPersistenceImpl() {
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
@@ -6672,6 +6859,10 @@ public class ObjectEntryPersistenceImpl
 			_finderPathFetchByUUID_G,
 			new Object[] {objectEntry.getUuid(), objectEntry.getGroupId()},
 			objectEntry);
+
+		finderCache.putResult(
+			_finderPathFetchByParentObjectEntryId,
+			new Object[] {objectEntry.getParentObjectEntryId()}, objectEntry);
 
 		finderCache.putResult(
 			_finderPathFetchByERC_G_C_ODI,
@@ -6760,6 +6951,11 @@ public class ObjectEntryPersistenceImpl
 
 		finderCache.putResult(
 			_finderPathFetchByUUID_G, args, objectEntryModelImpl);
+
+		args = new Object[] {objectEntryModelImpl.getParentObjectEntryId()};
+
+		finderCache.putResult(
+			_finderPathFetchByParentObjectEntryId, args, objectEntryModelImpl);
 
 		args = new Object[] {
 			objectEntryModelImpl.getExternalReferenceCode(),
@@ -7336,6 +7532,11 @@ public class ObjectEntryPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
 			"countByObjectDefinitionId", new String[] {Long.class.getName()},
 			new String[] {"objectDefinitionId"}, false);
+
+		_finderPathFetchByParentObjectEntryId = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByParentObjectEntryId",
+			new String[] {Long.class.getName()},
+			new String[] {"parentObjectEntryId"}, true);
 
 		_finderPathWithPaginationFindByG_ODI = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_ODI",

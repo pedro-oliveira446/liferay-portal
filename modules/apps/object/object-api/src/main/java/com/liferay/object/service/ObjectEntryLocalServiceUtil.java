@@ -74,6 +74,18 @@ public class ObjectEntryLocalServiceUtil {
 			objectEntryFolderId);
 	}
 
+	public static ObjectEntry addObjectEntry(
+			String externalReferenceCode, long groupId, long userId,
+			com.liferay.object.model.ObjectDefinition objectDefinition,
+			long objectEntryFolderId, long parentObjectEntryId, int version,
+			Map<String, Serializable> values)
+		throws PortalException {
+
+		return getService().addObjectEntry(
+			externalReferenceCode, groupId, userId, objectDefinition,
+			objectEntryFolderId, parentObjectEntryId, version, values);
+	}
+
 	public static void addOrUpdateExtensionDynamicObjectDefinitionTableValues(
 			long userId,
 			com.liferay.object.model.ObjectDefinition objectDefinition,
@@ -304,6 +316,13 @@ public class ObjectEntryLocalServiceUtil {
 
 		return getService().fetchObjectEntry(
 			externalReferenceCode, groupId, objectDefinitionId);
+	}
+
+	public static ObjectEntry fetchObjectEntryByParentObjectEntryId(
+		long parentObjectEntryId) {
+
+		return getService().fetchObjectEntryByParentObjectEntryId(
+			parentObjectEntryId);
 	}
 
 	/**

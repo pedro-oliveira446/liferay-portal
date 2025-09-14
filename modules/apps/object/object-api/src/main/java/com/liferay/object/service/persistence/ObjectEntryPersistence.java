@@ -526,6 +526,51 @@ public interface ObjectEntryPersistence extends BasePersistence<ObjectEntry> {
 	public int countByObjectDefinitionId(long objectDefinitionId);
 
 	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or throws a <code>NoSuchObjectEntryException</code> if it could not be found.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the matching object entry
+	 * @throws NoSuchObjectEntryException if a matching object entry could not be found
+	 */
+	public ObjectEntry findByParentObjectEntryId(long parentObjectEntryId)
+		throws NoSuchObjectEntryException;
+
+	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	public ObjectEntry fetchByParentObjectEntryId(long parentObjectEntryId);
+
+	/**
+	 * Returns the object entry where parentObjectEntryId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching object entry, or <code>null</code> if a matching object entry could not be found
+	 */
+	public ObjectEntry fetchByParentObjectEntryId(
+		long parentObjectEntryId, boolean useFinderCache);
+
+	/**
+	 * Removes the object entry where parentObjectEntryId = &#63; from the database.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the object entry that was removed
+	 */
+	public ObjectEntry removeByParentObjectEntryId(long parentObjectEntryId)
+		throws NoSuchObjectEntryException;
+
+	/**
+	 * Returns the number of object entries where parentObjectEntryId = &#63;.
+	 *
+	 * @param parentObjectEntryId the parent object entry ID
+	 * @return the number of matching object entries
+	 */
+	public int countByParentObjectEntryId(long parentObjectEntryId);
+
+	/**
 	 * Returns all the object entries where groupId = &#63; and objectDefinitionId = &#63;.
 	 *
 	 * @param groupId the group ID
