@@ -5198,6 +5198,9 @@ public class ObjectEntryLocalServiceImpl
 				"title", objectEntry.getObjectEntryId()
 			).build());
 
+		_updateChildObjectEntry(
+			objectEntry.getObjectEntryId(), WorkflowConstants.STATUS_IN_TRASH);
+
 		for (ObjectEntryVersion objectEntryVersion : objectEntryVersions) {
 			objectEntryVersion.setStatus(WorkflowConstants.STATUS_IN_TRASH);
 
@@ -5476,6 +5479,9 @@ public class ObjectEntryLocalServiceImpl
 
 		objectEntry = updateStatus(
 			userId, objectEntry, trashEntry.getStatus(), serviceContext);
+
+		_updateChildObjectEntry(
+			objectEntry.getObjectEntryId(), WorkflowConstants.STATUS_APPROVED);
 
 		for (TrashVersion trashVersion :
 				_trashVersionLocalService.getVersions(
@@ -6034,6 +6040,19 @@ public class ObjectEntryLocalServiceImpl
 				userId, assetEntry.getEntryId(), assetLinkEntryIds,
 				AssetLinkConstants.TYPE_RELATED);
 		}
+	}
+
+	private void _updateChildObjectEntry(long objectEntryId, int status) {
+		ObjectEntry childObjectEntry = fetchObjectEntryByParentObjectEntryId(
+			objectEntryId);
+
+		if (childObjectEntry == null) {
+			return;
+		}
+
+		childObjectEntry.setStatus(status);
+
+		objectEntryLocalService.updateObjectEntry(childObjectEntry);
 	}
 
 	private void _updateLatestObjectEntryVersion(
