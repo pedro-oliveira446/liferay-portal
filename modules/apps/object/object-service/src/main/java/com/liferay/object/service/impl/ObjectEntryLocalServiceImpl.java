@@ -1615,7 +1615,7 @@ public class ObjectEntryLocalServiceImpl
 		return TransformUtil.transform(
 			getPrimaryKeys(
 				new Long[] {groupId}, companyId, userId, objectDefinitionId,
-				predicate, search, start, end, sorts),
+				predicate, false, search, start, end, sorts),
 			this::getValues);
 	}
 

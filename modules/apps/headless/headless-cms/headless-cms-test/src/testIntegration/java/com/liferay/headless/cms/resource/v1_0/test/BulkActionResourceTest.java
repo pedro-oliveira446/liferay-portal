@@ -293,7 +293,7 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 		List<Long> primaryKeys = _objectEntryLocalService.getPrimaryKeys(
 			new Long[0], _depotEntry2.getCompanyId(),
 			TestPropsValues.getUserId(),
-			objectDefinition.getObjectDefinitionId(), predicate, null,
+			objectDefinition.getObjectDefinitionId(), predicate, false, null,
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
