@@ -603,8 +603,10 @@ public class ObjectEntryDTOConverter
 							toDTO(
 								_getDTOConverterContext(
 									dtoConverterContext, primaryKey),
-								_objectEntryLocalService.getObjectEntry(
-									primaryKey)));
+								_getObjectEntry(
+									dtoConverterContext,
+									_objectEntryLocalService.getObjectEntry(
+										primaryKey))));
 					}
 
 					return relatedObjectEntryAtomicReference.get();
@@ -999,7 +1001,10 @@ public class ObjectEntryDTOConverter
 					relatedModels,
 					relatedModel -> {
 						com.liferay.object.model.ObjectEntry objectEntry =
-							(com.liferay.object.model.ObjectEntry)relatedModel;
+							_getObjectEntry(
+								dtoConverterContext,
+								(com.liferay.object.model.ObjectEntry)
+									relatedModel);
 
 						return toDTO(
 							_getDTOConverterContext(
@@ -1042,6 +1047,21 @@ public class ObjectEntryDTOConverter
 		}
 
 		return objectDefinition;
+	}
+
+	private com.liferay.object.model.ObjectEntry _getObjectEntry(
+		DTOConverterContext dtoConverterContext,
+		com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry) {
+
+		if (!GetterUtil.getBoolean(
+				dtoConverterContext.getAttribute("preferApproved")) ||
+			serviceBuilderObjectEntry.isApproved()) {
+
+			return serviceBuilderObjectEntry;
+		}
+
+		return _objectEntryLocalService.fetchObjectEntryByHeadObjectEntryId(
+			serviceBuilderObjectEntry.getObjectEntryId());
 	}
 
 	private String _getPreviewURL(LiferayFileEntry liferayFileEntry)
@@ -1479,7 +1499,7 @@ public class ObjectEntryDTOConverter
 		Map<String, UnsafeSupplier<Object, Exception>>
 			nestedFieldsRelatedProperties = _getNestedFieldsRelatedProperties(
 				dtoConverterContext, objectEntry.getGroupId(), objectDefinition,
-				objectEntry.getObjectEntryId());
+				objectEntry.getHeadObjectEntryId());
 
 		if (nestedFieldsRelatedProperties != null) {
 			unsafeSuppliers.putAll(nestedFieldsRelatedProperties);
