@@ -599,12 +599,29 @@ public class ObjectEntryDTOConverter
 							(Serializable)values);
 					}
 					else {
+						com.liferay.object.model.ObjectEntry
+							serviceBuilderObjectEntry =
+								_objectEntryLocalService.getObjectEntry(
+									primaryKey);
+
+						if (GetterUtil.getBoolean(
+								dtoConverterContext.getAttribute(
+									"preferApproved")) &&
+							!serviceBuilderObjectEntry.isApproved()) {
+
+							serviceBuilderObjectEntry =
+								_objectEntryLocalService.
+									fetchObjectEntryByHeadObjectEntryId(
+										primaryKey);
+						}
+
 						relatedObjectEntryAtomicReference.set(
 							toDTO(
 								_getDTOConverterContext(
-									dtoConverterContext, primaryKey),
-								_objectEntryLocalService.getObjectEntry(
-									primaryKey)));
+									dtoConverterContext,
+									serviceBuilderObjectEntry.
+										getObjectEntryId()),
+								serviceBuilderObjectEntry));
 					}
 
 					return relatedObjectEntryAtomicReference.get();
@@ -717,6 +734,9 @@ public class ObjectEntryDTOConverter
 	private DTOConverterContext _getDTOConverterContext(
 		DTOConverterContext dtoConverterContext, long objectEntryId) {
 
+		boolean preferApproved = GetterUtil.getBoolean(
+			dtoConverterContext.getAttribute("preferApproved"));
+
 		UriInfo uriInfo = dtoConverterContext.getUriInfo();
 
 		DefaultDTOConverterContext defaultDTOConverterContext =
@@ -728,9 +748,7 @@ public class ObjectEntryDTOConverter
 				dtoConverterContext.getUser());
 
 		defaultDTOConverterContext.setAttribute(
-			"preferApproved",
-			GetterUtil.getBoolean(
-				dtoConverterContext.getAttribute("preferApproved")));
+			"preferApproved", preferApproved);
 
 		return defaultDTOConverterContext;
 	}
