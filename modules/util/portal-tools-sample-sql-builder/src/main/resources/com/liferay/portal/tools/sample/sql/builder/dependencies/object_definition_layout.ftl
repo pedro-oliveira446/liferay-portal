@@ -3,6 +3,8 @@
 
 	<#assign
 		name = objectDefinitionModel.getName()
+
+		csvLineData = virtualHostModel.hostname + "," + groupModel.friendlyURL + "," + dataFactory.getDefaultListTypeEntryKey()
 	/>
 
 	<#list dataFactory.getLayoutDataItemTypes() as layoutDataItemType>
@@ -30,8 +32,14 @@
 
 			${dataFactory.toInsertSQL(layoutPageTemplateStructureModel)}
 
-			${dataFactory.toInsertSQL(dataFactory.newObjectDefinitionLayoutPageTemplateStructureRelModel(fragmentEntryLinkModels, layoutDataItemType, contentLayoutModel, layoutPageTemplateStructureModel, objectDefinitionModel))}
+			<#assign layoutPageTemplateStructureRelModel = dataFactory.newObjectDefinitionLayoutPageTemplateStructureRelModel(fragmentEntryLinkModels, layoutDataItemType, contentLayoutModel, layoutPageTemplateStructureModel, objectDefinitionModel) />
+
+			${dataFactory.toInsertSQL(layoutPageTemplateStructureRelModel)}
+
+			<#if contentLayoutModel.friendlyURL?contains(name?c_lower_case)>
+				<#assign csvLineData = csvLineData + "," + contentLayoutModel.getFriendlyURL() + "," + layoutPageTemplateStructureRelModel.getSegmentsExperienceId() />
+			</#if>
 		</#list>
 	</#list>
-	${csvFileWriter.write("objectDefinition", virtualHostModel.hostname + "," + groupModel.friendlyURL + ",/" + name?c_lower_case + "\n")}
+	${csvFileWriter.write("objectDefinition", csvLineData + "\n")}
 </#list>

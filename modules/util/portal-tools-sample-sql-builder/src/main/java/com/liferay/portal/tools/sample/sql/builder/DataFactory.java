@@ -703,6 +703,10 @@ public class DataFactory {
 		return _defaultDLDDMStructureId;
 	}
 
+	public String getDefaultListTypeEntryKey() {
+		return _defaultListTypeEntryKey;
+	}
+
 	public long getDLFileEntryClassNameId() {
 		return getClassNameId(DLFileEntry.class);
 	}
