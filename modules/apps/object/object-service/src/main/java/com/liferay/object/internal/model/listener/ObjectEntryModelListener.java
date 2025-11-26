@@ -60,6 +60,7 @@ import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,6 +83,9 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 		try {
 			_route(EventTypes.ADD, null, objectEntry);
+
+			_updateRootObjectEntryModifiedDate(
+				objectEntry.getModifiedDate(), objectEntry);
 		}
 		catch (PortalException portalException) {
 			throw new ModelListenerException(portalException);
@@ -102,6 +106,8 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 			_updateObjectViewFilterColumn(StringPool.BLANK, objectEntry);
 
+			_updateRootObjectEntryModifiedDate(new Date(), objectEntry);
+
 			long userId = PrincipalThreadLocal.getUserId();
 
 			if (userId == 0) {
@@ -116,20 +122,15 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 					objectEntry, objectEntry, user);
 			}
 
-			ObjectEntry rootObjectEntry =
-				_objectEntryLocalService.fetchObjectEntry(
-					objectEntry.getRootObjectEntryId());
-
-			if (!FeatureFlagManagerUtil.isEnabled(
-					objectEntry.getCompanyId(), "LPD-34594") ||
-				(rootObjectEntry == null)) {
-
+			if (!_hasRootObjectEntry(objectEntry)) {
 				return;
 			}
 
 			_executeObjectActions(
 				ObjectActionTriggerConstants.KEY_ON_AFTER_ROOT_UPDATE, null,
-				rootObjectEntry, user);
+				_objectEntryLocalService.fetchObjectEntry(
+					objectEntry.getRootObjectEntryId()),
+				user);
 		}
 		catch (PortalException portalException) {
 			throw new ModelListenerException(portalException);
@@ -154,6 +155,9 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 		try {
 			_route(EventTypes.UPDATE, originalObjectEntry, objectEntry);
+
+			_updateRootObjectEntryModifiedDate(
+				objectEntry.getModifiedDate(), objectEntry);
 
 			if (StringUtil.equals(
 					originalObjectEntry.getExternalReferenceCode(),
@@ -349,6 +353,20 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 		return attributes;
 	}
 
+	private boolean _hasRootObjectEntry(ObjectEntry objectEntry) {
+		ObjectEntry rootObjectEntry = _objectEntryLocalService.fetchObjectEntry(
+			objectEntry.getRootObjectEntryId());
+
+		if (FeatureFlagManagerUtil.isEnabled(
+				objectEntry.getCompanyId(), "LPD-34594") &&
+			(rootObjectEntry != null)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	private void _route(
 			String eventType, ObjectEntry originalObjectEntry,
 			ObjectEntry objectEntry)
@@ -461,6 +479,24 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 			_objectViewFilterColumnLocalService.updateObjectViewFilterColumn(
 				objectViewFilterColumn);
 		}
+	}
+
+	private void _updateRootObjectEntryModifiedDate(
+			Date modifiedDate, ObjectEntry objectEntry)
+		throws PortalException {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.fetchObjectDefinition(
+				objectEntry.getObjectDefinitionId());
+
+		if (!objectDefinition.isRootDescendantNode() ||
+			!_hasRootObjectEntry(objectEntry)) {
+
+			return;
+		}
+
+		_objectEntryLocalService.updateModifiedDate(
+			objectEntry.getRootObjectEntryId(), modifiedDate);
 	}
 
 	private void _validateObjectEntry(
