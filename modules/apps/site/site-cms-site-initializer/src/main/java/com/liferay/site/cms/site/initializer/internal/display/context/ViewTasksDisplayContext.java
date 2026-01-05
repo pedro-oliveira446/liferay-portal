@@ -87,6 +87,10 @@ public class ViewTasksDisplayContext extends BaseSectionDisplayContext {
 
 	@Override
 	public List<DropdownItem> getCreationMenuDropdownItems() {
+		if (_assetEntry == null) {
+			return Collections.emptyList();
+		}
+
 		try {
 			ObjectDefinition objectDefinition =
 				_objectDefinitionLocalService.getObjectDefinition(
@@ -113,7 +117,7 @@ public class ViewTasksDisplayContext extends BaseSectionDisplayContext {
 					).setIcon(
 						"forms"
 					).setLabel(
-						LanguageUtil.get(httpServletRequest, "task")
+						LanguageUtil.get(httpServletRequest, "new")
 					).build()));
 		}
 		catch (PortalException portalException) {
@@ -124,11 +128,13 @@ public class ViewTasksDisplayContext extends BaseSectionDisplayContext {
 	@Override
 	public Map<String, Object> getEmptyState() {
 		return HashMapBuilder.<String, Object>put(
-			"description", ""
+			"description",
+			LanguageUtil.get(
+				httpServletRequest, "click-new-to-create-your-first-task")
 		).put(
 			"image", "/states/cms_empty_state.svg"
 		).put(
-			"title", LanguageUtil.get(httpServletRequest, "no-assets-yet")
+			"title", LanguageUtil.get(httpServletRequest, "no-tasks-yet")
 		).build();
 	}
 

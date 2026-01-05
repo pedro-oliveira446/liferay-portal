@@ -905,6 +905,7 @@
 			"titleObjectFieldName": "title"
 		},
 		{
+			"accountEntryRestricted": false,
 			"className": "com.liferay.object.model.ObjectDefinition#I5U9",
 			"enableCategorization": true,
 			"enableComments": true,
@@ -934,7 +935,6 @@
 					"value": "true"
 				}
 			],
-			"accountEntryRestricted": false,
 			"objectFields": [
 				{
 					"businessType": "Relationship",
