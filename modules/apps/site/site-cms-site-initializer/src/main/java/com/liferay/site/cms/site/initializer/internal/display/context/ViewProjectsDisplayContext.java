@@ -124,6 +124,9 @@ public class ViewProjectsDisplayContext extends BaseSectionDisplayContext {
 
 	@Override
 	public List<FDSActionDropdownItem> getFDSActionDropdownItems() {
+		String baseViewProjectURL = ActionUtil.getBaseViewProjectURL(
+			_objectDefinition, themeDisplay);
+
 		return ListUtil.fromArray(
 			new FDSActionDropdownItem(
 				StringBundler.concat(
@@ -133,11 +136,7 @@ public class ViewProjectsDisplayContext extends BaseSectionDisplayContext {
 				"pencil", "edit", LanguageUtil.get(httpServletRequest, "edit"),
 				"get", "update", null),
 			new FDSActionDropdownItem(
-				StringBundler.concat(
-					ActionUtil.getBaseViewProjectURL(
-						_objectDefinition, themeDisplay),
-					"{embedded.id}?redirect=", themeDisplay.getURLCurrent()),
-				"view", "actionLink",
+				baseViewProjectURL + "{embedded.id}", "view", "actionLink",
 				LanguageUtil.get(httpServletRequest, "view"), null, "get",
 				null),
 			new FDSActionDropdownItem(
