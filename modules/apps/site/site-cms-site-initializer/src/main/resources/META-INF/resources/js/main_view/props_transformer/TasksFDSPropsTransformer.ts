@@ -6,6 +6,7 @@
 import {IInternalRenderer} from '@liferay/frontend-data-set-web';
 
 import StateLabel from '../../common/components/StateLabel';
+import deleteItemAction from './actions/deleteItemAction';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
 import SimpleActionLinkRenderer from './cell_renderers/SimpleActionLinkRenderer';
 
@@ -34,6 +35,19 @@ export default function TasksFDSPropsTransformer({
 					type: 'internal',
 				} as IInternalRenderer,
 			],
+		},
+		async onActionDropdownItemClick({
+			action,
+			itemData,
+			loadData,
+		}: {
+			action: any;
+			itemData: ItemData;
+			loadData: () => {};
+		}) {
+			if (action?.data?.id === 'delete') {
+				await deleteItemAction(itemData, loadData);
+			}
 		},
 	};
 }

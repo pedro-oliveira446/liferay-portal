@@ -169,7 +169,11 @@ public class ViewTasksDisplayContext extends BaseSectionDisplayContext {
 				new FDSActionDropdownItem(
 					url, "view", "actionLink",
 					LanguageUtil.get(httpServletRequest, "view"), null, "get",
-					null));
+					null),
+				new FDSActionDropdownItem(
+					null, "trash", "delete",
+					LanguageUtil.get(httpServletRequest, "delete"), null,
+					"delete", null));
 		}
 		catch (PortalException portalException) {
 			throw new RuntimeException(portalException);
