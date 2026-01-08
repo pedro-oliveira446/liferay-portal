@@ -12,10 +12,12 @@ import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.site.cms.site.initializer.internal.util.ActionUtil;
@@ -25,6 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -112,13 +115,32 @@ public class ProjectEditorToolbarComponentSectionFragmentRenderer
 					return null;
 				}
 
-				String viewProjectURL = ActionUtil.getBaseViewProjectURL(
+				ObjectDefinition objectDefinition =
 					_objectDefinitionLocalService.getObjectDefinition(
-						themeDisplay.getCompanyId(), "CMPProject"),
-					themeDisplay);
+						themeDisplay.getCompanyId(), "CMPProject");
 
-				return viewProjectURL +
-					ParamUtil.getLong(httpServletRequest, "projectId");
+				String viewProjectURL = ActionUtil.getBaseViewProjectURL(
+					objectDefinition, themeDisplay);
+
+				long projectId = ParamUtil.getLong(
+					httpServletRequest, "projectId");
+
+				if (projectId == 0) {
+					List<ObjectEntry> objectEntries =
+						_objectEntryLocalService.getObjectEntries(
+							objectEntry.getGroupId(),
+							objectDefinition.getObjectDefinitionId(), 0, 1);
+
+					if (ListUtil.isEmpty(objectEntries)) {
+						return null;
+					}
+
+					projectId = objectEntries.get(
+						0
+					).getObjectEntryId();
+				}
+
+				return viewProjectURL + projectId;
 			}
 		).build();
 	}
@@ -144,5 +166,8 @@ public class ProjectEditorToolbarComponentSectionFragmentRenderer
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
 
 }

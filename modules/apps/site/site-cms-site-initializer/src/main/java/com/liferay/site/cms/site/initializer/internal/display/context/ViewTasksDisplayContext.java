@@ -147,12 +147,19 @@ public class ViewTasksDisplayContext extends BaseSectionDisplayContext {
 	@Override
 	public List<FDSActionDropdownItem> getFDSActionDropdownItems() {
 		try {
+			long projectId = 0;
+
+			if (_assetEntry != null) {
+				projectId = _assetEntry.getClassPK();
+			}
+
 			String url = StringBundler.concat(
 				ActionUtil.getBaseEditTaskURL(
 					_objectDefinitionLocalService.getObjectDefinition(
 						themeDisplay.getCompanyId(), "CMPTask"),
 					themeDisplay),
-				"{embedded.id}?redirect=", themeDisplay.getURLCurrent());
+				"{embedded.id}?redirect=", themeDisplay.getURLCurrent(),
+				"&projectId=", projectId);
 
 			return ListUtil.fromArray(
 				new FDSActionDropdownItem(
