@@ -145,18 +145,22 @@ public class ViewTasksSectionDisplayContext {
 			projectId = _assetEntry.getClassPK();
 		}
 
-		String url = StringBundler.concat(
-			ActionUtil.getBaseEditTaskURL(_objectDefinition, _themeDisplay),
-			"{embedded.id}?redirect=", _themeDisplay.getURLCurrent(),
-			"&projectId=", projectId);
-
 		return ListUtil.fromArray(
 			new FDSActionDropdownItem(
-				url, "pencil", "edit",
-				LanguageUtil.get(_httpServletRequest, "edit"), "get", "update",
-				null),
+				StringBundler.concat(
+					ActionUtil.getBaseEditTaskURL(
+						_objectDefinition, _themeDisplay),
+					"{embedded.id}?redirect=", _themeDisplay.getURLCurrent(),
+					"&projectId=", projectId),
+				"pencil", "edit", LanguageUtil.get(_httpServletRequest, "edit"),
+				"get", "update", null),
 			new FDSActionDropdownItem(
-				url, "view", "actionLink",
+				StringBundler.concat(
+					ActionUtil.getBaseViewTaskURL(
+						_objectDefinition, _themeDisplay),
+					"{embedded.id}?redirect=", _themeDisplay.getURLCurrent(),
+					"&projectId=", projectId),
+				"view", "actionLink",
 				LanguageUtil.get(_httpServletRequest, "view"), null, "get",
 				null),
 			new FDSActionDropdownItem(

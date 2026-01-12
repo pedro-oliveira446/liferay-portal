@@ -57,6 +57,16 @@ public class ActionUtil {
 			StringPool.SLASH);
 	}
 
+	public static String getBaseViewTaskURL(
+		ObjectDefinition objectDefinition, ThemeDisplay themeDisplay) {
+
+		return StringBundler.concat(
+			themeDisplay.getPathFriendlyURLPublic(),
+			GroupConstants.CMS_FRIENDLY_URL, "/e/task/",
+			PortalUtil.getClassNameId(objectDefinition.getClassName()),
+			StringPool.SLASH);
+	}
+
 	public static String getProjectsURL(ThemeDisplay themeDisplay) {
 		return StringBundler.concat(
 			themeDisplay.getPathFriendlyURLPublic(),
