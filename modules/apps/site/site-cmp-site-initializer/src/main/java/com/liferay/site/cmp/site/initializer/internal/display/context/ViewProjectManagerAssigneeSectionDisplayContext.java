@@ -18,10 +18,13 @@ public class ViewProjectManagerAssigneeSectionDisplayContext
 	extends BaseAssigneeSectionDisplayContext {
 
 	public ViewProjectManagerAssigneeSectionDisplayContext(
-		Language language, ObjectEntry objectEntry, ThemeDisplay themeDisplay,
+		String groupExternalReferenceCode, Language language,
+		ObjectEntry objectEntry, ThemeDisplay themeDisplay,
 		UserLocalService userLocalService) {
 
-		super(language, objectEntry, themeDisplay, userLocalService);
+		super(
+			groupExternalReferenceCode, language, objectEntry, themeDisplay,
+			userLocalService);
 	}
 
 	@Override

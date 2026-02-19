@@ -9,6 +9,8 @@ import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -43,8 +45,14 @@ public class ViewProjectManagerAssigneeJSPSectionFragmentRenderer
 			return null;
 		}
 
+		Group group = _groupLocalService.fetchGroup(objectEntry.getGroupId());
+
+		if (group == null) {
+			return null;
+		}
+
 		return new ViewProjectManagerAssigneeSectionDisplayContext(
-			_language, objectEntry,
+			group.getExternalReferenceCode(), _language, objectEntry,
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY),
 			_userLocalService);
@@ -59,6 +67,9 @@ public class ViewProjectManagerAssigneeJSPSectionFragmentRenderer
 	protected String getLabelKey() {
 		return "project-manager-assignee";
 	}
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private Language _language;

@@ -11,6 +11,8 @@ import com.liferay.object.field.business.type.ObjectFieldBusinessTypeRegistry;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -45,10 +47,16 @@ public class ViewAssigneeJSPSectionFragmentRenderer
 			return null;
 		}
 
+		Group group = _groupLocalService.fetchGroup(objectEntry.getGroupId());
+
+		if (group == null) {
+			return null;
+		}
+
 		return new ViewAssigneeSectionDisplayContext(
 			_objectFieldBusinessTypeRegistry.getObjectFieldBusinessType(
 				ObjectFieldConstants.BUSINESS_TYPE_ASSIGNEE),
-			_language, objectEntry,
+			group.getExternalReferenceCode(), _language, objectEntry,
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY),
 			_userLocalService);
@@ -63,6 +71,9 @@ public class ViewAssigneeJSPSectionFragmentRenderer
 	protected String getLabelKey() {
 		return "assignee";
 	}
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private Language _language;

@@ -24,9 +24,11 @@ import java.util.Map;
 public abstract class BaseAssigneeSectionDisplayContext {
 
 	public BaseAssigneeSectionDisplayContext(
-		Language language, ObjectEntry objectEntry, ThemeDisplay themeDisplay,
+		String groupExternalReferenceCode, Language language,
+		ObjectEntry objectEntry, ThemeDisplay themeDisplay,
 		UserLocalService userLocalService) {
 
+		_groupExternalReferenceCode = groupExternalReferenceCode;
 		_language = language;
 
 		this.objectEntry = objectEntry;
@@ -41,6 +43,8 @@ public abstract class BaseAssigneeSectionDisplayContext {
 
 	public Map<String, Object> getProperties() throws Exception {
 		return HashMapBuilder.<String, Object>put(
+			"groupExternalReferenceCode", _groupExternalReferenceCode
+		).put(
 			"label", _language.get(_themeDisplay.getLocale(), getLabelKey())
 		).put(
 			"name", getName()
@@ -95,6 +99,7 @@ public abstract class BaseAssigneeSectionDisplayContext {
 
 	protected final ObjectEntry objectEntry;
 
+	private final String _groupExternalReferenceCode;
 	private final Language _language;
 	private final ThemeDisplay _themeDisplay;
 	private final UserLocalService _userLocalService;
