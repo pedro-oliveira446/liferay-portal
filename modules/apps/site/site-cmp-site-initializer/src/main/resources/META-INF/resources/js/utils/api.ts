@@ -39,6 +39,15 @@ export async function getUserAccount(id: string) {
 		});
 }
 
+export async function putAssetLibraryUserAccount(
+	assetLibraryExternalReferenceCode: string,
+	userAccountExternalReferenceCode: string
+) {
+	return ApiHelper.put(
+		`/o/headless-asset-library/v1.0/asset-libraries/${assetLibraryExternalReferenceCode}/user-accounts/${userAccountExternalReferenceCode}`
+	);
+}
+
 export async function patchProjectById({
 	body,
 	projectId,

@@ -7,13 +7,16 @@ import {
 	Assignee,
 	AssigneeValue,
 } from '@liferay/object-dynamic-data-mapping-form-field-type';
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import AssigneeTrigger from './AssigneeTrigger';
 
 import './AssigneeTrigger.scss';
+import {putAssetLibraryUserAccount} from '../utils/api';
+import {displayErrorToast} from '../utils/toastUtil';
 
 interface ICustomAssignee {
+	groupExternalReferenceCode: string;
 	label?: string;
 	name?: string;
 	onChange?: (value: AssigneeValue | {}) => void;
@@ -25,6 +28,7 @@ interface ICustomAssignee {
 }
 
 export default function CustomAssignee({
+	groupExternalReferenceCode,
 	label,
 	name,
 	onChange,
@@ -50,6 +54,29 @@ export default function CustomAssignee({
 
 		return String(value.id);
 	}
+
+	const updateMemberships = useCallback(async () => {
+		if (!usersOnly || !value || !('externalReferenceCode' in value)) {
+			return;
+		}
+
+		const {error} = await putAssetLibraryUserAccount(
+			groupExternalReferenceCode,
+			value.externalReferenceCode
+		);
+
+		if (!error) {
+			return;
+		}
+
+		setValue('');
+
+		displayErrorToast(error as string);
+	}, [value]);
+
+	useEffect(() => {
+		updateMemberships();
+	}, [updateMemberships]);
 
 	return (
 		<>
