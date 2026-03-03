@@ -175,7 +175,9 @@ test.describe('Email notification template', () => {
 
 		const editedNotificationTemplateInfo = {
 			bcc: getRandomString(),
+			bccType:"email",
 			cc: getRandomString(),
+			ccType:"email",
 			description: getRandomString(),
 			recipients: getRandomString(),
 			senderAddress: getRandomString(),
@@ -218,12 +220,16 @@ test.describe('Email notification template', () => {
 			.toHaveValue(editedNotificationTemplateInfo.recipients);
 
 		await expect
+			.soft(emailNotificationTemplatePage.secondaryRecipientTypeCC)
+			.toHaveValue(editedNotificationTemplateInfo.ccType);
+
+		await expect
 			.soft(emailNotificationTemplatePage.secondaryRecipientsCC)
 			.toHaveValue(editedNotificationTemplateInfo.cc);
 
 		await expect
-			.soft(emailNotificationTemplatePage.secondaryRecipientsBCC)
-			.toHaveValue(editedNotificationTemplateInfo.bcc);
+			.soft(emailNotificationTemplatePage.secondaryRecipientTypeBCC)
+			.toHaveValue(editedNotificationTemplateInfo.bccType);
 
 		await expect
 			.soft(emailNotificationTemplatePage.contentSubject)
@@ -234,6 +240,9 @@ test.describe('Email notification template', () => {
 			.toHaveValue(editedNotificationTemplateInfo.subject);
 
 		await expect(test.info().errors).toHaveLength(0);
+
+
+
 	});
 
 	test('can have rich text source code verifying that the source code is persisted', async ({

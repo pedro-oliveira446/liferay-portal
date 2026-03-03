@@ -9,7 +9,9 @@ import {NotificationTemplatesPage} from './NotificationTemplatesPage';
 
 interface NotificationTemplateInfo {
 	bcc: string;
+	bccType?: string;
 	cc: string;
+	ccType?: string;
 	description: string;
 	recipients: string;
 	senderAddress: string;
@@ -118,6 +120,10 @@ export class EmailNotificationTemplatePage {
 
 		await this.primaryRecipients.fill(notificationTemplateInfo.recipients);
 
+		if(notificationTemplateInfo.ccType){
+			await this.secondaryRecipientTypeCC.fill(notificationTemplateInfo.ccType);
+		}
+
 		await this.secondaryRecipientsCC.fill(notificationTemplateInfo.cc);
 
 		await this.basicInfoName.fill(notificationTemplateName);
@@ -127,6 +133,10 @@ export class EmailNotificationTemplatePage {
 		);
 
 		await this.senderName.fill(notificationTemplateInfo.senderName);
+
+		if(notificationTemplateInfo.bccType){
+			await this.secondaryRecipientTypeBCC.fill(notificationTemplateInfo.bccType);
+		}
 
 		await this.secondaryRecipientsBCC.fill(notificationTemplateInfo.bcc);
 
