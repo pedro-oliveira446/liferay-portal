@@ -14,6 +14,7 @@
 			"actions"?: {[key: string]: {[key: string]: string;};};
 			"deletionType"?: 'cascade' | 'disassociate' | 'prevent';
 			"edge"?: boolean;
+			"edge"?: boolean;
 			"externalReferenceCode"?: string;
 			"id"?: number;
 			"label"?: {[key: string]: string;};
