@@ -314,14 +314,12 @@ export function removeColumn(pages, pageIndex, rowIndex, columnIndex) {
 		let newRow = row;
 
 		if (currentRowIndex === rowIndex && currentPageIndex === pageIndex) {
-			const updatedColumns = row.columns.filter(
-				(_, currentColumnIndex) => currentColumnIndex !== columnIndex
-			);
-
-			newRow = normalizeRowSizes({
+			newRow = {
 				...row,
-				columns: updatedColumns,
-			});
+				columns: row.columns.filter((col, currentColumnIndex) => {
+					return currentColumnIndex !== columnIndex;
+				}),
+			};
 		}
 
 		return newRow;

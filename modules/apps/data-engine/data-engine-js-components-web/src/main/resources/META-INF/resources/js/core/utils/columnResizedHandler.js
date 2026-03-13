@@ -145,7 +145,10 @@ export function handleResizeRight(props, state, indexes, columnTarget) {
 			};
 		}
 		else if (columnTarget > currentColumnPosition) {
-			if (nextColumn.size === 1 && !nextColumn.fields.length) {
+			if (
+				(nextColumn.size === 1 || columnTarget == 12) &&
+				!nextColumn.fields.length
+			) {
 				newCurrentColumn = {
 					...currentColumn,
 					size: currentColumn.size + newSize,
