@@ -5,6 +5,7 @@
 
 package com.liferay.dynamic.data.mapping.internal.util;
 
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
@@ -22,6 +23,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
@@ -167,7 +169,7 @@ public class DDMFormValuesToFieldsConverterImpl
 		if (MapUtil.isEmpty(value.getValues())) {
 			LocalizedValue predefinedValue = ddmFormField.getPredefinedValue();
 
-			if (_isEmpty(predefinedValue.getValues())) {
+			if (_isEmpty(ddmFormField, predefinedValue.getValues())) {
 				LocalizedValue localizedValue = new LocalizedValue(
 					defaultLocale);
 
@@ -251,12 +253,27 @@ public class DDMFormValuesToFieldsConverterImpl
 		return availableLocales;
 	}
 
-	private boolean _isEmpty(Map<Locale, String> valuesMap) {
+	private boolean _isEmpty(
+		DDMFormField ddmFormField, Map<Locale, String> valuesMap) {
+
 		if (MapUtil.isEmpty(valuesMap)) {
 			return true;
 		}
 
 		for (String value : valuesMap.values()) {
+			if (Validator.isNull(value) ||
+				(StringUtil.equals(
+					ddmFormField.getType(),
+					DDMFormFieldTypeConstants.CHECKBOX) &&
+				 StringUtil.equals(value, "[\"false\"]")) ||
+				(StringUtil.equals(
+					ddmFormField.getType(),
+					DDMFormFieldTypeConstants.DDM_IMAGE) &&
+				 StringUtil.equals(value, "{}"))) {
+
+				continue;
+			}
+
 			if (Validator.isNotNull(value)) {
 				return false;
 			}
