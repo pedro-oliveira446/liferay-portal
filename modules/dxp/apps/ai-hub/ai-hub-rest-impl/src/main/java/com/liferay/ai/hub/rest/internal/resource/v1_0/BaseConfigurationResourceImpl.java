@@ -5,8 +5,8 @@
 
 package com.liferay.ai.hub.rest.internal.resource.v1_0;
 
-import com.liferay.ai.hub.rest.dto.v1_0.ProvisioningRequest;
-import com.liferay.ai.hub.rest.resource.v1_0.ProvisioningRequestResource;
+import com.liferay.ai.hub.rest.dto.v1_0.Configuration;
+import com.liferay.ai.hub.rest.resource.v1_0.ConfigurationResource;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -39,31 +39,43 @@ import java.util.Map;
  */
 @Generated("")
 @jakarta.ws.rs.Path("/v1.0")
-public abstract class BaseProvisioningRequestResourceImpl
-	implements ProvisioningRequestResource {
+public abstract class BaseConfigurationResourceImpl
+	implements ConfigurationResource {
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/ai-hub/v1.0/provisioning' -d $'{"accountEntryExternalReferenceCode": ___, "accountEntryName": ___, "liferayDXPURL": ___, "recipientEmailAddress": ___, "userAccounts": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PATCH' 'http://localhost:8080/o/ai-hub/v1.0/configurations/by-external-reference-code/{externalReferenceCode}' -d $'{"environmentUrls": ___, "recipientEmailAddress": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@io.swagger.v3.oas.annotations.tags.Tags(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@io.swagger.v3.oas.annotations.tags.Tag(
-				name = "ProvisioningRequest"
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "externalReferenceCode"
 			)
 		}
 	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "Configuration")
+		}
+	)
 	@jakarta.ws.rs.Consumes({"application/json", "application/xml"})
-	@jakarta.ws.rs.Path("/provisioning")
-	@jakarta.ws.rs.POST
+	@jakarta.ws.rs.PATCH
+	@jakarta.ws.rs.Path(
+		"/configurations/by-external-reference-code/{externalReferenceCode}"
+	)
 	@jakarta.ws.rs.Produces({"application/json", "application/xml"})
 	@Override
-	public ProvisioningRequest postProvisioning(
-			ProvisioningRequest provisioningRequest)
+	public Configuration patchConfigurationByExternalReferenceCode(
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@jakarta.validation.constraints.NotNull
+			@jakarta.ws.rs.PathParam("externalReferenceCode")
+			String externalReferenceCode,
+			Configuration configuration)
 		throws Exception {
 
-		return new ProvisioningRequest();
+		return new Configuration();
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
@@ -508,7 +520,7 @@ public abstract class BaseProvisioningRequestResourceImpl
 	protected SortParserProvider sortParserProvider;
 
 	private static final com.liferay.portal.kernel.log.Log _log =
-		LogFactoryUtil.getLog(BaseProvisioningRequestResourceImpl.class);
+		LogFactoryUtil.getLog(BaseConfigurationResourceImpl.class);
 
 }
-// LIFERAY-REST-BUILDER-HASH:1160157640
+// LIFERAY-REST-BUILDER-HASH:-1168456947

@@ -13,11 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
-import com.liferay.ai.hub.rest.client.dto.v1_0.ProvisioningRequest;
+import com.liferay.ai.hub.rest.client.dto.v1_0.Configuration;
 import com.liferay.ai.hub.rest.client.http.HttpInvoker;
 import com.liferay.ai.hub.rest.client.pagination.Page;
-import com.liferay.ai.hub.rest.client.resource.v1_0.ProvisioningRequestResource;
-import com.liferay.ai.hub.rest.client.serdes.v1_0.ProvisioningRequestSerDes;
+import com.liferay.ai.hub.rest.client.resource.v1_0.ConfigurationResource;
+import com.liferay.ai.hub.rest.client.serdes.v1_0.ConfigurationSerDes;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
@@ -73,7 +73,7 @@ import org.junit.Test;
  * @generated
  */
 @Generated("")
-public abstract class BaseProvisioningRequestResourceTestCase {
+public abstract class BaseConfigurationResourceTestCase {
 
 	@ClassRule
 	@Rule
@@ -94,12 +94,12 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 		testCompany = CompanyLocalServiceUtil.getCompany(
 			testGroup.getCompanyId());
 
-		_provisioningRequestResource.setContextCompany(testCompany);
+		_configurationResource.setContextCompany(testCompany);
 
 		_testCompanyAdminUser = UserTestUtil.getAdminUser(
 			testCompany.getCompanyId());
 
-		provisioningRequestResource = ProvisioningRequestResource.builder(
+		configurationResource = ConfigurationResource.builder(
 		).authentication(
 			_testCompanyAdminUser.getEmailAddress(),
 			PropsValues.DEFAULT_ADMIN_PASSWORD
@@ -121,24 +121,23 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 	public void testClientSerDesToDTO() throws Exception {
 		ObjectMapper objectMapper = getClientSerDesObjectMapper();
 
-		ProvisioningRequest provisioningRequest1 = randomProvisioningRequest();
+		Configuration configuration1 = randomConfiguration();
 
-		String json = objectMapper.writeValueAsString(provisioningRequest1);
+		String json = objectMapper.writeValueAsString(configuration1);
 
-		ProvisioningRequest provisioningRequest2 =
-			ProvisioningRequestSerDes.toDTO(json);
+		Configuration configuration2 = ConfigurationSerDes.toDTO(json);
 
-		Assert.assertTrue(equals(provisioningRequest1, provisioningRequest2));
+		Assert.assertTrue(equals(configuration1, configuration2));
 	}
 
 	@Test
 	public void testClientSerDesToJSON() throws Exception {
 		ObjectMapper objectMapper = getClientSerDesObjectMapper();
 
-		ProvisioningRequest provisioningRequest = randomProvisioningRequest();
+		Configuration configuration = randomConfiguration();
 
-		String json1 = objectMapper.writeValueAsString(provisioningRequest);
-		String json2 = ProvisioningRequestSerDes.toJSON(provisioningRequest);
+		String json1 = objectMapper.writeValueAsString(configuration);
+		String json2 = ConfigurationSerDes.toJSON(configuration);
 
 		Assert.assertEquals(
 			objectMapper.readTree(json1), objectMapper.readTree(json2));
@@ -166,56 +165,37 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 	public void testEscapeRegexInStringFields() throws Exception {
 		String regex = "^[0-9]+(\\.[0-9]{1,2})\"?";
 
-		ProvisioningRequest provisioningRequest = randomProvisioningRequest();
+		Configuration configuration = randomConfiguration();
 
-		provisioningRequest.setAccountEntryExternalReferenceCode(regex);
-		provisioningRequest.setAccountEntryName(regex);
-		provisioningRequest.setLiferayDXPURL(regex);
-		provisioningRequest.setRecipientEmailAddress(regex);
+		configuration.setEnvironmentUrls(regex);
+		configuration.setExternalReferenceCode(regex);
+		configuration.setRecipientEmailAddress(regex);
 
-		String json = ProvisioningRequestSerDes.toJSON(provisioningRequest);
+		String json = ConfigurationSerDes.toJSON(configuration);
 
 		Assert.assertFalse(json.contains(regex));
 
-		provisioningRequest = ProvisioningRequestSerDes.toDTO(json);
+		configuration = ConfigurationSerDes.toDTO(json);
 
-		Assert.assertEquals(
-			regex, provisioningRequest.getAccountEntryExternalReferenceCode());
-		Assert.assertEquals(regex, provisioningRequest.getAccountEntryName());
-		Assert.assertEquals(regex, provisioningRequest.getLiferayDXPURL());
-		Assert.assertEquals(
-			regex, provisioningRequest.getRecipientEmailAddress());
+		Assert.assertEquals(regex, configuration.getEnvironmentUrls());
+		Assert.assertEquals(regex, configuration.getExternalReferenceCode());
+		Assert.assertEquals(regex, configuration.getRecipientEmailAddress());
 	}
 
 	@Test
-	public void testPostProvisioning() throws Exception {
-		ProvisioningRequest randomProvisioningRequest =
-			randomProvisioningRequest();
-
-		ProvisioningRequest postProvisioningRequest =
-			testPostProvisioning_addProvisioningRequest(
-				randomProvisioningRequest);
-
-		assertEquals(randomProvisioningRequest, postProvisioningRequest);
-		assertValid(postProvisioningRequest);
-	}
-
-	protected ProvisioningRequest testPostProvisioning_addProvisioningRequest(
-			ProvisioningRequest provisioningRequest)
+	public void testPatchConfigurationByExternalReferenceCode()
 		throws Exception {
 
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
+		Assert.assertTrue(false);
 	}
 
 	protected void assertContains(
-		ProvisioningRequest provisioningRequest,
-		List<ProvisioningRequest> provisioningRequests) {
+		Configuration configuration, List<Configuration> configurations) {
 
 		boolean contains = false;
 
-		for (ProvisioningRequest item : provisioningRequests) {
-			if (equals(provisioningRequest, item)) {
+		for (Configuration item : configurations) {
+			if (equals(configuration, item)) {
 				contains = true;
 
 				break;
@@ -223,8 +203,7 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 		}
 
 		Assert.assertTrue(
-			provisioningRequests + " does not contain " + provisioningRequest,
-			contains);
+			configurations + " does not contain " + configuration, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -236,45 +215,38 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 	}
 
 	protected void assertEquals(
-		ProvisioningRequest provisioningRequest1,
-		ProvisioningRequest provisioningRequest2) {
+		Configuration configuration1, Configuration configuration2) {
 
 		Assert.assertTrue(
-			provisioningRequest1 + " does not equal " + provisioningRequest2,
-			equals(provisioningRequest1, provisioningRequest2));
+			configuration1 + " does not equal " + configuration2,
+			equals(configuration1, configuration2));
 	}
 
 	protected void assertEquals(
-		List<ProvisioningRequest> provisioningRequests1,
-		List<ProvisioningRequest> provisioningRequests2) {
+		List<Configuration> configurations1,
+		List<Configuration> configurations2) {
 
-		Assert.assertEquals(
-			provisioningRequests1.size(), provisioningRequests2.size());
+		Assert.assertEquals(configurations1.size(), configurations2.size());
 
-		for (int i = 0; i < provisioningRequests1.size(); i++) {
-			ProvisioningRequest provisioningRequest1 =
-				provisioningRequests1.get(i);
-			ProvisioningRequest provisioningRequest2 =
-				provisioningRequests2.get(i);
+		for (int i = 0; i < configurations1.size(); i++) {
+			Configuration configuration1 = configurations1.get(i);
+			Configuration configuration2 = configurations2.get(i);
 
-			assertEquals(provisioningRequest1, provisioningRequest2);
+			assertEquals(configuration1, configuration2);
 		}
 	}
 
 	protected void assertEqualsIgnoringOrder(
-		List<ProvisioningRequest> provisioningRequests1,
-		List<ProvisioningRequest> provisioningRequests2) {
+		List<Configuration> configurations1,
+		List<Configuration> configurations2) {
 
-		Assert.assertEquals(
-			provisioningRequests1.size(), provisioningRequests2.size());
+		Assert.assertEquals(configurations1.size(), configurations2.size());
 
-		for (ProvisioningRequest provisioningRequest1 : provisioningRequests1) {
+		for (Configuration configuration1 : configurations1) {
 			boolean contains = false;
 
-			for (ProvisioningRequest provisioningRequest2 :
-					provisioningRequests2) {
-
-				if (equals(provisioningRequest1, provisioningRequest2)) {
+			for (Configuration configuration2 : configurations2) {
+				if (equals(configuration1, configuration2)) {
 					contains = true;
 
 					break;
@@ -282,51 +254,29 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 			}
 
 			Assert.assertTrue(
-				provisioningRequests2 + " does not contain " +
-					provisioningRequest1,
+				configurations2 + " does not contain " + configuration1,
 				contains);
 		}
 	}
 
-	protected void assertValid(ProvisioningRequest provisioningRequest)
-		throws Exception {
-
+	protected void assertValid(Configuration configuration) throws Exception {
 		boolean valid = true;
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
 
+			if (Objects.equals("environmentUrls", additionalAssertFieldName)) {
+				if (configuration.getEnvironmentUrls() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals(
-					"accountEntryExternalReferenceCode",
-					additionalAssertFieldName)) {
+					"externalReferenceCode", additionalAssertFieldName)) {
 
-				if (provisioningRequest.
-						getAccountEntryExternalReferenceCode() == null) {
-
-					valid = false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("accountEntryId", additionalAssertFieldName)) {
-				if (provisioningRequest.getAccountEntryId() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("accountEntryName", additionalAssertFieldName)) {
-				if (provisioningRequest.getAccountEntryName() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("liferayDXPURL", additionalAssertFieldName)) {
-				if (provisioningRequest.getLiferayDXPURL() == null) {
+				if (configuration.getExternalReferenceCode() == null) {
 					valid = false;
 				}
 
@@ -336,15 +286,7 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 			if (Objects.equals(
 					"recipientEmailAddress", additionalAssertFieldName)) {
 
-				if (provisioningRequest.getRecipientEmailAddress() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("userAccounts", additionalAssertFieldName)) {
-				if (provisioningRequest.getUserAccounts() == null) {
+				if (configuration.getRecipientEmailAddress() == null) {
 					valid = false;
 				}
 
@@ -359,20 +301,19 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 		Assert.assertTrue(valid);
 	}
 
-	protected void assertValid(Page<ProvisioningRequest> page) {
+	protected void assertValid(Page<Configuration> page) {
 		assertValid(page, Collections.emptyMap());
 	}
 
 	protected void assertValid(
-		Page<ProvisioningRequest> page,
+		Page<Configuration> page,
 		Map<String, Map<String, String>> expectedActions) {
 
 		boolean valid = false;
 
-		java.util.Collection<ProvisioningRequest> provisioningRequests =
-			page.getItems();
+		java.util.Collection<Configuration> configurations = page.getItems();
 
-		int size = provisioningRequests.size();
+		int size = configurations.size();
 
 		if ((page.getLastPage() > 0) && (page.getPage() > 0) &&
 			(page.getPageSize() > 0) && (page.getTotalCount() > 0) &&
@@ -410,10 +351,11 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
+		graphQLFields.add(new GraphQLField("externalReferenceCode"));
+
 		for (java.lang.reflect.Field field :
 				getDeclaredFields(
-					com.liferay.ai.hub.rest.dto.v1_0.ProvisioningRequest.
-						class)) {
+					com.liferay.ai.hub.rest.dto.v1_0.Configuration.class)) {
 
 			if (!ArrayUtil.contains(
 					getAdditionalAssertFieldNames(), field.getName())) {
@@ -462,58 +404,32 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 	}
 
 	protected boolean equals(
-		ProvisioningRequest provisioningRequest1,
-		ProvisioningRequest provisioningRequest2) {
+		Configuration configuration1, Configuration configuration2) {
 
-		if (provisioningRequest1 == provisioningRequest2) {
+		if (configuration1 == configuration2) {
 			return true;
 		}
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
 
+			if (Objects.equals("environmentUrls", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						configuration1.getEnvironmentUrls(),
+						configuration2.getEnvironmentUrls())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals(
-					"accountEntryExternalReferenceCode",
-					additionalAssertFieldName)) {
+					"externalReferenceCode", additionalAssertFieldName)) {
 
 				if (!Objects.deepEquals(
-						provisioningRequest1.
-							getAccountEntryExternalReferenceCode(),
-						provisioningRequest2.
-							getAccountEntryExternalReferenceCode())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("accountEntryId", additionalAssertFieldName)) {
-				if (!Objects.deepEquals(
-						provisioningRequest1.getAccountEntryId(),
-						provisioningRequest2.getAccountEntryId())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("accountEntryName", additionalAssertFieldName)) {
-				if (!Objects.deepEquals(
-						provisioningRequest1.getAccountEntryName(),
-						provisioningRequest2.getAccountEntryName())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("liferayDXPURL", additionalAssertFieldName)) {
-				if (!Objects.deepEquals(
-						provisioningRequest1.getLiferayDXPURL(),
-						provisioningRequest2.getLiferayDXPURL())) {
+						configuration1.getExternalReferenceCode(),
+						configuration2.getExternalReferenceCode())) {
 
 					return false;
 				}
@@ -525,19 +441,8 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 					"recipientEmailAddress", additionalAssertFieldName)) {
 
 				if (!Objects.deepEquals(
-						provisioningRequest1.getRecipientEmailAddress(),
-						provisioningRequest2.getRecipientEmailAddress())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("userAccounts", additionalAssertFieldName)) {
-				if (!Objects.deepEquals(
-						provisioningRequest1.getUserAccounts(),
-						provisioningRequest2.getUserAccounts())) {
+						configuration1.getRecipientEmailAddress(),
+						configuration2.getRecipientEmailAddress())) {
 
 					return false;
 				}
@@ -601,13 +506,13 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
-		if (!(_provisioningRequestResource instanceof EntityModelResource)) {
+		if (!(_configurationResource instanceof EntityModelResource)) {
 			throw new UnsupportedOperationException(
 				"Resource is not an instance of EntityModelResource");
 		}
 
 		EntityModelResource entityModelResource =
-			(EntityModelResource)_provisioningRequestResource;
+			(EntityModelResource)_configurationResource;
 
 		EntityModel entityModel = entityModelResource.getEntityModel(
 			new MultivaluedHashMap());
@@ -640,8 +545,7 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 	}
 
 	protected String getFilterString(
-		EntityField entityField, String operator,
-		ProvisioningRequest provisioningRequest) {
+		EntityField entityField, String operator, Configuration configuration) {
 
 		StringBundler sb = new StringBundler();
 
@@ -653,9 +557,8 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 		sb.append(operator);
 		sb.append(" ");
 
-		if (entityFieldName.equals("accountEntryExternalReferenceCode")) {
-			Object object =
-				provisioningRequest.getAccountEntryExternalReferenceCode();
+		if (entityFieldName.equals("environmentUrls")) {
+			Object object = configuration.getEnvironmentUrls();
 
 			String value = String.valueOf(object);
 
@@ -700,59 +603,8 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 			return sb.toString();
 		}
 
-		if (entityFieldName.equals("accountEntryId")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
-		}
-
-		if (entityFieldName.equals("accountEntryName")) {
-			Object object = provisioningRequest.getAccountEntryName();
-
-			String value = String.valueOf(object);
-
-			if (operator.equals("contains")) {
-				sb = new StringBundler();
-
-				sb.append("contains(");
-				sb.append(entityFieldName);
-				sb.append(",'");
-
-				if ((object != null) && (value.length() > 2)) {
-					sb.append(value.substring(1, value.length() - 1));
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append("')");
-			}
-			else if (operator.equals("startswith")) {
-				sb = new StringBundler();
-
-				sb.append("startswith(");
-				sb.append(entityFieldName);
-				sb.append(",'");
-
-				if ((object != null) && (value.length() > 1)) {
-					sb.append(value.substring(0, value.length() - 1));
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append("')");
-			}
-			else {
-				sb.append("'");
-				sb.append(value);
-				sb.append("'");
-			}
-
-			return sb.toString();
-		}
-
-		if (entityFieldName.equals("liferayDXPURL")) {
-			Object object = provisioningRequest.getLiferayDXPURL();
+		if (entityFieldName.equals("externalReferenceCode")) {
+			Object object = configuration.getExternalReferenceCode();
 
 			String value = String.valueOf(object);
 
@@ -798,7 +650,7 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 		}
 
 		if (entityFieldName.equals("recipientEmailAddress")) {
-			Object object = provisioningRequest.getRecipientEmailAddress();
+			Object object = configuration.getRecipientEmailAddress();
 
 			String value = String.valueOf(object);
 
@@ -841,11 +693,6 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 			}
 
 			return sb.toString();
-		}
-
-		if (entityFieldName.equals("userAccounts")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
 		}
 
 		throw new IllegalArgumentException(
@@ -892,15 +739,12 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 			invoke(queryGraphQLField.toString()));
 	}
 
-	protected ProvisioningRequest randomProvisioningRequest() throws Exception {
-		return new ProvisioningRequest() {
+	protected Configuration randomConfiguration() throws Exception {
+		return new Configuration() {
 			{
-				accountEntryExternalReferenceCode = StringUtil.toLowerCase(
+				environmentUrls = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
-				accountEntryId = RandomTestUtil.randomLong();
-				accountEntryName = StringUtil.toLowerCase(
-					RandomTestUtil.randomString());
-				liferayDXPURL = StringUtil.toLowerCase(
+				externalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				recipientEmailAddress = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
@@ -908,22 +752,17 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 		};
 	}
 
-	protected ProvisioningRequest randomIrrelevantProvisioningRequest()
-		throws Exception {
+	protected Configuration randomIrrelevantConfiguration() throws Exception {
+		Configuration randomIrrelevantConfiguration = randomConfiguration();
 
-		ProvisioningRequest randomIrrelevantProvisioningRequest =
-			randomProvisioningRequest();
-
-		return randomIrrelevantProvisioningRequest;
+		return randomIrrelevantConfiguration;
 	}
 
-	protected ProvisioningRequest randomPatchProvisioningRequest()
-		throws Exception {
-
-		return randomProvisioningRequest();
+	protected Configuration randomPatchConfiguration() throws Exception {
+		return randomConfiguration();
 	}
 
-	protected ProvisioningRequestResource provisioningRequestResource;
+	protected ConfigurationResource configurationResource;
 	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
 	protected com.liferay.portal.kernel.model.Company testCompany;
 	protected com.liferay.portal.kernel.model.Group testGroup;
@@ -1122,15 +961,15 @@ public abstract class BaseProvisioningRequestResourceTestCase {
 	}
 
 	private static final com.liferay.portal.kernel.log.Log _log =
-		LogFactoryUtil.getLog(BaseProvisioningRequestResourceTestCase.class);
+		LogFactoryUtil.getLog(BaseConfigurationResourceTestCase.class);
 
 	private static Format _format;
 
 	private com.liferay.portal.kernel.model.User _testCompanyAdminUser;
 
 	@Inject
-	private com.liferay.ai.hub.rest.resource.v1_0.ProvisioningRequestResource
-		_provisioningRequestResource;
+	private com.liferay.ai.hub.rest.resource.v1_0.ConfigurationResource
+		_configurationResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:338220334
+// LIFERAY-REST-BUILDER-HASH:-486227941
