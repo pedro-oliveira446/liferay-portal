@@ -14,7 +14,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -33,17 +32,27 @@ public class EditConfigurationDisplayContext {
 		AccountEntry accountEntry = AccountEntryUtil.getUserAccountEntry(
 			_themeDisplay.getUserId());
 
-		if (accountEntry == null) {
-			return Collections.emptyMap();
-		}
-
 		return HashMapBuilder.<String, Object>put(
-			"accountEntryId", accountEntry.getAccountEntryId()
+			"accountEntryId",
+			() -> {
+				if (accountEntry == null) {
+					return null;
+				}
+
+				return accountEntry.getAccountEntryId();
+			}
 		).put(
 			"backURL", DisplayContextUtil.getAIHubURL(_themeDisplay)
 		).put(
 			"externalReferenceCode",
-			accountEntry.getAccountEntryId() + "-ai-hub-configuration"
+			() -> {
+				if (accountEntry == null) {
+					return null;
+				}
+
+				return accountEntry.getAccountEntryId() +
+					"-ai-hub-configuration";
+			}
 		).build();
 	}
 
