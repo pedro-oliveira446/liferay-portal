@@ -198,6 +198,26 @@ public class ContentEditorToolbarComponentSectionFragmentRenderer
 				Constants.ADD,
 				ParamUtil.getString(httpServletRequest, Constants.CMD))
 		).put(
+			"objectDefinitionExternalReferenceCode",
+			() -> {
+				if (objectDefinition == null) {
+					return null;
+				}
+
+				return objectDefinition.getExternalReferenceCode();
+			}
+		).put(
+			"objectDefinitionName",
+			() -> {
+				if (objectDefinition == null) {
+					return null;
+				}
+
+				return objectDefinition.getName();
+			}
+		).put(
+			"spaceId", String.valueOf(objectEntry.getGroupId())
+		).put(
 			"title", title
 		).put(
 			"type",
