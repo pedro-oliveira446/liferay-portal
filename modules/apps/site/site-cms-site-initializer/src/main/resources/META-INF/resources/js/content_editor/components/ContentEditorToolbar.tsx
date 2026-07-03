@@ -14,7 +14,7 @@ import {AIAssistantChat} from '@liferay/ai-hub-cell-js-components-web';
 import {isCtrlOrMeta} from '@liferay/layout-js-components-web';
 import classNames from 'classnames';
 import {openToast, useSessionState} from 'frontend-js-components-web';
-import {sessionStorage, sub} from 'frontend-js-web';
+import {fetch, sessionStorage, sub} from 'frontend-js-web';
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 
@@ -51,6 +51,9 @@ export default function ContentEditorToolbar({
 	hasWorkflow,
 	headerTitle,
 	isNew,
+	objectDefinitionExternalReferenceCode,
+	objectDefinitionName,
+	spaceId,
 	title,
 	type,
 }: {
@@ -61,6 +64,9 @@ export default function ContentEditorToolbar({
 	hasWorkflow: boolean;
 	headerTitle: string;
 	isNew: boolean;
+	objectDefinitionExternalReferenceCode?: string;
+	objectDefinitionName?: string;
+	spaceId?: string;
 	title: string;
 	type: string;
 }) {
@@ -76,6 +82,27 @@ export default function ContentEditorToolbar({
 
 	const localizationLanguageId = useLocalizationLanguageId(defaultLanguageId);
 	const previewButtonRef = useRef<HTMLButtonElement>(null);
+	const objectFieldsRef = useRef<string>('');
+
+	useEffect(() => {
+		if (
+			!Liferay.FeatureFlags['LPD-62272'] ||
+			!objectDefinitionExternalReferenceCode
+		) {
+			return;
+		}
+
+		fetch(
+			`/o/object-admin/v1.0/object-definitions/by-external-reference-code/${objectDefinitionExternalReferenceCode}/object-fields?fields=businessType,name,readOnly,required&pageSize=100`
+		)
+			.then((response) => response.json())
+			.then((response) => {
+				objectFieldsRef.current = JSON.stringify(response);
+			})
+			.catch(() => {
+				objectFieldsRef.current = '';
+			});
+	}, [objectDefinitionExternalReferenceCode]);
 
 	const optionsTitle = hasWorkflow
 		? Liferay.Language.get('submit-for-workflow-options')
@@ -216,7 +243,11 @@ export default function ContentEditorToolbar({
 				<>
 					<Toolbar.Item>
 						<AIAssistantChat
-							getContext={() => ({})}
+							getContext={() => ({
+								objectDefinitionName,
+								objectFields: objectFieldsRef.current,
+								spaceId,
+							})}
 							instructionDefinitionScope="cms"
 						/>
 					</Toolbar.Item>
