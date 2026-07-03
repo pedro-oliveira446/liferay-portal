@@ -31,6 +31,7 @@ export function renderAIAssistantMessageMarkdown(markdown: string) {
 		escapeReservedCharacters,
 		renderHeaders,
 		renderInlineFormatting,
+		renderLinks,
 		renderLists,
 		wrapParagraphs
 	);
@@ -48,6 +49,13 @@ export function renderInlineFormatting(markdown: string) {
 		.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
 		.replace(/\*(.*?)\*/g, '<em>$1</em>')
 		.replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+export function renderLinks(markdown: string) {
+	return markdown.replace(
+		/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+		'<a href="$2" target="_blank">$1</a>'
+	);
 }
 
 export function renderLists(markdown: string) {
