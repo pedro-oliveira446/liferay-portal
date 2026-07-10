@@ -34,10 +34,9 @@ import CategorizationMessageBalloon from './components/CategorizationMessageBall
 import ContentTypeSelectorMessageBalloon, {
 	ContentType,
 } from './components/ContentTypeSelectorMessageBalloon';
-import ContentsMessageBalloon, {
-	Content,
-} from './components/ContentsMessageBalloon';
+import ContentsMessageBalloon from './components/ContentsMessageBalloon';
 import UserMessageBalloon from './components/UserMessageBalloon';
+import parseContentDraftsMessage from './utils/parseContentDraftsMessage';
 
 import './chat.scss';
 
@@ -45,7 +44,6 @@ interface message {
 	agentDefinitionExternalReferenceCodes?: string[];
 	categorization?: CategorizeEventPayload;
 	contentTypes?: ContentType[];
-	contents?: Content[];
 	error?: boolean;
 	sender: string;
 	text: string;
@@ -204,14 +202,16 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	}, []);
 
 	const selectContentType = useCallback(
-		(objectDefinitionName: string, objectFields: string) => {
+		(objectDefinitionName: string, objectFields: string, label: string) => {
 			runtimeContextRef.current = {
 				...runtimeContextRef.current,
 				objectDefinitionName,
 				objectFields,
 			};
+
+			sendMessage(label);
 		},
-		[]
+		[sendMessage]
 	);
 
 	function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -304,7 +304,6 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 										dataJSON[
 											'agentDefinitionExternalReferenceCodes'
 										] ?? [],
-									contents: dataJSON['contents'],
 									sender: 'assistant',
 									text: dataJSON['data'],
 								},
@@ -525,10 +524,9 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 						);
 					}
 
-					if (item.contents?.length) {
+					if (parseContentDraftsMessage(item.text).drafts.length) {
 						return (
 							<ContentsMessageBalloon
-								contents={item.contents}
 								key={index}
 								message={item.text}
 							/>

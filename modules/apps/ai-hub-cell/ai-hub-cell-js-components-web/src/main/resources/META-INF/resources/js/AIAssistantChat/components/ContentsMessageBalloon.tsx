@@ -9,38 +9,38 @@ import ClayList from '@clayui/list';
 import React from 'react';
 
 import '../chat.scss';
+import parseContentDraftsMessage from '../utils/parseContentDraftsMessage';
 import renderAIAssistantMessageMarkdown from '../utils/renderAIAssistantMessageMarkdown';
 
-export interface Content {
-	editURL: string;
-	status: string;
-	title: string;
-}
-
 interface ContentsMessageBalloonProps {
-	contents: Content[];
 	message: string;
 }
 
 const ContentsMessageBalloon: React.FC<ContentsMessageBalloonProps> = ({
-	contents,
 	message,
 }) => {
+	const {drafts, text} = parseContentDraftsMessage(message);
+
 	return (
 		<div className="ai-assistant-chat__ai-assistant-message-balloon ai-assistant-chat__content-generation-balloon">
-			<div className="ai-assistant-chat__content-generation-balloon-header">
-				<ClayIcon spritemap={Liferay.Icons.spritemap} symbol="stars" />
+			{text && (
+				<div className="ai-assistant-chat__content-generation-balloon-header">
+					<ClayIcon
+						spritemap={Liferay.Icons.spritemap}
+						symbol="stars"
+					/>
 
-				<div
-					dangerouslySetInnerHTML={{
-						__html: renderAIAssistantMessageMarkdown(message),
-					}}
-				/>
-			</div>
+					<div
+						dangerouslySetInnerHTML={{
+							__html: renderAIAssistantMessageMarkdown(text),
+						}}
+					/>
+				</div>
+			)}
 
 			<ClayList className="ai-assistant-chat__content-generation-balloon-list">
-				{contents.map((content) => (
-					<ClayList.Item flex key={content.editURL}>
+				{drafts.map((draft) => (
+					<ClayList.Item flex key={draft.editURL}>
 						<ClayList.ItemField>
 							<span className="ai-assistant-chat__content-generation-balloon-icon">
 								<ClayIcon
@@ -52,12 +52,12 @@ const ContentsMessageBalloon: React.FC<ContentsMessageBalloonProps> = ({
 
 						<ClayList.ItemField expand>
 							<ClayList.ItemTitle>
-								<a href={content.editURL}>{content.title}</a>
+								<a href={draft.editURL}>{draft.title}</a>
 							</ClayList.ItemTitle>
 
 							<ClayList.ItemText>
 								<ClayLabel displayType="secondary">
-									{content.status}
+									{Liferay.Language.get('draft')}
 								</ClayLabel>
 							</ClayList.ItemText>
 						</ClayList.ItemField>

@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import ClayButton from '@clayui/button';
 import ClayForm, {ClaySelectWithOption} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import {fetch} from 'frontend-js-web';
@@ -20,25 +19,28 @@ export interface ContentType {
 interface ContentTypeSelectorMessageBalloonProps {
 	contentTypes: ContentType[];
 	message: string;
-	onSelect: (objectDefinitionName: string, objectFields: string) => void;
+	onSelect: (
+		objectDefinitionName: string,
+		objectFields: string,
+		label: string
+	) => void;
 }
 
 const ContentTypeSelectorMessageBalloon: React.FC<
 	ContentTypeSelectorMessageBalloonProps
 > = ({contentTypes, message, onSelect}) => {
-	const [externalReferenceCode, setExternalReferenceCode] = useState(
-		contentTypes[0]?.externalReferenceCode
-	);
+	const [externalReferenceCode, setExternalReferenceCode] = useState('');
 	const [submitted, setSubmitted] = useState(false);
 
 	const selectId = useId();
 
-	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-		event.preventDefault();
+	function handleChange(event: React.ChangeEvent<HTMLSelectElement>) {
+		const value = event.target.value;
+
+		setExternalReferenceCode(value);
 
 		const contentType = contentTypes.find(
-			(contentType) =>
-				contentType.externalReferenceCode === externalReferenceCode
+			(contentType) => contentType.externalReferenceCode === value
 		);
 
 		if (!contentType) {
@@ -52,7 +54,11 @@ const ContentTypeSelectorMessageBalloon: React.FC<
 			.then((response) => {
 				setSubmitted(true);
 
-				onSelect(contentType.name, JSON.stringify(response));
+				onSelect(
+					contentType.name,
+					JSON.stringify(response),
+					contentType.label
+				);
 			});
 	}
 
@@ -64,10 +70,7 @@ const ContentTypeSelectorMessageBalloon: React.FC<
 				<span>{message}</span>
 			</div>
 
-			<ClayForm
-				className="ai-assistant-chat__content-generation-balloon-form"
-				onSubmit={handleSubmit}
-			>
+			<div className="ai-assistant-chat__content-generation-balloon-form">
 				<ClayForm.Group>
 					<label htmlFor={selectId}>
 						{Liferay.Language.get('content-type')}
@@ -76,25 +79,24 @@ const ContentTypeSelectorMessageBalloon: React.FC<
 					<ClaySelectWithOption
 						disabled={submitted}
 						id={selectId}
-						onChange={(event) =>
-							setExternalReferenceCode(event.target.value)
-						}
-						options={contentTypes.map((contentType) => ({
-							label: contentType.label,
-							value: contentType.externalReferenceCode,
-						}))}
+						onChange={handleChange}
+						options={[
+							{
+								disabled: true,
+								label: Liferay.Language.get(
+									'choose-a-content-type'
+								),
+								value: '',
+							},
+							...contentTypes.map((contentType) => ({
+								label: contentType.label,
+								value: contentType.externalReferenceCode,
+							})),
+						]}
 						value={externalReferenceCode}
 					/>
 				</ClayForm.Group>
-
-				<ClayButton
-					disabled={submitted}
-					displayType="primary"
-					type="submit"
-				>
-					{Liferay.Language.get('send')}
-				</ClayButton>
-			</ClayForm>
+			</div>
 		</div>
 	);
 };

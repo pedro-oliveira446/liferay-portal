@@ -11,32 +11,35 @@ import '@testing-library/jest-dom';
 import ContentsMessageBalloon from '../../../../src/main/resources/META-INF/resources/js/AIAssistantChat/components/ContentsMessageBalloon';
 
 describe('ContentsMessageBalloon', () => {
-	it('renders each generated draft as a link with its status', () => {
+	it('renders each content edit link from the markdown message as a draft', () => {
 		render(
 			<ContentsMessageBalloon
-				contents={[
-					{
-						editURL: '/edit/1',
-						status: 'Draft',
-						title: 'Travelling around Japan',
-					},
-					{
-						editURL: '/edit/2',
-						status: 'Draft',
-						title: 'North Japan',
-					},
-				]}
-				message="Done! Your drafts have been generated."
+				message={
+					'I created these contents for you:\n\n' +
+					'- [Travelling around Japan](/web/cms/e/1)\n' +
+					'- [North Japan](/web/cms/e/2)'
+				}
 			/>
 		);
 
 		expect(
 			screen.getByRole('link', {name: 'Travelling around Japan'})
-		).toHaveAttribute('href', '/edit/1');
+		).toHaveAttribute('href', '/web/cms/e/1');
 		expect(screen.getByRole('link', {name: 'North Japan'})).toHaveAttribute(
 			'href',
-			'/edit/2'
+			'/web/cms/e/2'
 		);
-		expect(screen.getAllByText('Draft')).toHaveLength(2);
+		expect(screen.getAllByText('draft')).toHaveLength(2);
+	});
+
+	it('does not list links that are not content edit pages', () => {
+		render(
+			<ContentsMessageBalloon
+				message="Here is the [documentation](https://liferay.com/docs)."
+			/>
+		);
+
+		expect(screen.queryByRole('link', {name: 'documentation'})).toBeNull();
+		expect(screen.queryByText('draft')).toBeNull();
 	});
 });

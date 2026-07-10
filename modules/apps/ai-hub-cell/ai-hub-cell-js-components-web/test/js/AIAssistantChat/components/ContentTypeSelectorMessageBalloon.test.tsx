@@ -30,7 +30,7 @@ describe('ContentTypeSelectorMessageBalloon', () => {
 		mockFetch.mockReset();
 	});
 
-	it('reports the selected type and its object fields when sent', async () => {
+	it('reports the selected type and its object fields as soon as it is picked', async () => {
 		const objectFields = {
 			items: [{businessType: 'Text', name: 'headline'}],
 		};
@@ -49,12 +49,12 @@ describe('ContentTypeSelectorMessageBalloon', () => {
 			/>
 		);
 
+		expect(screen.queryByRole('button', {name: 'send'})).toBeNull();
+
 		await userEvent.selectOptions(
 			screen.getByLabelText('content-type'),
 			'L_CMS_BASIC_WEB_CONTENT'
 		);
-
-		await userEvent.click(screen.getByRole('button', {name: 'send'}));
 
 		expect(mockFetch).toHaveBeenCalledWith(
 			expect.stringContaining(
@@ -65,7 +65,8 @@ describe('ContentTypeSelectorMessageBalloon', () => {
 		await waitFor(() =>
 			expect(onSelect).toHaveBeenCalledWith(
 				'C_BasicWebContent',
-				JSON.stringify(objectFields)
+				JSON.stringify(objectFields),
+				'Basic Web Content'
 			)
 		);
 	});
