@@ -42,10 +42,12 @@ const ContentsMessageBalloon: React.FC<ContentsMessageBalloonProps> = ({
 				{contents.map((content) => (
 					<ClayList.Item flex key={content.editURL}>
 						<ClayList.ItemField>
-							<ClayIcon
-								spritemap={Liferay.Icons.spritemap}
-								symbol="document-text"
-							/>
+							<span className="ai-assistant-chat__content-generation-balloon-icon">
+								<ClayIcon
+									spritemap={Liferay.Icons.spritemap}
+									symbol="blogs"
+								/>
+							</span>
 						</ClayList.ItemField>
 
 						<ClayList.ItemField expand>
