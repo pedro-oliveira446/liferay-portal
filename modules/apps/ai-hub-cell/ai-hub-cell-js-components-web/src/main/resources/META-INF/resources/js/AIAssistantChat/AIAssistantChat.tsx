@@ -52,6 +52,7 @@ type AIState = 'focused' | 'result' | 'result-readonly' | 'working';
 
 interface AIAssistantChatProps {
 	aiState?: AIState;
+	context?: ChatContext;
 	embedded?: boolean;
 	enableFreeFormCategorization?: boolean;
 	getContext?: () => ChatContext;
@@ -66,9 +67,10 @@ interface AIAssistantChatProps {
 
 const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	aiState,
+	context,
 	embedded = false,
 	enableFreeFormCategorization = false,
-	getContext = () => ({}),
+	getContext,
 	hideTriggerLabel = false,
 	initialMessage,
 	instructionDefinitionScope,
@@ -109,7 +111,8 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	);
 	const eventSourceRef = useRef<EventSource | null>(null);
 	const eventSourceReference = useRef<string | null>(null);
-	const getContextRef = useRef<() => ChatContext>(getContext);
+	const contextRef = useRef<ChatContext | undefined>(context);
+	const getContextRef = useRef<(() => ChatContext) | undefined>(getContext);
 	const initialMessageRef = useRef<string | undefined>(initialMessage);
 	const initialMessageSentRef = useRef<boolean>(false);
 	const instructionDefinitionScopeRef = useRef<string>(
@@ -120,10 +123,16 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
 	useEffect(() => {
+		contextRef.current = context;
 		enableFreeFormCategorizationRef.current = enableFreeFormCategorization;
 		getContextRef.current = getContext;
 		instructionDefinitionScopeRef.current = instructionDefinitionScope;
-	}, [enableFreeFormCategorization, getContext, instructionDefinitionScope]);
+	}, [
+		context,
+		enableFreeFormCategorization,
+		getContext,
+		instructionDefinitionScope,
+	]);
 
 	const sendMessage = useCallback((text: string) => {
 		if (!text.trim()) {
@@ -146,9 +155,12 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 
 		setIsGenerating(true);
 
+		const getCurrentContext =
+			getContextRef.current ?? (() => contextRef.current ?? {});
+
 		const postToChat = () => {
 			postChatByExternalReferenceCodeMessage({
-				chatContext: getContextRef.current(),
+				chatContext: getCurrentContext(),
 				eventSourceReference: eventSourceReference.current as string,
 				instructionDefinitionScope:
 					instructionDefinitionScopeRef.current,
