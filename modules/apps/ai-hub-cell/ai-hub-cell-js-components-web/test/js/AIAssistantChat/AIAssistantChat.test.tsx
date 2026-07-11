@@ -107,20 +107,30 @@ describe('AIAssistantChat', () => {
 		};
 	});
 
-	it('shows the chat input immediately on open', async () => {
+	it('closes the chat when the categorization panel is opened', async () => {
+		const handlers: Record<string, (payload: unknown) => void> = {};
+
+		(Liferay.on as jest.Mock).mockImplementation(
+			(name: string, callback: (payload: unknown) => void) => {
+				handlers[name] = callback;
+			}
+		);
+
 		await renderAndOpen();
 
 		expect(
-			screen.getByPlaceholderText('Ask me anything...')
-		).toBeInTheDocument();
-	});
+			screen.getByRole('button', {name: 'ai-assistant'})
+		).toHaveAttribute('aria-expanded', 'true');
 
-	it('shows the footer disclaimer', async () => {
-		await renderAndOpen();
+		await act(async () => {
+			handlers['cms:aiAssistant:openCategorizationPanel']({});
+		});
 
 		expect(
-			screen.getByText('ai-generated-responses-may-be-inaccurate')
-		).toBeInTheDocument();
+			screen.getByRole('button', {name: 'ai-assistant'})
+		).toHaveAttribute('aria-expanded', 'false');
+
+		(Liferay.on as jest.Mock).mockReset();
 	});
 
 	it('exposes the feedback row on a successful message and wires the codes', async () => {
@@ -180,30 +190,20 @@ describe('AIAssistantChat', () => {
 		).not.toBeInTheDocument();
 	});
 
-	it('closes the chat when the categorization panel is opened', async () => {
-		const handlers: Record<string, (payload: unknown) => void> = {};
-
-		(Liferay.on as jest.Mock).mockImplementation(
-			(name: string, callback: (payload: unknown) => void) => {
-				handlers[name] = callback;
-			}
-		);
-
+	it('shows the chat input immediately on open', async () => {
 		await renderAndOpen();
 
 		expect(
-			screen.getByRole('button', {name: 'ai-assistant'})
-		).toHaveAttribute('aria-expanded', 'true');
+			screen.getByPlaceholderText('Ask me anything...')
+		).toBeInTheDocument();
+	});
 
-		await act(async () => {
-			handlers['cms:aiAssistant:openCategorizationPanel']({});
-		});
+	it('shows the footer disclaimer', async () => {
+		await renderAndOpen();
 
 		expect(
-			screen.getByRole('button', {name: 'ai-assistant'})
-		).toHaveAttribute('aria-expanded', 'false');
-
-		(Liferay.on as jest.Mock).mockReset();
+			screen.getByText('ai-generated-responses-may-be-inaccurate')
+		).toBeInTheDocument();
 	});
 
 	describe('free-form categorization', () => {
@@ -211,6 +211,28 @@ describe('AIAssistantChat', () => {
 			mockClassify.mockReset();
 			mockPostChat.mockClear();
 			(Liferay.fire as jest.Mock).mockClear();
+		});
+
+		it('does not classify when the feature is disabled', async () => {
+			const fakeEventSource = createFakeEventSource();
+
+			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+
+			await act(async () => {
+				render(
+					<AIAssistantChat
+						{...defaultProps}
+						initialMessage="tag this article"
+					/>
+				);
+			});
+
+			await act(async () => {
+				fakeEventSource.emit('Subscribe', 'ref-1');
+			});
+
+			expect(mockClassify).not.toHaveBeenCalled();
+			expect(mockPostChat).toHaveBeenCalled();
 		});
 
 		it('fires a single request event for a categorization message', async () => {
@@ -270,28 +292,6 @@ describe('AIAssistantChat', () => {
 				'cms:aiAssistant:requestCategorize',
 				expect.anything()
 			);
-		});
-
-		it('does not classify when the feature is disabled', async () => {
-			const fakeEventSource = createFakeEventSource();
-
-			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
-
-			await act(async () => {
-				render(
-					<AIAssistantChat
-						{...defaultProps}
-						initialMessage="tag this article"
-					/>
-				);
-			});
-
-			await act(async () => {
-				fakeEventSource.emit('Subscribe', 'ref-1');
-			});
-
-			expect(mockClassify).not.toHaveBeenCalled();
-			expect(mockPostChat).toHaveBeenCalled();
 		});
 
 		it('renders only the balloon when the categorization event suppresses the user message', async () => {
