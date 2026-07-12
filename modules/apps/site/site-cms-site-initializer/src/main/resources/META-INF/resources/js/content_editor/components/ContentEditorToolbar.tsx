@@ -51,6 +51,7 @@ export default function ContentEditorToolbar({
 	hasWorkflow,
 	headerTitle,
 	isNew,
+	objectFields,
 	title,
 	type,
 }: {
@@ -61,6 +62,7 @@ export default function ContentEditorToolbar({
 	hasWorkflow: boolean;
 	headerTitle: string;
 	isNew: boolean;
+	objectFields?: Array<{label: string; name: string}>;
 	title: string;
 	type: string;
 }) {
@@ -96,6 +98,33 @@ export default function ContentEditorToolbar({
 
 		return form as HTMLFormElement;
 	}, []);
+
+	const getContext = useCallback(() => {
+		const form = getForm();
+
+		const properties: Record<string, string> = {};
+
+		if (form && objectFields) {
+			objectFields.forEach(({name}) => {
+				const input =
+					form.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+						`[name="ObjectField_${name}_${defaultLanguageId}"]`
+					) ??
+					form.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+						`[name="ObjectField_${name}"]`
+					);
+
+				if (input) {
+					properties[name] = input.value;
+				}
+			});
+		}
+
+		return {
+			objectFields: JSON.stringify(objectFields),
+			properties: JSON.stringify(properties),
+		};
+	}, [defaultLanguageId, getForm, objectFields]);
 
 	const setSuccessMessage = useCallback(
 		(message: string) => {
@@ -216,7 +245,7 @@ export default function ContentEditorToolbar({
 				<>
 					<Toolbar.Item>
 						<AIAssistantChat
-							getContext={() => ({})}
+							getContext={getContext}
 							instructionDefinitionScope="cms"
 						/>
 					</Toolbar.Item>
