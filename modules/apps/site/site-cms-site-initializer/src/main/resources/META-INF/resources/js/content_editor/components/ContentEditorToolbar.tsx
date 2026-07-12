@@ -32,6 +32,9 @@ import {
 } from './preview/sessionKeys';
 import useLocalizationLanguageId from './useLocalizationLanguageId';
 
+const APPLY_OBJECT_FIELD_VALUES_EVENT =
+	'cms:aiAssistant:applyObjectFieldValues';
+
 export const EVENT_CLOSE_PREVIEW = 'contentEditor:closePreview';
 
 export const EVENT_HANDLE_PREVIEW = 'contentEditor:handlePreview';
@@ -233,6 +236,59 @@ export default function ContentEditorToolbar({
 
 		openToast({message, type: 'success'});
 	}, [getForm]);
+
+	useEffect(() => {
+		const handleApplyObjectFieldValues = (payload: {
+			properties: string;
+		}) => {
+			const form = getForm();
+
+			if (!form) {
+				return;
+			}
+
+			let properties: Record<string, string>;
+
+			try {
+				properties = JSON.parse(payload.properties);
+			}
+			catch {
+				return;
+			}
+
+			const setObjectFieldValue = (
+				inputName: string,
+				inputValue: string
+			) => {
+				const input = form.querySelector<
+					HTMLInputElement | HTMLTextAreaElement
+				>(`[name="${inputName}"]`);
+
+				if (input) {
+					input.value = inputValue;
+				}
+			};
+
+			Object.entries(properties).forEach(([name, value]) => {
+				setObjectFieldValue(`ObjectField_${name}`, value);
+				setObjectFieldValue(
+					`ObjectField_${name}_${defaultLanguageId}`,
+					value
+				);
+			});
+		};
+
+		Liferay.on(
+			APPLY_OBJECT_FIELD_VALUES_EVENT,
+			handleApplyObjectFieldValues
+		);
+
+		return () =>
+			Liferay.detach(
+				APPLY_OBJECT_FIELD_VALUES_EVENT,
+				handleApplyObjectFieldValues
+			);
+	}, [defaultLanguageId, getForm]);
 
 	return (
 		<Toolbar
