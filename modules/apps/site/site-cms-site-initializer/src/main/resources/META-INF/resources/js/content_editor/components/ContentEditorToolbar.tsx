@@ -32,6 +32,9 @@ import {
 } from './preview/sessionKeys';
 import useLocalizationLanguageId from './useLocalizationLanguageId';
 
+const APPLY_OBJECT_FIELD_VALUES_EVENT =
+	'cms:aiAssistant:applyObjectFieldValues';
+
 export const EVENT_CLOSE_PREVIEW = 'contentEditor:closePreview';
 
 export const EVENT_HANDLE_PREVIEW = 'contentEditor:handlePreview';
@@ -51,6 +54,7 @@ export default function ContentEditorToolbar({
 	hasWorkflow,
 	headerTitle,
 	isNew,
+	objectFields,
 	title,
 	type,
 }: {
@@ -61,6 +65,7 @@ export default function ContentEditorToolbar({
 	hasWorkflow: boolean;
 	headerTitle: string;
 	isNew: boolean;
+	objectFields?: Array<{label: string; name: string}>;
 	title: string;
 	type: string;
 }) {
@@ -96,6 +101,33 @@ export default function ContentEditorToolbar({
 
 		return form as HTMLFormElement;
 	}, []);
+
+	const getContext = useCallback(() => {
+		const form = getForm();
+
+		const properties: Record<string, string> = {};
+
+		if (form && objectFields) {
+			objectFields.forEach(({name}) => {
+				const input =
+					form.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+						`[name="ObjectField_${name}_${defaultLanguageId}"]`
+					) ??
+					form.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+						`[name="ObjectField_${name}"]`
+					);
+
+				if (input) {
+					properties[name] = input.value;
+				}
+			});
+		}
+
+		return {
+			objectFields: JSON.stringify(objectFields),
+			properties: JSON.stringify(properties),
+		};
+	}, [defaultLanguageId, getForm, objectFields]);
 
 	const setSuccessMessage = useCallback(
 		(message: string) => {
@@ -205,6 +237,59 @@ export default function ContentEditorToolbar({
 		openToast({message, type: 'success'});
 	}, [getForm]);
 
+	useEffect(() => {
+		const handleApplyObjectFieldValues = (payload: {
+			properties: string;
+		}) => {
+			const form = getForm();
+
+			if (!form) {
+				return;
+			}
+
+			let properties: Record<string, string>;
+
+			try {
+				properties = JSON.parse(payload.properties);
+			}
+			catch {
+				return;
+			}
+
+			const setObjectFieldValue = (
+				inputName: string,
+				inputValue: string
+			) => {
+				const input = form.querySelector<
+					HTMLInputElement | HTMLTextAreaElement
+				>(`[name="${inputName}"]`);
+
+				if (input) {
+					input.value = inputValue;
+				}
+			};
+
+			Object.entries(properties).forEach(([name, value]) => {
+				setObjectFieldValue(`ObjectField_${name}`, value);
+				setObjectFieldValue(
+					`ObjectField_${name}_${defaultLanguageId}`,
+					value
+				);
+			});
+		};
+
+		Liferay.on(
+			APPLY_OBJECT_FIELD_VALUES_EVENT,
+			handleApplyObjectFieldValues
+		);
+
+		return () =>
+			Liferay.detach(
+				APPLY_OBJECT_FIELD_VALUES_EVENT,
+				handleApplyObjectFieldValues
+			);
+	}, [defaultLanguageId, getForm]);
+
 	return (
 		<Toolbar
 			backURL={backURL}
@@ -216,7 +301,7 @@ export default function ContentEditorToolbar({
 				<>
 					<Toolbar.Item>
 						<AIAssistantChat
-							getContext={() => ({})}
+							getContext={getContext}
 							instructionDefinitionScope="cms"
 						/>
 					</Toolbar.Item>
