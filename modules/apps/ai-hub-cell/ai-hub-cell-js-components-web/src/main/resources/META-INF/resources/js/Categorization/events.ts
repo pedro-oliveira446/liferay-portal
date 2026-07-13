@@ -29,6 +29,7 @@ export interface CategorizeEventPayload {
 
 export interface CommitEventPayload {
 	agent: ECategorizationAgent;
+	onCommitted?: (categorizationPanelOpen: boolean) => void;
 	scopeId: number;
 	suggestions: Suggestion[];
 }

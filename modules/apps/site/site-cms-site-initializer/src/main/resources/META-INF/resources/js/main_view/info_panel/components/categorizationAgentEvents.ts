@@ -26,6 +26,7 @@ export interface CategorizationAction {
 
 export interface CategorizationCommitPayload {
 	agent: string;
+	onCommitted?: (categorizationPanelOpen: boolean) => void;
 	scopeId?: number | string;
 	suggestions: CategorizationCommitSuggestion[];
 }
