@@ -8,6 +8,8 @@ export enum ECategorizationAgent {
 	GENERATE_TAGS = 'L_GENERATE_TAGS',
 }
 
+export const CATEGORIZATION_INTENT_AGENT = 'L_CATEGORIZATION_INTENT';
+
 export type CategorizationStatus =
 	| 'empty'
 	| 'error'
@@ -28,8 +30,67 @@ export interface CategorizationContext {
 	existingTags?: string[];
 }
 
+export interface IntentAction {
+	agent: 'categorize' | 'tag';
+	count: number;
+	targets: string[];
+}
+
+export interface IntentVerdict {
+	actions: IntentAction[];
+	passthrough: boolean;
+}
+
 export interface Suggestion {
 	id?: number;
 	isNew?: boolean;
 	name: string;
+}
+
+export type BulkCategorizationItemStatus =
+	| 'committed'
+	| 'failed'
+	| 'pending'
+	| 'ready'
+	| 'running'
+	| 'skipped';
+
+export interface BulkCategorizationItem {
+	canUpdate?: boolean;
+	classNameId?: number;
+	cmsGroupId: number | string;
+	getURL: string;
+	id: number | string;
+	scopeId: number;
+	title: string;
+	updateURL?: string;
+}
+
+export interface BulkCategorizationItemContext {
+	content: string;
+	currentCategoryIds?: number[];
+	currentTagNames?: string[];
+}
+
+export interface BulkCategorizationItemState {
+	currentCategoryIds: number[];
+	currentTagNames: string[];
+	item: BulkCategorizationItem;
+	reason?: string;
+	status: BulkCategorizationItemStatus;
+	suggestions: Suggestion[];
+}
+
+export interface BulkCategorizationContext {
+	agent: ECategorizationAgent;
+	applyItemCommit: (
+		item: BulkCategorizationItem,
+		agent: ECategorizationAgent,
+		suggestions: Suggestion[]
+	) => Promise<void>;
+	count?: number;
+	items: BulkCategorizationItem[];
+	resolveItemContext: (
+		item: BulkCategorizationItem
+	) => Promise<BulkCategorizationItemContext>;
 }

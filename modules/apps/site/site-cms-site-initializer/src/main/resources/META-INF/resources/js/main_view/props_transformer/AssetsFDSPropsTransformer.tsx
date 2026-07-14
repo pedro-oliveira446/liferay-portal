@@ -37,8 +37,13 @@ import DefaultPermissionModalContent from '../default_permission/DefaultPermissi
 import openResetAssetPermissionModal from '../default_permission/ResetPermissionModalContent';
 import {handleFindAndReplace} from '../find_and_replace/utils/handleFindAndReplace';
 import AssetTypeInfoPanel from '../info_panel/AssetTypeInfoPanelContent';
+import {
+	AUTO_CATEGORIZE_AGENT,
+	GENERATE_TAGS_AGENT,
+} from '../info_panel/components/categorizationAgentEvents';
 import ExportTranslationModalContent from '../modal/ExportTranslationModalContent';
 import AssetNavigationModalContent from '../modal/asset_navigation_view/AssetNavigationModalContent';
+import bulkCategorizationWithAIAction from './actions/bulkCategorizationWithAIAction';
 import copyOrMoveBulkAction from './actions/copyOrMoveBulkAction';
 import ACTIONS from './actions/creationMenuActions';
 import deleteAssetEntriesBulkAction, {
@@ -247,6 +252,10 @@ export default function AssetsFDSPropsTransformer({
 			primaryItems: addOnClickToCreationMenuItems(
 				creationMenu.primaryItems,
 				ACTIONS
+			).map((item) =>
+				item.data?.action === 'generateContentWithAI'
+					? {...item, className: 'cms-generate-content-with-ai'}
+					: item
 			),
 		},
 		customRenderers: {
@@ -637,7 +646,21 @@ export default function AssetsFDSPropsTransformer({
 			action: any;
 			selectedData: any;
 		}) => {
-			if (action?.data?.id === 'edit-categories') {
+			if (action?.data?.id === 'ai-add-categories') {
+				bulkCategorizationWithAIAction({
+					agent: AUTO_CATEGORIZE_AGENT,
+					cmsGroupId: additionalProps.cmsGroupId as number,
+					selectedData,
+				});
+			}
+			else if (action?.data?.id === 'ai-generate-tags') {
+				bulkCategorizationWithAIAction({
+					agent: GENERATE_TAGS_AGENT,
+					cmsGroupId: additionalProps.cmsGroupId as number,
+					selectedData,
+				});
+			}
+			else if (action?.data?.id === 'edit-categories') {
 				openCMSModal({
 					center: true,
 					containerProps: {

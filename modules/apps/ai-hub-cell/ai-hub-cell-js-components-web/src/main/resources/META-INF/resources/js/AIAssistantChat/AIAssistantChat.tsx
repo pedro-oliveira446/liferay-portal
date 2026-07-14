@@ -9,14 +9,21 @@ import ClayForm from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
+import classNames from 'classnames';
 import {EventSource} from 'eventsource';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import {
 	CATEGORIZE_EVENT,
 	CategorizeEventPayload,
+	OPEN_CATEGORIZATION_PANEL_EVENT,
+	REQUEST_CATEGORIZE_EVENT,
 } from '../Categorization/events';
-import {ECategorizationAgent} from '../Categorization/types';
+import {classifyCategorizationIntent} from '../Categorization/services/classifyCategorizationIntent';
+import {
+	BulkCategorizationContext,
+	ECategorizationAgent,
+} from '../Categorization/types';
 import ReportFeedbackModal from '../ReportFeedback/ReportFeedbackModal';
 import submitPositiveReportFeedback from '../ReportFeedback/submitPositiveReportFeedback';
 import {
@@ -26,14 +33,22 @@ import {
 } from './api';
 import AIAssistantFooterDisclaimer from './components/AIAssistantFooterDisclaimer';
 import AIAssistantMessageBalloon from './components/AIAssistantMessageBalloon';
+import BulkCategorizationMessageBalloon from './components/BulkCategorizationMessageBalloon';
 import CategorizationMessageBalloon from './components/CategorizationMessageBalloon';
+import ContentTypeSelectorMessageBalloon, {
+	ContentType,
+} from './components/ContentTypeSelectorMessageBalloon';
+import ContentsMessageBalloon from './components/ContentsMessageBalloon';
 import UserMessageBalloon from './components/UserMessageBalloon';
+import parseContentDraftsMessage from './utils/parseContentDraftsMessage';
 
 import './chat.scss';
 
 interface message {
 	agentDefinitionExternalReferenceCodes?: string[];
+	bulkCategorization?: BulkCategorizationContext;
 	categorization?: CategorizeEventPayload;
+	contentTypes?: ContentType[];
 	error?: boolean;
 	sender: string;
 	text: string;
@@ -48,20 +63,32 @@ type AIState = 'focused' | 'result' | 'result-readonly' | 'working';
 
 interface AIAssistantChatProps {
 	aiState?: AIState;
+	context?: ChatContext;
 	embedded?: boolean;
-	getContext: () => ChatContext;
+	enableFreeFormCategorization?: boolean;
+	getContext?: () => ChatContext;
+	hideTriggerLabel?: boolean;
 	initialMessage?: string;
 	instructionDefinitionScope: string;
 	quickActions?: string[];
+	triggerClassName?: string;
+	triggerLabel?: string;
+	triggerRound?: boolean;
 }
 
 const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	aiState,
+	context,
 	embedded = false,
+	enableFreeFormCategorization = false,
 	getContext,
+	hideTriggerLabel = false,
 	initialMessage,
 	instructionDefinitionScope,
 	quickActions,
+	triggerRound = true,
+	triggerClassName,
+	triggerLabel = Liferay.Language.get('ai-assistant'),
 }) => {
 	const [active, setActive] = useState<boolean>(false);
 	const [feedbackGiven, setFeedbackGiven] = useState<Record<number, boolean>>(
@@ -90,9 +117,14 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 			surface: 'aiAssistant',
 		});
 	};
+	const enableFreeFormCategorizationRef = useRef<boolean>(
+		enableFreeFormCategorization
+	);
 	const eventSourceRef = useRef<EventSource | null>(null);
 	const eventSourceReference = useRef<string | null>(null);
-	const getContextRef = useRef<() => ChatContext>(getContext);
+	const contextRef = useRef<ChatContext | undefined>(context);
+	const getContextRef = useRef<(() => ChatContext) | undefined>(getContext);
+	const runtimeContextRef = useRef<ChatContext>({});
 	const initialMessageRef = useRef<string | undefined>(initialMessage);
 	const initialMessageSentRef = useRef<boolean>(false);
 	const instructionDefinitionScopeRef = useRef<string>(
@@ -103,9 +135,16 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
 	useEffect(() => {
+		contextRef.current = context;
+		enableFreeFormCategorizationRef.current = enableFreeFormCategorization;
 		getContextRef.current = getContext;
 		instructionDefinitionScopeRef.current = instructionDefinitionScope;
-	}, [getContext, instructionDefinitionScope]);
+	}, [
+		context,
+		enableFreeFormCategorization,
+		getContext,
+		instructionDefinitionScope,
+	]);
 
 	const sendMessage = useCallback((text: string) => {
 		if (!text.trim()) {
@@ -122,20 +161,63 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 
 		setMessage('');
 
-		if (eventSourceReference.current) {
-			setIsGenerating(true);
+		if (!eventSourceReference.current) {
+			return;
+		}
 
-			const getCurrentContext = getContextRef.current;
+		setIsGenerating(true);
 
+		const getCurrentContext =
+			getContextRef.current ?? (() => contextRef.current ?? {});
+
+		const postToChat = () => {
 			postChatByExternalReferenceCodeMessage({
-				chatContext: getCurrentContext(),
-				eventSourceReference: eventSourceReference.current,
+				chatContext: {
+					...getCurrentContext(),
+					...runtimeContextRef.current,
+				},
+				eventSourceReference: eventSourceReference.current as string,
 				instructionDefinitionScope:
 					instructionDefinitionScopeRef.current,
 				message: text,
 			}).catch(() => setIsGenerating(false));
+		};
+
+		if (!enableFreeFormCategorizationRef.current) {
+			postToChat();
+
+			return;
 		}
+
+		classifyCategorizationIntent(text)
+			.then((verdict) => {
+				if (verdict.passthrough || !verdict.actions.length) {
+					postToChat();
+
+					return;
+				}
+
+				setIsGenerating(false);
+
+				Liferay.fire(REQUEST_CATEGORIZE_EVENT, {
+					actions: verdict.actions,
+				});
+			})
+			.catch(() => postToChat());
 	}, []);
+
+	const selectContentType = useCallback(
+		(objectDefinitionName: string, objectFields: string, label: string) => {
+			runtimeContextRef.current = {
+				...runtimeContextRef.current,
+				objectDefinitionName,
+				objectFields,
+			};
+
+			sendMessage(label);
+		},
+		[sendMessage]
+	);
 
 	function onSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -309,6 +391,72 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	}, [closeAIAssistantChatConnection, openAIAssistantChatConnection]);
 
 	useEffect(() => {
+		const handleOpen = (payload: {
+			contentTypes?: ContentType[];
+			context?: ChatContext;
+			message?: string;
+		}) => {
+			setActive(true);
+
+			const {bulkCategorization, ...restContext} = (payload?.context ??
+				{}) as ChatContext & {
+				bulkCategorization?: BulkCategorizationContext;
+			};
+
+			if (payload?.context) {
+				runtimeContextRef.current = {
+					...runtimeContextRef.current,
+					...restContext,
+				};
+			}
+
+			if (bulkCategorization) {
+				setMessages((previousMessages) => [
+					...previousMessages,
+					{
+						sender: 'user',
+						text:
+							bulkCategorization.agent ===
+							ECategorizationAgent.AUTO_CATEGORIZE
+								? Liferay.Language.get('add-categories')
+								: Liferay.Language.get('generate-tags'),
+					},
+					{
+						bulkCategorization,
+						sender: 'assistant',
+						text: '',
+					},
+				]);
+			}
+			else if (payload?.contentTypes?.length) {
+				setMessages((previousMessages) => [
+					...previousMessages,
+					{
+						sender: 'user',
+						text: Liferay.Language.get('generate-content'),
+					},
+					{
+						contentTypes: payload.contentTypes,
+						sender: 'assistant',
+						text: Liferay.Language.get(
+							'what-type-of-content-do-you-want-to-generate'
+						),
+					},
+				]);
+			}
+			else if (payload?.message) {
+				sendMessage(payload.message);
+			}
+		};
+
+		Liferay.on('openAIAssistantChat', handleOpen);
+
+		return () => {
+			Liferay.detach('openAIAssistantChat', handleOpen);
+		};
+	}, [sendMessage]);
+
+	useEffect(() => {
 		const handleCategorize = (payload: CategorizeEventPayload) => {
 			setActive(true);
 
@@ -318,6 +466,16 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 						behavior: 'smooth',
 					});
 				}, 0);
+
+				const categorizationMessage = {
+					categorization: payload,
+					sender: 'assistant',
+					text: '',
+				};
+
+				if (payload.suppressUserMessage) {
+					return [...previousMessages, categorizationMessage];
+				}
 
 				return [
 					...previousMessages,
@@ -329,21 +487,33 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 								? Liferay.Language.get('add-categories')
 								: Liferay.Language.get('generate-tags'),
 					},
-					{categorization: payload, sender: 'assistant', text: ''},
+					categorizationMessage,
 				];
 			});
 		};
 
+		const handleOpenCategorizationPanel = () => {
+			setActive(false);
+		};
+
 		Liferay.on(CATEGORIZE_EVENT, handleCategorize);
+		Liferay.on(
+			OPEN_CATEGORIZATION_PANEL_EVENT,
+			handleOpenCategorizationPanel
+		);
 
 		return () => {
 			Liferay.detach(CATEGORIZE_EVENT, handleCategorize);
+			Liferay.detach(
+				OPEN_CATEGORIZATION_PANEL_EVENT,
+				handleOpenCategorizationPanel
+			);
 		};
 	}, []);
 
 	const chatSurface = (
 		<>
-			<div className="ai-assistant-chat__messages-container flex-grow-1 overflow-auto px-3">
+			<div className="ai-assistant-chat__messages-container">
 				{!initialMessage && (
 					<AIAssistantMessageBalloon
 						error={false}
@@ -367,6 +537,35 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 							<CategorizationMessageBalloon
 								key={index}
 								{...item.categorization}
+							/>
+						);
+					}
+
+					if (item.bulkCategorization) {
+						return (
+							<BulkCategorizationMessageBalloon
+								key={index}
+								{...item.bulkCategorization}
+							/>
+						);
+					}
+
+					if (item.contentTypes) {
+						return (
+							<ContentTypeSelectorMessageBalloon
+								contentTypes={item.contentTypes}
+								key={index}
+								message={item.text}
+								onSelect={selectContentType}
+							/>
+						);
+					}
+
+					if (parseContentDraftsMessage(item.text).drafts.length) {
+						return (
+							<ContentsMessageBalloon
+								key={index}
+								message={item.text}
 							/>
 						);
 					}
@@ -398,12 +597,12 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 				})}
 
 				{isGenerating && (
-					<div className="ai-assistant-chat-balloon d-flex flex-row mb-2 rounded">
-						<div className="align-items-center d-flex ml-2">
+					<div className="ai-assistant-chat__generating-balloon">
+						<div className="ai-assistant-chat__generating-balloon-indicator">
 							<ClayLoadingIndicator />
 						</div>
 
-						<span className="ai-assistant-chat__generating-loading-text font-weight-semi-bold m-2 tex">
+						<span className="ai-assistant-chat__generating-loading-text">
 							{Liferay.Language.get('generating')}
 						</span>
 					</div>
@@ -413,15 +612,15 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 			</div>
 
 			{!!quickActions?.length && (
-				<div className="ai-assistant-chat__quick-actions flex-shrink-0 px-3">
-					<span className="ai-assistant-chat__quick-actions-title small text-secondary">
+				<div className="ai-assistant-chat__quick-actions">
+					<span className="ai-assistant-chat__quick-actions-title">
 						{Liferay.Language.get('quick-actions')}
 					</span>
 
-					<div className="d-flex flex-wrap">
+					<div className="ai-assistant-chat__quick-actions-list">
 						{quickActions.map((quickAction) => (
 							<ClayButton
-								className="mb-1 mr-1"
+								className="ai-assistant-chat__quick-action"
 								disabled={isGenerating}
 								displayType="secondary"
 								key={quickAction}
@@ -429,7 +628,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 								size="xs"
 							>
 								<ClayIcon
-									className="mr-1"
+									className="ai-assistant-chat__quick-action-icon"
 									height={12}
 									spritemap={Liferay.Icons.spritemap}
 									symbol="stars"
@@ -444,15 +643,15 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 			)}
 
 			<ClayForm
-				className="flex-shrink-0 pt-3 px-3"
+				className="ai-assistant-chat__form"
 				onSubmit={(event) => onSubmit(event)}
 			>
 				<div
-					className="align-items-end d-flex flex-row"
+					className="ai-assistant-chat__input-row"
 					data-ai-state={aiState}
 				>
 					<textarea
-						className="ai-assistant-chat__input form-control mr-2"
+						className="ai-assistant-chat__input form-control"
 						id="assistant-user-input"
 						onChange={(event) => {
 							setMessage(event.target.value);
@@ -491,7 +690,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 
 	if (embedded) {
 		return (
-			<div className="ai-assistant ai-assistant-chat__embedded d-flex flex-column pt-3">
+			<div className="ai-assistant ai-assistant-chat__embedded">
 				{chatSurface}
 			</div>
 		);
@@ -501,7 +700,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 		<ClayDropDown
 			active={active}
 			alignmentPosition={4}
-			className="d-flex p-0"
+			className="ai-assistant-chat__dropdown"
 			hasRightSymbols={false}
 			menuElementAttrs={{
 				className: 'cadmin',
@@ -516,28 +715,36 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 			onActiveChange={setActive}
 			trigger={
 				<ClayButton
-					aria-label={Liferay.Language.get('ai-assistant')}
+					aria-label={triggerLabel}
 					borderless
-					className="text-primary"
+					className={classNames(
+						'ai-assistant-chat__trigger',
+						triggerClassName
+					)}
 					displayType="secondary"
+					monospaced={triggerRound && hideTriggerLabel}
 					ref={triggerRef}
+					rounded={triggerRound}
 				>
 					<ClayIcon
-						className="mr-2"
 						height={16}
 						spritemap={Liferay.Icons.spritemap}
 						symbol="stars"
 						width={16}
 					/>
 
-					{Liferay.Language.get('ai-assistant')}
+					{!hideTriggerLabel && (
+						<span className="ai-assistant-chat__trigger-label">
+							{triggerLabel}
+						</span>
+					)}
 				</ClayButton>
 			}
 		>
-			<div className="ai-assistant ai-assistant-chat__dropdown-container d-flex flex-column">
-				<div className="flex-shrink-0 p-3">
-					<ClayLayout.ContentRow className="align-items-center border-bottom justify-content-between mb-3 pb-2">
-						<ClayLayout.ContentCol className="ai-assistant-chat__dropdown-title font-weight-semi-bold">
+			<div className="ai-assistant ai-assistant-chat__dropdown-container">
+				<div className="ai-assistant-chat__dropdown-header">
+					<ClayLayout.ContentRow className="ai-assistant-chat__dropdown-header-row">
+						<ClayLayout.ContentCol className="ai-assistant-chat__dropdown-title">
 							{Liferay.Language.get('ai-assistant')}
 						</ClayLayout.ContentCol>
 

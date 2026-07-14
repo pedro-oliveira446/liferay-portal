@@ -23,6 +23,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -745,6 +746,45 @@ public class SectionDisplayContextUtil {
 		return objectEntryFolderIdsMap;
 	}
 
+	private static void _addAICategorizationBulkActions(
+		List<DropdownItem> bulkActionDropdownItems,
+		HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				themeDisplay.getCompanyId(), "LPD-62272")) {
+
+			return;
+		}
+
+		// The AI actions stay visible for any selection; per-item write
+		// permission is enforced by the bulk pipeline (no_permission skip).
+
+		bulkActionDropdownItems.add(
+			FDSActionDropdownItemBuilder.setIcon(
+				"stars"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "add-categories")
+			).setMethod(
+				"get"
+			).build(
+				"ai-add-categories"
+			));
+		bulkActionDropdownItems.add(
+			FDSActionDropdownItemBuilder.setIcon(
+				"stars"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "generate-tags")
+			).setMethod(
+				"get"
+			).build(
+				"ai-generate-tags"
+			));
+	}
+
 	private static void _addEditCategoriesAndTagsBulkActions(
 		List<DropdownItem> bulkActionDropdownItems,
 		HttpServletRequest httpServletRequest) {
@@ -773,6 +813,9 @@ public class SectionDisplayContextUtil {
 			).build(
 				"edit-tags"
 			));
+
+		_addAICategorizationBulkActions(
+			bulkActionDropdownItems, httpServletRequest);
 	}
 
 	private static void _addPermissionsBulkActions(
