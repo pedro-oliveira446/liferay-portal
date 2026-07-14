@@ -10,6 +10,7 @@ import {
 	createCategorizationEventSource,
 	postCategorizationAgentInstance,
 } from './api';
+import {toRequestContext} from './runCategorizationAgent';
 import {
 	CategorizationContext,
 	CategorizationStatus,
@@ -17,31 +18,6 @@ import {
 	Suggestion,
 } from './types';
 import {parseSuggestions} from './utils/parseSuggestions';
-
-const DEFAULT_COUNT = 3;
-
-function toRequestContext(
-	agent: ECategorizationAgent,
-	context: CategorizationContext
-): Record<string, unknown> {
-	const requestContext: Record<string, unknown> = {
-		content: context.content,
-		count: context.count ?? DEFAULT_COUNT,
-	};
-
-	if (agent === ECategorizationAgent.AUTO_CATEGORIZE) {
-		requestContext.candidateCategories = JSON.stringify(
-			context.candidateCategories ?? []
-		);
-	}
-	else {
-		requestContext.existingTags = JSON.stringify(
-			context.existingTags ?? []
-		);
-	}
-
-	return requestContext;
-}
 
 function resolveTargetSuggestions(
 	agent: ECategorizationAgent,

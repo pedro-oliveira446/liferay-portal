@@ -20,7 +20,10 @@ import {
 	REQUEST_CATEGORIZE_EVENT,
 } from '../Categorization/events';
 import {classifyCategorizationIntent} from '../Categorization/services/classifyCategorizationIntent';
-import {ECategorizationAgent} from '../Categorization/types';
+import {
+	BulkCategorizationContext,
+	ECategorizationAgent,
+} from '../Categorization/types';
 import ReportFeedbackModal from '../ReportFeedback/ReportFeedbackModal';
 import submitPositiveReportFeedback from '../ReportFeedback/submitPositiveReportFeedback';
 import {
@@ -30,6 +33,7 @@ import {
 } from './api';
 import AIAssistantFooterDisclaimer from './components/AIAssistantFooterDisclaimer';
 import AIAssistantMessageBalloon from './components/AIAssistantMessageBalloon';
+import BulkCategorizationMessageBalloon from './components/BulkCategorizationMessageBalloon';
 import CategorizationMessageBalloon from './components/CategorizationMessageBalloon';
 import ContentTypeSelectorMessageBalloon, {
 	ContentType,
@@ -42,6 +46,7 @@ import './chat.scss';
 
 interface message {
 	agentDefinitionExternalReferenceCodes?: string[];
+	bulkCategorization?: BulkCategorizationContext;
 	categorization?: CategorizeEventPayload;
 	contentTypes?: ContentType[];
 	error?: boolean;
@@ -393,14 +398,37 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 		}) => {
 			setActive(true);
 
+			const {bulkCategorization, ...restContext} = (payload?.context ??
+				{}) as ChatContext & {
+				bulkCategorization?: BulkCategorizationContext;
+			};
+
 			if (payload?.context) {
 				runtimeContextRef.current = {
 					...runtimeContextRef.current,
-					...payload.context,
+					...restContext,
 				};
 			}
 
-			if (payload?.contentTypes?.length) {
+			if (bulkCategorization) {
+				setMessages((previousMessages) => [
+					...previousMessages,
+					{
+						sender: 'user',
+						text:
+							bulkCategorization.agent ===
+							ECategorizationAgent.AUTO_CATEGORIZE
+								? Liferay.Language.get('add-categories')
+								: Liferay.Language.get('generate-tags'),
+					},
+					{
+						bulkCategorization,
+						sender: 'assistant',
+						text: '',
+					},
+				]);
+			}
+			else if (payload?.contentTypes?.length) {
 				setMessages((previousMessages) => [
 					...previousMessages,
 					{
@@ -509,6 +537,15 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 							<CategorizationMessageBalloon
 								key={index}
 								{...item.categorization}
+							/>
+						);
+					}
+
+					if (item.bulkCategorization) {
+						return (
+							<BulkCategorizationMessageBalloon
+								key={index}
+								{...item.bulkCategorization}
 							/>
 						);
 					}

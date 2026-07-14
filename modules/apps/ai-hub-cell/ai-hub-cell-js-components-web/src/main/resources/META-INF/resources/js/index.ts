@@ -15,6 +15,9 @@ export {getCandidateCategories} from './Categorization/services/getCandidateCate
 export {getExistingTags} from './Categorization/services/getExistingTags';
 export {ECategorizationAgent} from './Categorization/types';
 export type {
+	BulkCategorizationContext,
+	BulkCategorizationItem,
+	BulkCategorizationItemContext,
 	CandidateCategory,
 	CategorizationContext,
 	CategorizationStatus,

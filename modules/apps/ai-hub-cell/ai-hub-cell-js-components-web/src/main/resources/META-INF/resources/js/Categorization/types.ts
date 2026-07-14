@@ -46,3 +46,51 @@ export interface Suggestion {
 	isNew?: boolean;
 	name: string;
 }
+
+export type BulkCategorizationItemStatus =
+	| 'committed'
+	| 'failed'
+	| 'pending'
+	| 'ready'
+	| 'running'
+	| 'skipped';
+
+export interface BulkCategorizationItem {
+	canUpdate?: boolean;
+	classNameId?: number;
+	cmsGroupId: number | string;
+	getURL: string;
+	id: number | string;
+	scopeId: number;
+	title: string;
+	updateURL?: string;
+}
+
+export interface BulkCategorizationItemContext {
+	content: string;
+	currentCategoryIds?: number[];
+	currentTagNames?: string[];
+}
+
+export interface BulkCategorizationItemState {
+	currentCategoryIds: number[];
+	currentTagNames: string[];
+	item: BulkCategorizationItem;
+	reason?: string;
+	status: BulkCategorizationItemStatus;
+	suggestions: Suggestion[];
+}
+
+export interface BulkCategorizationContext {
+	agent: ECategorizationAgent;
+	applyItemCommit: (
+		item: BulkCategorizationItem,
+		agent: ECategorizationAgent,
+		suggestions: Suggestion[]
+	) => Promise<void>;
+	count?: number;
+	items: BulkCategorizationItem[];
+	resolveItemContext: (
+		item: BulkCategorizationItem
+	) => Promise<BulkCategorizationItemContext>;
+}
