@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.site.cms.site.initializer.internal.util.CommentUtil;
@@ -127,6 +128,20 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
+		ObjectDefinition cmpProjectAssetRelationshipObjectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT_ASSET_RELATIONSHIP",
+					themeDisplay.getCompanyId());
+		ObjectDefinition cmpProjectObjectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT", themeDisplay.getCompanyId());
+		ObjectDefinition cmpTaskObjectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_CMP_TASK", themeDisplay.getCompanyId());
+
 		return HashMapBuilder.<String, Object>put(
 			"addCommentURL",
 			() -> {
@@ -152,34 +167,21 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 			"assetType", classNameId
 		).put(
 			"cmpProjectAssetRelationshipObjectDefinitionId",
-			() -> {
-				ObjectDefinition cmpProjectAssetRelationshipObjectDefinition =
-					_objectDefinitionLocalService.
-						fetchObjectDefinitionByExternalReferenceCode(
-							"L_CMP_PROJECT_ASSET_RELATIONSHIP",
-							themeDisplay.getCompanyId());
-
-				if (cmpProjectAssetRelationshipObjectDefinition == null) {
-					return null;
-				}
-
-				return cmpProjectAssetRelationshipObjectDefinition.
-					getObjectDefinitionId();
-			}
+			() -> _getObjectDefinitionId(
+				cmpProjectAssetRelationshipObjectDefinition)
 		).put(
 			"cmpProjectObjectDefinitionId",
-			() -> {
-				ObjectDefinition cmpProjectObjectDefinition =
-					_objectDefinitionLocalService.
-						fetchObjectDefinitionByExternalReferenceCode(
-							"L_CMP_PROJECT", themeDisplay.getCompanyId());
-
-				if (cmpProjectObjectDefinition == null) {
-					return null;
-				}
-
-				return cmpProjectObjectDefinition.getObjectDefinitionId();
-			}
+			() -> _getObjectDefinitionId(cmpProjectObjectDefinition)
+		).put(
+			"cmpProjectViewURL",
+			() -> _getCMPViewURL(
+				cmpProjectObjectDefinition, themeDisplay, "project")
+		).put(
+			"cmpTaskObjectDefinitionId",
+			() -> _getObjectDefinitionId(cmpTaskObjectDefinition)
+		).put(
+			"cmpTaskViewURL",
+			() -> _getCMPViewURL(cmpTaskObjectDefinition, themeDisplay, "task")
 		).put(
 			"cmsGroupId", themeDisplay.getScopeGroupId()
 		).put(
@@ -353,6 +355,30 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 		).build();
 	}
 
+	private String _getCMPViewURL(
+		ObjectDefinition objectDefinition, ThemeDisplay themeDisplay,
+		String type) {
+
+		if (objectDefinition == null) {
+			return null;
+		}
+
+		return StringBundler.concat(
+			themeDisplay.getPortalURL(), _portal.getPathFriendlyURLPublic(),
+			"/cms/e/", type, "/",
+			_classNameLocalService.getClassNameId(
+				objectDefinition.getClassName()),
+			"/");
+	}
+
+	private Long _getObjectDefinitionId(ObjectDefinition objectDefinition) {
+		if (objectDefinition == null) {
+			return null;
+		}
+
+		return objectDefinition.getObjectDefinitionId();
+	}
+
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
 
@@ -370,6 +396,9 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 
 	@Reference
 	private ObjectEntryService _objectEntryService;
+
+	@Reference
+	private Portal _portal;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;
