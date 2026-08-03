@@ -1,4 +1,5 @@
 import * as API from 'shared/api';
+import BaseCard from 'shared/components/base-card';
 import Card from 'shared/components/Card';
 import classNames from 'classnames';
 import ClayButton from '@clayui/button';
@@ -11,9 +12,11 @@ import ClayTabs from '@clayui/tabs';
 import React, {useState} from 'react';
 import StatesRenderer from 'shared/components/states-renderer/StatesRenderer';
 import {getMimeType} from 'assets/components/mime-type';
+import {getSafeRangeSelectors} from 'shared/util/util';
 import {IAccount} from './AccountInfo';
 import {ITopAsset, TopAssetMetric, TopAssetObjectType} from 'shared/api/assets';
 import {Option, Picker, Text} from '@clayui/core';
+import {RangeSelectors} from 'shared/types';
 import {Routes, setUriQueryValues, toRoute} from 'shared/util/router';
 import {toThousands} from 'shared/util/numbers';
 import {useHistory, useParams} from 'react-router-dom';
@@ -85,6 +88,8 @@ const GroupByTrigger = React.forwardRef<
 ));
 
 interface ITopAssetsTabContentProps {
+	accountId?: string;
+	accountName?: string;
 	assets: ITopAsset[];
 	groupBy: GroupByMetric;
 	isFiles: boolean;
@@ -94,6 +99,8 @@ interface ITopAssetsTabContentProps {
 }
 
 const TopAssetsTabContent: React.FC<ITopAssetsTabContentProps> = ({
+	accountId,
+	accountName,
 	assets,
 	groupBy,
 	isFiles,
@@ -180,6 +187,26 @@ const TopAssetsTabContent: React.FC<ITopAssetsTabContentProps> = ({
 								mimeType: asset.mimeType,
 							});
 
+							const href = setUriQueryValues(
+								{accountId, accountName},
+								toRoute(getAssetRoute(asset.assetType), {
+									assetId: asset.id,
+									channelId,
+									groupId,
+									touchpoint: 'overview',
+									...(asset.assetType && {
+										type: encodeURIComponent(
+											asset.assetType
+										),
+									}),
+									...(asset.assetTitle && {
+										title: encodeURIComponent(
+											asset.assetTitle
+										),
+									}),
+								})
+							);
+
 							return (
 								<ClayTable.Row key={asset.id}>
 									<ClayTable.Cell expanded>
@@ -198,27 +225,7 @@ const TopAssetsTabContent: React.FC<ITopAssetsTabContentProps> = ({
 											</div>
 											<ClayLink
 												className="font-weight-semi-bold text-dark"
-												href={toRoute(
-													getAssetRoute(
-														asset.assetType
-													),
-													{
-														assetId: asset.id,
-														channelId,
-														groupId,
-														touchpoint: 'overview',
-														...(asset.assetType && {
-															type: encodeURIComponent(
-																asset.assetType
-															),
-														}),
-														...(asset.assetTitle && {
-															title: encodeURIComponent(
-																asset.assetTitle
-															),
-														}),
-													}
-												)}
+												href={href}
 											>
 												{asset.assetTitle}
 											</ClayLink>
@@ -239,7 +246,31 @@ const TopAssetsTabContent: React.FC<ITopAssetsTabContentProps> = ({
 	);
 };
 
-const TopAssets: React.FC<ITopAssetsProps> = ({account, className}) => {
+const TopAssets: React.FC<ITopAssetsProps> = ({account, className}) => (
+	<BaseCard
+		className={classNames('top-assets', className)}
+		label={Liferay.Language.get('top-assets').toUpperCase()}
+		legacyDropdownRangeKey={false}
+		minHeight={260}
+	>
+		{({rangeSelectors}: {rangeSelectors: RangeSelectors}) => (
+			<TopAssetsWithData
+				account={account}
+				rangeSelectors={rangeSelectors}
+			/>
+		)}
+	</BaseCard>
+);
+
+interface ITopAssetsWithDataProps {
+	account?: IAccount;
+	rangeSelectors: RangeSelectors;
+}
+
+const TopAssetsWithData: React.FC<ITopAssetsWithDataProps> = ({
+	account,
+	rangeSelectors,
+}) => {
 	const history = useHistory();
 	const {channelId, groupId} = useParams<{
 		channelId: string;
@@ -273,6 +304,7 @@ const TopAssets: React.FC<ITopAssetsProps> = ({account, className}) => {
 		dataSourceFn: API.assets.fetchAccountTopAssets,
 		skipRequest: !accountId,
 		variables: {
+			...getSafeRangeSelectors(rangeSelectors),
 			accountId: accountId!,
 			channelId,
 			groupId,
@@ -285,6 +317,8 @@ const TopAssets: React.FC<ITopAssetsProps> = ({account, className}) => {
 
 	const tabContent = (
 		<TopAssetsTabContent
+			accountId={accountId}
+			accountName={accountName}
 			assets={assets}
 			groupBy={groupBy}
 			isFiles={TABS[activeTab] === 'files'}
@@ -295,62 +329,48 @@ const TopAssets: React.FC<ITopAssetsProps> = ({account, className}) => {
 	);
 
 	return (
-		<Card className={classNames('top-assets', className)} minHeight={260}>
-			<Card.Title className="p-3">
-				<Text weight="semi-bold">
-					{Liferay.Language.get('top-assets').toUpperCase()}
-				</Text>
-			</Card.Title>
-			<Card.Body className="p-0">
-				<ClayTabs
-					active={activeTab}
-					onActiveChange={handleActiveTabChange}
-				>
-					<ClayTabs.Item>
-						{Liferay.Language.get('content')}
-					</ClayTabs.Item>
-					<ClayTabs.Item>
-						{Liferay.Language.get('files')}
-					</ClayTabs.Item>
-				</ClayTabs>
+		<Card.Body className="p-0">
+			<ClayTabs active={activeTab} onActiveChange={handleActiveTabChange}>
+				<ClayTabs.Item>{Liferay.Language.get('content')}</ClayTabs.Item>
+				<ClayTabs.Item>{Liferay.Language.get('files')}</ClayTabs.Item>
+			</ClayTabs>
 
-				<ClayTabs.Content activeIndex={activeTab} fade>
-					<ClayTabs.TabPane className="pb-0">
-						{tabContent}
-					</ClayTabs.TabPane>
-					<ClayTabs.TabPane className="pb-0">
-						{tabContent}
-					</ClayTabs.TabPane>
-				</ClayTabs.Content>
+			<ClayTabs.Content activeIndex={activeTab} fade>
+				<ClayTabs.TabPane className="pb-0">
+					{tabContent}
+				</ClayTabs.TabPane>
+				<ClayTabs.TabPane className="pb-0">
+					{tabContent}
+				</ClayTabs.TabPane>
+			</ClayTabs.Content>
 
-				{assets.length > 0 && (
-					<div className="d-flex p-3">
-						<ClayButton
-							borderless
-							className="ml-auto rounded-lg"
-							onClick={() =>
-								history.push(
-									setUriQueryValues(
-										{
-											accountId,
-											orderBy: selectedMetric,
-											...(accountName && {accountName}),
-										},
-										toRoute(Routes.ASSETS, {
-											channelId,
-											groupId,
-										})
-									)
+			{assets.length > 0 && (
+				<div className="d-flex p-3">
+					<ClayButton
+						borderless
+						className="ml-auto rounded-lg"
+						onClick={() =>
+							history.push(
+								setUriQueryValues(
+									{
+										accountId,
+										orderBy: selectedMetric,
+										...(accountName && {accountName}),
+									},
+									toRoute(Routes.ASSETS, {
+										channelId,
+										groupId,
+									})
 								)
-							}
-							size="sm"
-						>
-							{Liferay.Language.get('view-all')}
-						</ClayButton>
-					</div>
-				)}
-			</Card.Body>
-		</Card>
+							)
+						}
+						size="sm"
+					>
+						{Liferay.Language.get('view-all')}
+					</ClayButton>
+				</div>
+			)}
+		</Card.Body>
 	);
 };
 

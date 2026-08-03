@@ -31,7 +31,10 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Stefano Motta
  */
-@Component(service = PortalInstanceLifecycleListener.class)
+@Component(
+	property = "service.ranking:Integer=" + Integer.MIN_VALUE,
+	service = PortalInstanceLifecycleListener.class
+)
 public class DSRInitialRequestPortalInstanceLifecycleListener
 	extends InitialRequestPortalInstanceLifecycleListener {
 
@@ -68,7 +71,7 @@ public class DSRInitialRequestPortalInstanceLifecycleListener
 			}
 
 			Layout layout = _layoutLocalService.fetchLayoutByFriendlyURL(
-				group.getGroupId(), false, "/home");
+				group.getGroupId(), false, DSRConstants.DSR_HOME_FRIENDLY_URL);
 
 			if (layout != null) {
 				return;

@@ -49,6 +49,7 @@ import com.liferay.osb.faro.engine.client.model.DataSource;
 import com.liferay.osb.faro.engine.client.model.DataSourceField;
 import com.liferay.osb.faro.engine.client.model.DataSourceFieldCatalogEntry;
 import com.liferay.osb.faro.engine.client.model.DataSourceProgress;
+import com.liferay.osb.faro.engine.client.model.DataSourceUsageMetric;
 import com.liferay.osb.faro.engine.client.model.Distribution;
 import com.liferay.osb.faro.engine.client.model.EntityModelPagedModel;
 import com.liferay.osb.faro.engine.client.model.Event;
@@ -66,6 +67,7 @@ import com.liferay.osb.faro.engine.client.model.Interest;
 import com.liferay.osb.faro.engine.client.model.PageExperience;
 import com.liferay.osb.faro.engine.client.model.PageVisited;
 import com.liferay.osb.faro.engine.client.model.PagedModel;
+import com.liferay.osb.faro.engine.client.model.ProjectDataSourceCount;
 import com.liferay.osb.faro.engine.client.model.ProjectUsageMetric;
 import com.liferay.osb.faro.engine.client.model.Provider;
 import com.liferay.osb.faro.engine.client.model.RealTimeMembershipMetric;
@@ -328,8 +330,8 @@ public class ContactsEngineClientImpl
 	public IndividualSegment addIndividualSegment(
 		FaroProject faroProject, long userId, String channelId,
 		String externalReferenceCode, String filterString,
-		boolean includeAnonymousUsers, String name, String segmentType,
-		boolean sequential, String status) {
+		boolean includeAnonymousUsers, String name, String segmentCategory,
+		String segmentType, boolean sequential, String status) {
 
 		IndividualSegment individualSegment = new IndividualSegment();
 
@@ -340,6 +342,7 @@ public class ContactsEngineClientImpl
 		individualSegment.setFilterString(filterString);
 		individualSegment.setIncludeAnonymousUsers(includeAnonymousUsers);
 		individualSegment.setName(name);
+		individualSegment.setSegmentCategory(segmentCategory);
 		individualSegment.setSegmentType(segmentType);
 		individualSegment.setSequential(sequential);
 		individualSegment.setStatus(status);
@@ -2112,6 +2115,20 @@ public class ContactsEngineClientImpl
 	}
 
 	@Override
+	public Results<DataSourceUsageMetric> getDataSourceUsageMetrics(
+		FaroProject faroProject, Date date) {
+
+		PagedModel<?, DataSourceUsageMetric> pagedModel = get(
+			faroProject, Rels.DATA_SOURCE_USAGE_METRICS,
+			new ParameterizedTypeReference
+				<EntityModelPagedModel<DataSourceUsageMetric>>() {
+			},
+			Collections.singletonMap("date", date));
+
+		return pagedModel.getResults();
+	}
+
+	@Override
 	public long getDXPUsersCount(FaroProject faroProject, String id) {
 		RestTemplate restTemplate = getRestTemplate(faroProject);
 
@@ -3027,8 +3044,8 @@ public class ContactsEngineClientImpl
 	public Results<IndividualSegment> getIndividualSegments(
 		FaroProject faroProject, String channelId, String dataSourceId,
 		String query, List<String> fields, String name,
-		List<String> segmentTypes, String state, String status, int cur,
-		int delta, List<OrderByField> orderByFields) {
+		List<String> segmentCategories, List<String> segmentTypes, String state,
+		String status, int cur, int delta, List<OrderByField> orderByFields) {
 
 		PagedModel<?, IndividualSegment> pagedModel = null;
 
@@ -3055,6 +3072,19 @@ public class ContactsEngineClientImpl
 			"state", FilterConstants.COMPARISON_OPERATOR_EQUALS, state);
 		filterBuilder.addFilter(
 			"status", FilterConstants.COMPARISON_OPERATOR_EQUALS, status);
+
+		if (segmentCategories != null) {
+			FilterBuilder segmentCategoryFilterBuilder = new FilterBuilder();
+
+			for (String segmentCategory : segmentCategories) {
+				segmentCategoryFilterBuilder.addFilter(
+					"segmentCategory",
+					FilterConstants.COMPARISON_OPERATOR_EQUALS, segmentCategory,
+					false);
+			}
+
+			filterBuilder.addFilter(segmentCategoryFilterBuilder.build());
+		}
 
 		if (segmentTypes != null) {
 			FilterBuilder segmentTypeFilterBuilder = new FilterBuilder();
@@ -3247,6 +3277,20 @@ public class ContactsEngineClientImpl
 	@Override
 	public PageVisited getPageVisited(FaroProject faroProject, String id) {
 		return get(faroProject, Rels.PAGE_VISITED, id, PageVisited.class);
+	}
+
+	@Override
+	public Results<ProjectDataSourceCount> getProjectDataSourceCounts(
+		FaroProject faroProject) {
+
+		PagedModel<?, ProjectDataSourceCount> pagedModel = get(
+			faroProject, Rels.PROJECTS_DATA_SOURCE_COUNTS,
+			new ParameterizedTypeReference
+				<EntityModelPagedModel<ProjectDataSourceCount>>() {
+			},
+			getUriVariables(faroProject));
+
+		return pagedModel.getResults();
 	}
 
 	@Override

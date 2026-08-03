@@ -102,7 +102,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.odata.entity.EntityField;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
@@ -160,7 +159,6 @@ public class ObjectDefinitionResourceTest
 			RandomTestUtil.randomString());
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Override
 	@Test
 	public void testGetObjectDefinition() throws Exception {
@@ -191,7 +189,7 @@ public class ObjectDefinitionResourceTest
 
 		JSONArray jsonArray = jsonObject.getJSONArray("objectFields");
 
-		Assert.assertEquals(jsonArray.toString(), 7, jsonArray.length());
+		Assert.assertEquals(jsonArray.toString(), 10, jsonArray.length());
 	}
 
 	@Override
@@ -441,7 +439,6 @@ public class ObjectDefinitionResourceTest
 		_testPatchObjectDefinitionWithPermissions();
 	}
 
-	@FeatureFlag("LPD-17564")
 	@LazyReferencing
 	@Override
 	@Test
@@ -855,7 +852,6 @@ public class ObjectDefinitionResourceTest
 		_testPostObjectDefinitionWithWorkflowDefinitionLinks();
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Override
 	@Test
 	public void testPutObjectDefinition() throws Exception {
@@ -2284,20 +2280,21 @@ public class ObjectDefinitionResourceTest
 		return objectDefinition;
 	}
 
-	private void _assertAssignToMeObjectAction(
+	private void _assertAssigneeObjectActions(
 		ObjectDefinition objectDefinition) {
 
 		ObjectAction[] objectActions = objectDefinition.getObjectActions();
 
 		Assert.assertEquals(
-			Arrays.toString(objectActions), 1, objectActions.length);
+			Arrays.toString(objectActions), 3, objectActions.length);
 
-		ObjectAction objectAction = objectActions[0];
-
-		Assert.assertEquals(
-			ObjectActionNameConstants.NAME_ASSIGN_TO_ME,
-			objectAction.getName());
-		Assert.assertTrue(objectAction.getSystem());
+		for (ObjectAction objectAction : objectActions) {
+			Assert.assertTrue(
+				ArrayUtil.contains(
+					ObjectActionNameConstants.OBJECT_ACTION_NAMES,
+					objectAction.getName()));
+			Assert.assertTrue(objectAction.getSystem());
+		}
 	}
 
 	private void _assertGetObjectDefinitionsPageWithFilter(
@@ -3250,7 +3247,7 @@ public class ObjectDefinitionResourceTest
 			testPostObjectDefinition_addObjectDefinition(
 				randomObjectDefinition);
 
-		_assertAssignToMeObjectAction(postObjectDefinition);
+		_assertAssigneeObjectActions(postObjectDefinition);
 
 		_objectDefinitionLocalService.deleteObjectDefinition(
 			postObjectDefinition.getId());
@@ -3258,7 +3255,7 @@ public class ObjectDefinitionResourceTest
 		postObjectDefinition = testPostObjectDefinition_addObjectDefinition(
 			postObjectDefinition);
 
-		_assertAssignToMeObjectAction(postObjectDefinition);
+		_assertAssigneeObjectActions(postObjectDefinition);
 	}
 
 	private void _testPostObjectDefinitionWithPermissions() throws Exception {

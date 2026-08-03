@@ -23,12 +23,14 @@ import {
 } from '../../common/types/AssetType';
 import {
 	CMSSiteInitializerFDSNames,
+	OBJECT_ENTRY_CLASS_NAME,
 	OBJECT_ENTRY_FOLDER_CLASS_NAME,
 } from '../../common/utils/constants';
 import {getFormattedLabel} from '../../common/utils/getFormattedText';
 import {getScopeExternalReferenceCode} from '../../common/utils/getScopeExternalReferenceCode';
 import {openBulkActionConfirmationModal} from '../../common/utils/openBulkActionConfirmationModal';
 import {openCMSModal} from '../../common/utils/openCMSModal';
+import refreshOnContentChanged from '../../common/utils/refreshOnContentChanged';
 import EditAssetCategoriesModalContent from '../categorization/modal/EditAssetCategoriesModalContent';
 import EditAssetTagsModalContent from '../categorization/modal/EditAssetTagsModalContent';
 import {defaultPermissionsBulkAction} from '../default_permission/BulkDefaultPermissionModalContent';
@@ -185,6 +187,8 @@ export default function AssetsFDSPropsTransformer({
 	itemsActions?: any[];
 	views: IView[];
 }) {
+	refreshOnContentChanged(otherProps?.id);
+
 	let mergedViews = views;
 
 	const isAllSectionView = otherProps?.id?.endsWith(
@@ -460,7 +464,21 @@ export default function AssetsFDSPropsTransformer({
 			items: any;
 			loadData: () => {};
 		}) {
-			if (action?.data?.id === 'copy' || action?.data?.id === 'move') {
+			if (action?.data?.id === 'addToLaunch') {
+				event?.preventDefault();
+
+				Liferay.fire('addToLaunch', {
+					className: OBJECT_ENTRY_CLASS_NAME,
+					classPK: itemData.embedded.id,
+					classVersion: String(
+						itemData.embedded.systemProperties.version.number
+					),
+				});
+			}
+			else if (
+				action?.data?.id === 'copy' ||
+				action?.data?.id === 'move'
+			) {
 				openFolderItemSelectorAction(
 					action?.data?.id,
 					additionalProps.assetLibraries,
