@@ -7,6 +7,7 @@ package com.liferay.portal.tools.rest.builder.internal.freemarker.tool.java.pars
 
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.util.CamelCaseUtil;
@@ -109,7 +110,8 @@ public class ResourceOpenAPIParser {
 										operationId),
 									returnType,
 									_getParentSchema(
-										path, pathItems, schemaName));
+										configYAML, path, pathItems,
+										schemaName));
 
 							javaMethodSignatures.add(javaMethodSignature);
 
@@ -1193,7 +1195,9 @@ public class ResourceOpenAPIParser {
 				String previousMethodNameSegment = operationIdSegments.get(
 					operationIdSegments.size() - 1);
 
-				if (pathName.endsWith("ExternalReferenceCode")) {
+				if (pathName.endsWith("ExternalReferenceCode") &&
+					ConfigUtil.isVersionCompatible(configYAML, 10)) {
+
 					if (!(Objects.equals(
 							previousMethodNameSegment, "AssetLibrary") ||
 						  Objects.equals(previousMethodNameSegment, "Site") ||
@@ -1382,7 +1386,8 @@ public class ResourceOpenAPIParser {
 	}
 
 	private static String _getParentSchema(
-		String path, Map<String, PathItem> pathItems, String schemaName) {
+		ConfigYAML configYAML, String path, Map<String, PathItem> pathItems,
+		String schemaName) {
 
 		String basePath = path;
 
@@ -1412,6 +1417,8 @@ public class ResourceOpenAPIParser {
 			return null;
 		}
 
+		String lastPath = basePath.substring(lastIndexOfSlash + 1);
+
 		basePath = basePath.substring(0, lastIndexOfSlash);
 
 		if (basePath.startsWith(
@@ -1424,6 +1431,22 @@ public class ResourceOpenAPIParser {
 				 basePath.startsWith("/sites/{siteId}")) {
 
 			return "Site";
+		}
+
+		if (!basePath.contains(StringPool.OPEN_CURLY_BRACE) &&
+			!lastPath.contains(StringPool.OPEN_CURLY_BRACE)) {
+
+			String prefix = StringUtil.upperCaseFirstLetter(
+				OpenAPIUtil.formatSingular(
+					configYAML,
+					CamelCaseUtil.toCamelCase(basePath.substring(1))));
+
+			String suffix = StringUtil.upperCaseFirstLetter(
+				CamelCaseUtil.toCamelCase(lastPath));
+
+			if (schemaName.equals(prefix + suffix)) {
+				return null;
+			}
 		}
 
 		basePath = basePath.replaceAll("\\{parent([^}]*)\\}", "{$1}");
