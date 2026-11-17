@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {ObjectActionAPI} from '@liferay/object-admin-rest-client-js';
+import {ObjectActionAPI} from '@liferay/object-admin-rest-client-js/v1_0';
 import {expect, mergeTests} from '@playwright/test';
 
 import {commercePagesTest} from '../../../../fixtures/commercePagesTest';
@@ -24,12 +24,14 @@ import getRandomString from '../../../../utils/getRandomString';
 import {
 	performLoginViaApi,
 	performLogout,
+	performUserSwitchViaApi,
 	userData,
 } from '../../../../utils/performLogin';
 import {waitForAlert} from '../../../../utils/waitForAlert';
 import getFragmentDefinition from '../../../layout-content-page-editor-web/main/utils/getFragmentDefinition';
 import getPageDefinition from '../../../layout-content-page-editor-web/main/utils/getPageDefinition';
 import getWidgetDefinition from '../../../layout-content-page-editor-web/main/utils/getWidgetDefinition';
+import {templatesPageTest} from '../../../template-web/main/fixtures/templatesPageTest';
 import {
 	configureBuyerUserForSite,
 	configureOperationsManagerUserForSite,
@@ -53,6 +55,7 @@ export const test = mergeTests(
 	notificationPagesTest,
 	pageEditorPagesTest,
 	pageViewModePagesTest,
+	templatesPageTest,
 	usersAndOrganizationsPagesTest
 );
 
@@ -206,17 +209,28 @@ test(
 
 test(
 	'Edit pending order item with UOM',
-	{tag: '@LPD-13627'},
+	{tag: ['@LPD-13627', '@LPD-62368']},
 	async ({
 		apiHelpers,
 		commerceAdminChannelsPage,
+		commerceMiniCartPage,
 		page,
 		pendingOrdersPage,
 		site,
-		widgetPagePage,
 	}) => {
-		const layout = await apiHelpers.jsonWebServicesLayout.addLayout({
-			groupId: site.id,
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				getWidgetDefinition({
+					id: getRandomString(),
+					widgetName:
+						'com_liferay_commerce_order_content_web_internal_portlet_CommerceOpenOrderContentPortlet',
+				}),
+				getFragmentDefinition({
+					id: getRandomString(),
+					key: 'COMMERCE_CART_FRAGMENTS-mini-cart',
+				}),
+			]),
+			siteId: site.id,
 			title: getRandomString(),
 		});
 
@@ -227,7 +241,7 @@ test(
 
 		await commerceAdminChannelsPage.changeCommerceChannelSiteType(
 			channel.name,
-			'B2C'
+			'B2B'
 		);
 
 		const catalog =
@@ -255,24 +269,41 @@ test(
 				}
 			);
 
-		const account = await apiHelpers.headlessAdminUser.postAccount({
-			name: getRandomString(),
-			type: 'person',
-		});
+		const uom2 =
+			await apiHelpers.headlessCommerceAdminCatalog.postSkuUnitOfMeasure(
+				sku1.id,
+				{
+					basePrice: 2,
+					incrementalOrderQuantity: 3,
+					name: {en_US: 'Pallet'},
+					priority: 2,
+					rate: 1,
+				}
+			);
 
-		await apiHelpers.headlessAdminUser.assignUserToAccountByEmailAddress(
-			account.id,
-			['test@liferay.com']
+		const {account, buyerUser} = await createAccountWithBuyerUser(
+			apiHelpers,
+			site.id
 		);
 
-		await apiHelpers.headlessCommerceDeliveryCart.postCart(
+		const address =
+			await apiHelpers.headlessCommerceAdminAccount.postAddress(
+				account.id
+			);
+
+		await performUserSwitchViaApi(page, buyerUser.alternateName);
+
+		const cart = await apiHelpers.headlessCommerceDeliveryCart.postCart(
 			{
 				accountId: account.id,
 				cartItems: [
 					{
+						deliveryGroupName: getRandomString(),
 						options: '[]',
 						quantity: 3,
 						replacedSkuId: 0,
+						requestedDeliveryDate: '2030-01-15T00:00:00Z',
+						shippingAddressId: String(address.id),
 						skuId: sku1.id,
 						skuUnitOfMeasure: {key: uom1.key},
 					},
@@ -283,9 +314,7 @@ test(
 
 		await page.waitForLoadState('networkidle');
 
-		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyURL}`);
-
-		await widgetPagePage.addPortlet('Open Carts');
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`);
 
 		await pendingOrdersPage.viewButton.click();
 
@@ -298,6 +327,40 @@ test(
 		await expect(
 			pendingOrdersPage.orderItemActionsButtonEdit
 		).toBeVisible();
+
+		await test.step('Saving another unit of measure from the mini cart keeps the delivery details', async () => {
+			await pendingOrdersPage.orderItemActionsButtonEdit.click();
+			await commerceMiniCartPage.miniCartUnitOfMeasureSelector.selectOption(
+				uom2.key
+			);
+
+			await expect(
+				commerceMiniCartPage.miniCartEditItemPrice('List Price')
+			).toHaveText('$ 2.00');
+
+			await commerceMiniCartPage.miniCartSaveButton.click();
+
+			await expect(
+				pendingOrdersPage.orderItemsTableRowWith(uom2.key)
+			).toBeVisible();
+
+			const cartItem = cart.cartItems[0];
+
+			await expect(async () => {
+				const cartItems =
+					await apiHelpers.headlessCommerceDeliveryCart.getCartItems(
+						cart.id
+					);
+
+				expect(cartItems.items).toHaveLength(1);
+				expect(cartItems.items[0]).toMatchObject({
+					deliveryGroupName: cartItem.deliveryGroupName,
+					requestedDeliveryDate: cartItem.requestedDeliveryDate,
+					shippingAddressId: cartItem.shippingAddressId,
+					skuUnitOfMeasure: {key: uom2.key},
+				});
+			}).toPass({timeout: 15000});
+		});
 	}
 );
 
@@ -1082,14 +1145,11 @@ test('LPD-33783 Pending orders table displays correct fields', async ({
 		'Amount',
 	];
 
-	tableHeaderLabels.forEach((tableHeaderLabel) => {
-		expect(
-			page.getByRole('columnheader', {
-				exact: true,
-				name: tableHeaderLabel,
-			})
+	for (const tableHeaderLabel of tableHeaderLabels) {
+		await expect(
+			page.getByRole('columnheader', {name: tableHeaderLabel})
 		).toBeVisible();
-	});
+	}
 });
 
 test(
@@ -2347,5 +2407,138 @@ test(
 		});
 
 		await performLoginViaApi({page, screenName: 'test'});
+	}
+);
+
+test(
+	'A user can search pending orders by order ID',
+	{tag: ['@COMMERCE-6375', '@LPD-107065']},
+	async ({
+		apiHelpers,
+		commerceAdminChannelsPage,
+		page,
+		pendingOrdersPage,
+		site,
+	}) => {
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				getWidgetDefinition({
+					id: getRandomString(),
+					widgetName:
+						'com_liferay_commerce_order_content_web_internal_portlet_CommerceOpenOrderContentPortlet',
+				}),
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		const channel =
+			await apiHelpers.headlessCommerceAdminChannel.postChannel({
+				siteGroupId: site.id,
+			});
+
+		await commerceAdminChannelsPage.changeCommerceChannelSiteType(
+			channel.name,
+			'B2B'
+		);
+
+		const account = await apiHelpers.headlessAdminUser.postAccount({
+			name: getRandomString(),
+			type: 'business',
+		});
+
+		const order1 = await apiHelpers.headlessCommerceAdminOrder.postOrder({
+			accountId: account.id,
+			channelId: channel.id,
+			orderStatus: '2',
+		});
+		const order2 = await apiHelpers.headlessCommerceAdminOrder.postOrder({
+			accountId: account.id,
+			channelId: channel.id,
+			orderStatus: '2',
+		});
+
+		await page.goto(`/web/${site.name}${layout.friendlyUrlPath}`);
+
+		await expect(pendingOrdersPage.orderRowLink(order1.id)).toBeVisible();
+		await expect(pendingOrdersPage.orderRowLink(order2.id)).toBeVisible();
+
+		await pendingOrdersPage.searchByValue(String(order2.id));
+
+		await expect(pendingOrdersPage.orderRowLink(order1.id)).toBeHidden();
+		await expect(pendingOrdersPage.orderRowLink(order2.id)).toBeVisible();
+	}
+);
+
+test(
+	'A display template selected for the Pending Orders widget renders its pending orders',
+	{tag: ['@COMMERCE-6665', '@LPD-107065']},
+	async ({
+		apiHelpers,
+		commerceAdminChannelsPage,
+		page,
+		pendingOrdersPage,
+		site,
+		templatesPage,
+		widgetPagePage,
+	}) => {
+		const {account, buyerUser} = await createAccountWithBuyerUser(
+			apiHelpers,
+			site.id
+		);
+
+		const channel =
+			await apiHelpers.headlessCommerceAdminChannel.postChannel({
+				siteGroupId: site.id,
+			});
+
+		await commerceAdminChannelsPage.changeCommerceChannelSiteType(
+			channel.name,
+			'B2B'
+		);
+
+		const order = await apiHelpers.headlessCommerceAdminOrder.postOrder({
+			accountId: account.id,
+			channelId: channel.id,
+			orderStatus: '2',
+		});
+
+		const displayTemplateName = `Pending Orders ${getRandomString()}`;
+
+		await templatesPage.gotoWidgetTemplates(site.friendlyUrlPath);
+
+		await templatesPage.createWidgetTemplate(
+			displayTemplateName,
+			'Open Carts Template'
+		);
+		await templatesPage.editTemplate(displayTemplateName);
+		await templatesPage.importInformationTemplate(
+			__dirname,
+			'pending_orders_template.ftl'
+		);
+		await templatesPage.saveTemplate(displayTemplateName);
+
+		const layout = await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: site.id,
+			title: getRandomString(),
+		});
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyURL}`, {
+			waitUntil: 'networkidle',
+		});
+
+		await widgetPagePage.addPortlet('Open Carts');
+
+		await pendingOrdersPage.goToConfiguration();
+		await pendingOrdersPage.selectDisplayTemplate(displayTemplateName);
+
+		await performLogout(page);
+		await performLoginViaApi({page, screenName: buyerUser.alternateName});
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyURL}`);
+
+		await expect(
+			page.getByText(`Pending Order ${order.id}`, {exact: true})
+		).toBeVisible();
 	}
 );

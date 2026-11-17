@@ -103,14 +103,16 @@ public class CSDiagramEntryLocalServiceImpl
 				QueryUtil.ALL_POS);
 
 		for (CSDiagramPin csDiagramPin : csDiagramPins) {
-			if ((csDiagramEntry.getCPDefinitionId() ==
-					csDiagramPin.getCPDefinitionId()) &&
-				Objects.equals(
+			if ((csDiagramEntry.getCPDefinitionId() !=
+					csDiagramPin.getCPDefinitionId()) ||
+				!Objects.equals(
 					csDiagramEntry.getSequence(), csDiagramPin.getSequence())) {
 
-				_csDiagramPinLocalService.deleteCSDiagramPin(
-					csDiagramPin.getCSDiagramPinId());
+				continue;
 			}
+
+			_csDiagramPinLocalService.deleteCSDiagramPin(
+				csDiagramPin.getCSDiagramPinId());
 		}
 
 		_expandoRowLocalService.deleteRows(
@@ -154,19 +156,6 @@ public class CSDiagramEntryLocalServiceImpl
 
 		return csDiagramEntryPersistence.findByCProductId(
 			cProductId, start, end, orderByComparator);
-	}
-
-	@Override
-	public List<CSDiagramEntry> getCSDiagramEntries(
-		long cpDefinitionId, int start, int end) {
-
-		return csDiagramEntryPersistence.findByCPDefinitionId(
-			cpDefinitionId, start, end);
-	}
-
-	@Override
-	public int getCSDiagramEntriesCount(long cpDefinitionId) {
-		return csDiagramEntryPersistence.countByCPDefinitionId(cpDefinitionId);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)

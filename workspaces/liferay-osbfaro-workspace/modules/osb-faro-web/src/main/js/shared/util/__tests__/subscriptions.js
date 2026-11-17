@@ -1,4 +1,5 @@
 import {
+	formatLimit,
 	formatPlanData,
 	getPlanAddOns,
 	getPlanLabel,
@@ -6,12 +7,14 @@ import {
 	getPropLabel,
 	INDIVIDUALS,
 	isLDPPlan,
+	isUnlimitedLimit,
 	PAGEVIEWS,
 	SubscriptionNames,
 } from '../subscriptions';
 import {fromJS} from 'immutable';
 import {mockSubscription} from 'test/data';
 import {Plan} from '../../util/records';
+import {DEFAULT_LOCALE, setLocale} from '../locale';
 
 jest.mock('shared/hooks/useTimeZone', () => ({
 	useTimeZone: () => ({
@@ -37,6 +40,29 @@ describe('subscriptions', () => {
 			expect(planAddOns).toEqual({
 				individuals: '10,000',
 				pageViews: '5,000,000',
+			});
+		});
+
+		it('should format the addon limits in the current locale', () => {
+			setLocale('de-DE');
+
+			const planAddOns = getPlanAddOns(
+				formatPlanData(
+					fromJS(
+						mockSubscription({
+							individualsCount: 5000,
+							name: SubscriptionNames.LiferayAnalyticsCloudEnterprise,
+							pageViewsCount: 5000000,
+						})
+					)
+				)
+			);
+
+			setLocale(DEFAULT_LOCALE);
+
+			expect(planAddOns).toEqual({
+				individuals: '10.000',
+				pageViews: '5.000.000',
 			});
 		});
 
@@ -171,6 +197,30 @@ describe('subscriptions', () => {
 		it('returns false when the subscription is missing (null/undefined)', () => {
 			expect(isLDPPlan(null)).toBe(false);
 			expect(isLDPPlan(undefined)).toBe(false);
+		});
+	});
+
+	describe('formatLimit', () => {
+		it('should format a limit with grouping', () => {
+			expect(formatLimit(5000)).toBe('5,000');
+		});
+
+		it('should format a zero limit as zero', () => {
+			expect(formatLimit(0)).toBe('0');
+		});
+
+		it('should format a negative limit as unlimited', () => {
+			expect(formatLimit(-1)).toBe('Unlimited');
+		});
+	});
+
+	describe('isUnlimitedLimit', () => {
+		it.each([-1, -10])('returns true for %s', (limit) => {
+			expect(isUnlimitedLimit(limit)).toBe(true);
+		});
+
+		it.each([0, 1000])('returns false for %s', (limit) => {
+			expect(isUnlimitedLimit(limit)).toBe(false);
 		});
 	});
 });

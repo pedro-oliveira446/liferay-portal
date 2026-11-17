@@ -25,9 +25,11 @@ import com.liferay.commerce.product.service.CommerceCatalogLocalServiceUtil;
 import com.liferay.commerce.product.test.util.CPTestUtil;
 import com.liferay.commerce.test.util.price.list.CommercePriceEntryTestUtil;
 import com.liferay.commerce.test.util.price.list.CommercePriceListTestUtil;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
@@ -38,6 +40,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -96,8 +99,18 @@ public class CommercePriceEntryLocalServiceTest {
 
 	@After
 	public void tearDown() throws Exception {
-		_commercePriceListLocalService.deleteCommercePriceLists(
-			_company.getCompanyId());
+		List<CommercePriceList> commercePriceLists =
+			_commercePriceListLocalService.getCommercePriceLists(
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		for (CommercePriceList commercePriceList : commercePriceLists) {
+			if (commercePriceList.getCompanyId() != _company.getCompanyId()) {
+				continue;
+			}
+
+			_commercePriceListLocalService.forceDeleteCommercePriceList(
+				commercePriceList);
+		}
 	}
 
 	@Test
@@ -646,6 +659,14 @@ public class CommercePriceEntryLocalServiceTest {
 	}
 
 	@Test
+	public void testAddOrUpdateCommercePriceEntryWithLazyReferencing()
+		throws Exception {
+
+		_testAddOrUpdateCommercePriceEntryWithEmptyCPInstance();
+		_testAddOrUpdateCommercePriceEntryWithExistingCommercePriceEntry();
+	}
+
+	@Test
 	public void testAddOrUpdateCommercePriceEntryWithMissingUOM()
 		throws PortalException {
 
@@ -745,6 +766,79 @@ public class CommercePriceEntryLocalServiceTest {
 		Assert.assertEquals(
 			cpInstanceUnitOfMeasure2.getKey(),
 			commercePriceEntry.getUnitOfMeasureKey());
+	}
+
+	@Test
+	public void testAddOrUpdateCommercePriceEntryWithPastExpirationDate()
+		throws Exception {
+
+		CPInstance cpInstance = CPTestUtil.addCPInstance(_group.getGroupId());
+
+		CommercePriceList commercePriceList =
+			CommercePriceListTestUtil.addCommercePriceList(
+				null, _group.getGroupId(), _commerceCurrency.getCode(),
+				RandomTestUtil.randomString(), RandomTestUtil.randomDouble(),
+				true, null, null);
+
+		CPDefinition cpDefinition = cpInstance.getCPDefinition();
+
+		Calendar displayCalendar = new GregorianCalendar();
+
+		Calendar expirationCalendar = new GregorianCalendar();
+
+		expirationCalendar.add(Calendar.DAY_OF_MONTH, -1);
+
+		CommercePriceEntry commercePriceEntry =
+			_commercePriceEntryLocalService.addOrUpdateCommercePriceEntry(
+				null, 0, cpDefinition.getCProductId(),
+				cpInstance.getCPInstanceUuid(),
+				commercePriceList.getCommercePriceListId(), true, null, null,
+				null, null, displayCalendar.get(Calendar.MONTH),
+				displayCalendar.get(Calendar.DAY_OF_MONTH),
+				displayCalendar.get(Calendar.YEAR),
+				displayCalendar.get(Calendar.HOUR),
+				displayCalendar.get(Calendar.MINUTE),
+				expirationCalendar.get(Calendar.MONTH),
+				expirationCalendar.get(Calendar.DAY_OF_MONTH),
+				expirationCalendar.get(Calendar.YEAR),
+				expirationCalendar.get(Calendar.HOUR),
+				expirationCalendar.get(Calendar.MINUTE), false,
+				BigDecimal.valueOf(RandomTestUtil.randomDouble()), false,
+				BigDecimal.valueOf(RandomTestUtil.randomDouble()), null, null,
+				ServiceContextTestUtil.getServiceContext(
+					commercePriceList.getGroupId()));
+
+		Assert.assertNotNull(commercePriceEntry.getExpirationDate());
+		Assert.assertTrue(commercePriceEntry.isExpired());
+
+		commercePriceEntry = _addOrUpdateCommercePriceEntry(
+			commercePriceList.getCommercePriceListId(), cpInstance, null, null);
+
+		Assert.assertTrue(commercePriceEntry.isApproved());
+		Assert.assertNull(commercePriceEntry.getExpirationDate());
+
+		commercePriceEntry =
+			_commercePriceEntryLocalService.addOrUpdateCommercePriceEntry(
+				null, commercePriceEntry.getCommercePriceEntryId(),
+				cpDefinition.getCProductId(), cpInstance.getCPInstanceUuid(),
+				commercePriceList.getCommercePriceListId(), true, null, null,
+				null, null, displayCalendar.get(Calendar.MONTH),
+				displayCalendar.get(Calendar.DAY_OF_MONTH),
+				displayCalendar.get(Calendar.YEAR),
+				displayCalendar.get(Calendar.HOUR),
+				displayCalendar.get(Calendar.MINUTE),
+				expirationCalendar.get(Calendar.MONTH),
+				expirationCalendar.get(Calendar.DAY_OF_MONTH),
+				expirationCalendar.get(Calendar.YEAR),
+				expirationCalendar.get(Calendar.HOUR),
+				expirationCalendar.get(Calendar.MINUTE), false,
+				BigDecimal.valueOf(RandomTestUtil.randomDouble()), false,
+				BigDecimal.valueOf(RandomTestUtil.randomDouble()), null, null,
+				ServiceContextTestUtil.getServiceContext(
+					commercePriceList.getGroupId()));
+
+		Assert.assertNotNull(commercePriceEntry.getExpirationDate());
+		Assert.assertTrue(commercePriceEntry.isExpired());
 	}
 
 	@Test
@@ -1117,6 +1211,27 @@ public class CommercePriceEntryLocalServiceTest {
 	@Rule
 	public final FrutillaRule frutillaRule = new FrutillaRule();
 
+	private CommercePriceEntry _addOrUpdateCommercePriceEntry(
+			long commercePriceListId, CPInstance cpInstance,
+			String externalReferenceCode, String unitOfMeasureKey)
+		throws Exception {
+
+		CPDefinition cpDefinition = cpInstance.getCPDefinition();
+
+		Calendar calendar = new GregorianCalendar();
+
+		return _commercePriceEntryLocalService.addOrUpdateCommercePriceEntry(
+			externalReferenceCode, 0, cpDefinition.getCProductId(),
+			cpInstance.getCPInstanceUuid(), commercePriceListId, true, null,
+			null, null, null, calendar.get(Calendar.MONTH),
+			calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.YEAR),
+			calendar.get(Calendar.HOUR), calendar.get(Calendar.MINUTE), 0, 0, 0,
+			0, 0, true, BigDecimal.valueOf(RandomTestUtil.randomDouble()),
+			false, BigDecimal.valueOf(RandomTestUtil.randomDouble()), null,
+			unitOfMeasureKey,
+			ServiceContextTestUtil.getServiceContext(cpInstance.getGroupId()));
+	}
+
 	private void _assertPriceEntryAttributes(
 			CPInstance cpInstance, double price, double promoPrice,
 			CommercePriceEntry commercePriceEntry)
@@ -1138,6 +1253,105 @@ public class CommercePriceEntryLocalServiceTest {
 			price, CoreMatchers.equalTo(actualPrice.doubleValue()));
 		Assert.assertThat(
 			promoPrice, CoreMatchers.equalTo(actualPromoPrice.doubleValue()));
+	}
+
+	private void _testAddOrUpdateCommercePriceEntryWithEmptyCPInstance()
+		throws Exception {
+
+		CPDefinition cpDefinition = CPTestUtil.addCPDefinition(
+			_group.getGroupId());
+
+		CommercePriceList commercePriceList =
+			CommercePriceListTestUtil.addCommercePriceList(
+				null, cpDefinition.getGroupId(), _commerceCurrency.getCode(),
+				RandomTestUtil.randomString(), RandomTestUtil.randomDouble(),
+				true, null, null);
+
+		try (SafeCloseable safeCloseable =
+				LazyReferencingThreadLocal.setEnabledWithSafeCloseable(true)) {
+
+			CPInstance cpInstance =
+				_cpInstanceLocalService.getOrAddEmptyCPInstance(
+					RandomTestUtil.randomString(),
+					cpDefinition.getCPDefinitionId(), cpDefinition.getGroupId(),
+					cpDefinition.getCompanyId(), cpDefinition.getUserId());
+
+			String unitOfMeasureKey = StringUtil.toLowerCase(
+				RandomTestUtil.randomString());
+
+			CommercePriceEntry commercePriceEntry =
+				_addOrUpdateCommercePriceEntry(
+					commercePriceList.getCommercePriceListId(), cpInstance,
+					RandomTestUtil.randomString(), unitOfMeasureKey);
+
+			Assert.assertNull(commercePriceEntry.getQuantity());
+			Assert.assertEquals(
+				unitOfMeasureKey, commercePriceEntry.getUnitOfMeasureKey());
+
+			CPInstanceUnitOfMeasure cpInstanceUnitOfMeasure =
+				CPTestUtil.addCPInstanceUnitOfMeasure(
+					cpInstance.getGroupId(), cpInstance.getCPInstanceId(),
+					unitOfMeasureKey, BigDecimal.TEN, cpInstance.getSku());
+
+			commercePriceEntry =
+				_commercePriceEntryLocalService.getCommercePriceEntry(
+					commercePriceEntry.getCommercePriceEntryId());
+
+			Assert.assertTrue(
+				BigDecimalUtil.eq(
+					cpInstanceUnitOfMeasure.getPricingQuantity(),
+					commercePriceEntry.getPricingQuantity()));
+			Assert.assertTrue(
+				BigDecimalUtil.eq(
+					cpInstanceUnitOfMeasure.getIncrementalOrderQuantity(),
+					commercePriceEntry.getQuantity()));
+		}
+	}
+
+	private void _testAddOrUpdateCommercePriceEntryWithExistingCommercePriceEntry()
+		throws Exception {
+
+		CommercePriceEntry reconciledCommercePriceEntry = null;
+
+		CPInstance cpInstance = CPTestUtil.addCPInstance(_group.getGroupId());
+
+		CommerceCatalog commerceCatalog = cpInstance.getCommerceCatalog();
+
+		CommercePriceList commercePriceList =
+			CommercePriceListTestUtil.addCommercePriceList(
+				null, commerceCatalog.getGroupId(), _commerceCurrency.getCode(),
+				RandomTestUtil.randomString(), RandomTestUtil.randomDouble(),
+				true, null, null);
+
+		CommercePriceEntry commercePriceEntry = _addOrUpdateCommercePriceEntry(
+			commercePriceList.getCommercePriceListId(), cpInstance,
+			RandomTestUtil.randomString(), null);
+
+		commercePriceEntry = _commercePriceEntryLocalService.updatePricingInfo(
+			commercePriceEntry.getCommercePriceEntryId(), false,
+			commercePriceEntry.getPrice(),
+			commercePriceEntry.isPriceOnApplication(),
+			commercePriceEntry.getPromoPrice(),
+			commercePriceEntry.getUnitOfMeasureKey(),
+			ServiceContextTestUtil.getServiceContext(cpInstance.getGroupId()));
+
+		String externalReferenceCode = RandomTestUtil.randomString();
+
+		try (SafeCloseable safeCloseable =
+				LazyReferencingThreadLocal.setEnabledWithSafeCloseable(true)) {
+
+			reconciledCommercePriceEntry = _addOrUpdateCommercePriceEntry(
+				commercePriceList.getCommercePriceListId(), cpInstance,
+				externalReferenceCode, null);
+		}
+
+		Assert.assertFalse(reconciledCommercePriceEntry.isBulkPricing());
+		Assert.assertEquals(
+			commercePriceEntry.getCommercePriceEntryId(),
+			reconciledCommercePriceEntry.getCommercePriceEntryId());
+		Assert.assertEquals(
+			externalReferenceCode,
+			reconciledCommercePriceEntry.getExternalReferenceCode());
 	}
 
 	private static Company _company;

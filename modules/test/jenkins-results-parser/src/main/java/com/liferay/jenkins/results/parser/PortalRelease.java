@@ -34,6 +34,14 @@ public class PortalRelease {
 		return matcher.matches();
 	}
 
+	public static boolean isStandaloneBundleURL(URL bundleURL) {
+		if (_getStandaloneBuildProfile(bundleURL.toString()) == null) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public PortalRelease(URL bundlesBaseURL, String portalVersion) {
 		if (bundlesBaseURL == null) {
 			throw new RuntimeException("Bundles base URL is null");
@@ -94,6 +102,8 @@ public class PortalRelease {
 			"portal_version", _portalVersion
 		).put(
 			"portal_war_url_string", _portalWarURLString
+		).put(
+			"standalone", _standalone
 		);
 
 		return jsonObject;
@@ -271,6 +281,19 @@ public class PortalRelease {
 		return "master";
 	}
 
+	public String getStandaloneBuildProfile() {
+		if (!_standalone) {
+			return null;
+		}
+
+		return _getStandaloneBuildProfile(
+			String.valueOf(getPortalBundleTomcatURL()));
+	}
+
+	public boolean isStandalone() {
+		return _standalone;
+	}
+
 	public void setPluginsWarZipURL(URL pluginsWarZipURL) {
 		if (pluginsWarZipURL == null) {
 			_pluginsWarZipURLString = null;
@@ -379,6 +402,24 @@ public class PortalRelease {
 
 		_portalWarURLString = JenkinsResultsParserUtil.getLocalURL(
 			portalWarURL.toString());
+	}
+
+	public void setStandalone(boolean standalone) {
+		_standalone = standalone;
+
+		if (!standalone) {
+			return;
+		}
+
+		_pluginsWarZipURLString = null;
+		_portalBundleGlassFishURLString = null;
+		_portalBundleJBossURLString = null;
+		_portalBundleWildFlyURLString = null;
+		_portalDependenciesZipURLString = null;
+		_portalOSGiZipURLString = null;
+		_portalSQLZipURLString = null;
+		_portalToolsZipURLString = null;
+		_portalWarURLString = null;
 	}
 
 	protected static URL getBundlesBaseURL(String portalVersion) {
@@ -494,8 +535,7 @@ public class PortalRelease {
 		_portalVersion = jsonObject.getString("portal_version");
 		_portalWarURLString = jsonObject.optString(
 			"portal_war_url_string", null);
-
-		_initializeURLs();
+		_standalone = jsonObject.optBoolean("standalone");
 	}
 
 	protected PortalRelease(String portalVersion) {
@@ -513,6 +553,24 @@ public class PortalRelease {
 		_portalVersion = getPortalVersion(bundleURL);
 
 		_initializeURLs();
+	}
+
+	private static String _getStandaloneBuildProfile(String bundleURLString) {
+		Matcher matcher = _standaloneBundleURLPattern.matcher(bundleURLString);
+
+		if (!matcher.matches()) {
+			return null;
+		}
+
+		String product = matcher.group("product");
+
+		if (product.endsWith("-portal") || product.equals("dxp") ||
+			product.equals("portal") || product.startsWith("dxp-")) {
+
+			return null;
+		}
+
+		return product + "-standalone";
 	}
 
 	private static void _initalizePortalVersionsMap() {
@@ -753,7 +811,7 @@ public class PortalRelease {
 	}
 
 	private static final String _PORTAL_VERSION_REGEX =
-		"(?<portalVersion>\\d\\.([u\\d\\.]+)(-ee)?(-dxp-\\d+)?" +
+		"(?<portalVersion>\\d\\.([u\\d\\.]+)(-u\\d+)?(-ee)?(-dxp-\\d+)?" +
 			"(\\-(ep|ga|rc|sp)\\d+)?)";
 
 	private static final String _QUARTERLY_RELEASE_VERSION_REGEX =
@@ -811,6 +869,9 @@ public class PortalRelease {
 		"href=\\\"[^\\\"]*(?<fileName>liferay-[^\\\"]+\\.war)\\\"");
 	private static final Pattern _quarterlyReleaseVersionPattern =
 		Pattern.compile(_QUARTERLY_RELEASE_VERSION_REGEX);
+	private static final Pattern _standaloneBundleURLPattern = Pattern.compile(
+		"https?://.+/liferay-(?<product>[a-z]+(-[a-z]+)*)-tomcat-[^/]+-" +
+			"\\d+\\.(7z|tar\\.gz|zip)");
 	private static final Pattern _tomcatBundlePropertyPattern = Pattern.compile(
 		"portal.bundle.tomcat\\[(?<portalVersion>.+)\\]");
 	private static final Pattern _tomcatBundleURLPattern = Pattern.compile(
@@ -830,5 +891,6 @@ public class PortalRelease {
 	private String _portalToolsZipURLString;
 	private final String _portalVersion;
 	private String _portalWarURLString;
+	private boolean _standalone;
 
 }

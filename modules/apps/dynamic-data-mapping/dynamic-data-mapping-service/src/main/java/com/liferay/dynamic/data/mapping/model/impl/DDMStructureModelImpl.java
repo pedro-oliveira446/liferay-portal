@@ -83,7 +83,7 @@ public class DDMStructureModelImpl
 		{"versionUserName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
 		{"modifiedDate", Types.TIMESTAMP}, {"parentStructureId", Types.BIGINT},
 		{"classNameId", Types.BIGINT}, {"structureKey", Types.VARCHAR},
-		{"version", Types.VARCHAR}, {"name", Types.VARCHAR},
+		{"version", Types.VARCHAR}, {"name", Types.CLOB},
 		{"description", Types.CLOB}, {"definition", Types.CLOB},
 		{"storageType", Types.VARCHAR}, {"type_", Types.INTEGER},
 		{"lastPublishDate", Types.TIMESTAMP}
@@ -110,7 +110,7 @@ public class DDMStructureModelImpl
 		TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("structureKey", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("version", Types.VARCHAR);
-		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("name", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("description", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("definition", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("storageType", Types.VARCHAR);
@@ -119,7 +119,7 @@ public class DDMStructureModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DDMStructure (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,structureId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,versionUserId LONG,versionUserName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentStructureId LONG,classNameId LONG,structureKey VARCHAR(75) null,version VARCHAR(75) null,name STRING null,description TEXT null,definition TEXT null,storageType VARCHAR(75) null,type_ INTEGER,lastPublishDate DATE null,primary key (structureId, ctCollectionId))";
+		"create table DDMStructure (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,structureId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,versionUserId LONG,versionUserName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentStructureId LONG,classNameId LONG,structureKey VARCHAR(75) null,version VARCHAR(75) null,name TEXT null,description TEXT null,definition TEXT null,storageType VARCHAR(75) null,type_ INTEGER,lastPublishDate DATE null,primary key (structureId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table DDMStructure";
 
@@ -158,50 +158,38 @@ public class DDMStructureModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long DESCRIPTION_COLUMN_BITMASK = 4L;
+	public static final long EXTERNALREFERENCECODE_COLUMN_BITMASK = 4L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long EXTERNALREFERENCECODE_COLUMN_BITMASK = 8L;
+	public static final long GROUPID_COLUMN_BITMASK = 8L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long GROUPID_COLUMN_BITMASK = 16L;
+	public static final long PARENTSTRUCTUREID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long NAME_COLUMN_BITMASK = 32L;
+	public static final long STRUCTUREKEY_COLUMN_BITMASK = 32L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long PARENTSTRUCTUREID_COLUMN_BITMASK = 64L;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
-	 */
-	@Deprecated
-	public static final long STRUCTUREKEY_COLUMN_BITMASK = 128L;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
-	 */
-	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 256L;
+	public static final long UUID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long STRUCTUREID_COLUMN_BITMASK = 512L;
+	public static final long STRUCTUREID_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -947,15 +935,6 @@ public class DDMStructureModelImpl
 				LocaleUtil.toLanguageId(defaultLocale)));
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public String getOriginalName() {
-		return getColumnOriginalValue("name");
-	}
-
 	@JSON
 	@Override
 	public String getDescription() {
@@ -1066,15 +1045,6 @@ public class DDMStructureModelImpl
 			LocalizationUtil.updateLocalization(
 				descriptionMap, getDescription(), "Description",
 				LocaleUtil.toLanguageId(defaultLocale)));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public String getOriginalDescription() {
-		return getColumnOriginalValue("description");
 	}
 
 	@JSON
@@ -1424,13 +1394,29 @@ public class DDMStructureModelImpl
 			return;
 		}
 
-		DDMStructureModelImpl sourceModelImpl = (DDMStructureModelImpl)source;
+		try {
+			_classNameSetterMethodHandle.invokeExact(
+				(DDMStructureImpl)this,
+				(String)_classNameGetterMethodHandle.invokeExact(
+					(DDMStructureImpl)source));
 
-		setClassName(sourceModelImpl.getClassName());
+			_ddmFormSetterMethodHandle.invokeExact(
+				(DDMStructureImpl)this,
+				(com.liferay.dynamic.data.mapping.model.DDMForm)
+					_ddmFormGetterMethodHandle.invokeExact(
+						(DDMStructureImpl)source));
 
-		setDDMForm(sourceModelImpl.getDDMForm());
-
-		setDDMFormFieldsMap(sourceModelImpl.getDDMFormFieldsMap());
+			_ddmFormFieldsMapSetterMethodHandle.invokeExact(
+				(DDMStructureImpl)this,
+				(Map
+					<String,
+					 com.liferay.dynamic.data.mapping.model.DDMFormField>)
+						 _ddmFormFieldsMapGetterMethodHandle.invokeExact(
+							 (DDMStructureImpl)source));
+		}
+		catch (Throwable throwable) {
+			ReflectionUtil.throwException(throwable);
+		}
 	}
 
 	@Override
@@ -1633,14 +1619,15 @@ public class DDMStructureModelImpl
 			setClassName(null);
 
 			ddmStructureCacheModel.className =
-				(String)_classNameMethodHandle.invokeExact(
+				(String)_classNameGetterMethodHandle.invokeExact(
 					(DDMStructureImpl)this);
 
 			setDDMForm(null);
 
 			ddmStructureCacheModel.ddmForm =
 				(com.liferay.dynamic.data.mapping.model.DDMForm)
-					_ddmFormMethodHandle.invokeExact((DDMStructureImpl)this);
+					_ddmFormGetterMethodHandle.invokeExact(
+						(DDMStructureImpl)this);
 
 			setDDMFormFieldsMap(null);
 
@@ -1648,7 +1635,7 @@ public class DDMStructureModelImpl
 				(Map
 					<String,
 					 com.liferay.dynamic.data.mapping.model.DDMFormField>)
-						 _ddmFormFieldsMapMethodHandle.invokeExact(
+						 _ddmFormFieldsMapGetterMethodHandle.invokeExact(
 							 (DDMStructureImpl)this);
 		}
 		catch (Throwable throwable) {
@@ -1887,7 +1874,8 @@ public class DDMStructureModelImpl
 			}
 		};
 
-	private static final MethodHandle _classNameMethodHandle;
+	private static final MethodHandle _classNameGetterMethodHandle;
+	private static final MethodHandle _classNameSetterMethodHandle;
 
 	protected static final BiConsumer
 		<DDMStructure, com.liferay.dynamic.data.mapping.model.DDMForm>
@@ -1905,7 +1893,8 @@ public class DDMStructureModelImpl
 				}
 			};
 
-	private static final MethodHandle _ddmFormMethodHandle;
+	private static final MethodHandle _ddmFormGetterMethodHandle;
+	private static final MethodHandle _ddmFormSetterMethodHandle;
 
 	protected static final BiConsumer
 		<DDMStructure,
@@ -1927,20 +1916,28 @@ public class DDMStructureModelImpl
 					}
 				};
 
-	private static final MethodHandle _ddmFormFieldsMapMethodHandle;
+	private static final MethodHandle _ddmFormFieldsMapGetterMethodHandle;
+	private static final MethodHandle _ddmFormFieldsMapSetterMethodHandle;
 
 	static {
 		MethodHandles.Lookup lookup = ReflectionUtil.getImplLookup();
 
 		try {
-			_classNameMethodHandle = lookup.findGetter(
+			_classNameGetterMethodHandle = lookup.findGetter(
+				DDMStructureImpl.class, "_className", String.class);
+			_classNameSetterMethodHandle = lookup.findSetter(
 				DDMStructureImpl.class, "_className", String.class);
 
-			_ddmFormMethodHandle = lookup.findGetter(
+			_ddmFormGetterMethodHandle = lookup.findGetter(
+				DDMStructureImpl.class, "_ddmForm",
+				com.liferay.dynamic.data.mapping.model.DDMForm.class);
+			_ddmFormSetterMethodHandle = lookup.findSetter(
 				DDMStructureImpl.class, "_ddmForm",
 				com.liferay.dynamic.data.mapping.model.DDMForm.class);
 
-			_ddmFormFieldsMapMethodHandle = lookup.findGetter(
+			_ddmFormFieldsMapGetterMethodHandle = lookup.findGetter(
+				DDMStructureImpl.class, "_ddmFormFieldsMap", Map.class);
+			_ddmFormFieldsMapSetterMethodHandle = lookup.findSetter(
 				DDMStructureImpl.class, "_ddmFormFieldsMap", Map.class);
 		}
 		catch (ReflectiveOperationException reflectiveOperationException) {
@@ -1951,4 +1948,4 @@ public class DDMStructureModelImpl
 	private DDMStructure _escapedModel;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-914918186
+// LIFERAY-SERVICE-BUILDER-HASH:-1543863853

@@ -46,6 +46,7 @@ import com.liferay.object.model.ObjectEntryTable;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldSetting;
 import com.liferay.object.model.ObjectRelationship;
+import com.liferay.object.model.impl.ObjectFieldModelImpl;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTable;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTableFactory;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTable;
@@ -56,7 +57,6 @@ import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.service.ObjectStateFlowLocalService;
 import com.liferay.object.service.ObjectStateTransitionLocalService;
 import com.liferay.object.service.ObjectValidationRuleLocalService;
-import com.liferay.object.service.ObjectValidationRuleSettingLocalService;
 import com.liferay.object.service.ObjectViewLocalService;
 import com.liferay.object.service.base.ObjectFieldLocalServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
@@ -64,6 +64,7 @@ import com.liferay.object.service.persistence.ObjectEntryPersistence;
 import com.liferay.object.service.persistence.ObjectFieldSettingPersistence;
 import com.liferay.object.service.persistence.ObjectLayoutColumnPersistence;
 import com.liferay.object.service.persistence.ObjectRelationshipPersistence;
+import com.liferay.object.service.persistence.ObjectValidationRuleSettingPersistence;
 import com.liferay.object.system.SystemObjectDefinitionManager;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
 import com.liferay.petra.function.transform.TransformUtil;
@@ -77,6 +78,7 @@ import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.jdbc.CurrentConnection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.log.Log;
@@ -114,6 +116,7 @@ import com.liferay.portal.language.override.service.PLOEntryLocalService;
 import java.io.Serializable;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -417,10 +420,12 @@ public class ObjectFieldLocalServiceImpl
 			_objectFieldSettingLocalService.deleteObjectFieldObjectFieldSetting(
 				objectField);
 
-			if (objectField.isState()) {
-				_objectStateFlowLocalService.deleteObjectFieldObjectStateFlow(
-					objectField.getObjectFieldId());
+			if (!objectField.isState()) {
+				continue;
 			}
+
+			_objectStateFlowLocalService.deleteObjectFieldObjectStateFlow(
+				objectField.getObjectFieldId());
 		}
 	}
 
@@ -529,7 +534,7 @@ public class ObjectFieldLocalServiceImpl
 			Table<?> table = getTable(
 				objectDefinitionId, objectField.getName());
 
-			return table.getColumn(objectField.getDBColumnName());
+			return table.getColumn(objectField.getDefaultDBColumnName());
 		}
 		catch (PortalException portalException) {
 			return ReflectionUtil.throwException(portalException);
@@ -644,25 +649,6 @@ public class ObjectFieldLocalServiceImpl
 
 		for (ObjectField objectField :
 				objectFieldPersistence.findByCompanyId(companyId)) {
-
-			List<ObjectField> objectFields = objectFieldsMap.computeIfAbsent(
-				objectField.getObjectDefinitionId(),
-				objectDefinitionId -> new ArrayList<>());
-
-			objectFields.add(objectField);
-		}
-
-		return objectFieldsMap;
-	}
-
-	@Override
-	public Map<Long, List<ObjectField>> getObjectFieldsMap(
-		long companyId, String businessType) {
-
-		Map<Long, List<ObjectField>> objectFieldsMap = new HashMap<>();
-
-		for (ObjectField objectField :
-				objectFieldPersistence.findByC_BT(companyId, businessType)) {
 
 			List<ObjectField> objectFields = objectFieldsMap.computeIfAbsent(
 				objectField.getObjectDefinitionId(),
@@ -1097,18 +1083,6 @@ public class ObjectFieldLocalServiceImpl
 
 			_addObjectFieldColumn(dbTableName, objectField);
 
-			if (!objectDefinition.isUnmodifiableSystemObject() &&
-				Objects.equals(
-					dbTableName, objectDefinition.getExtensionDBTableName())) {
-
-				runSQL(
-					DynamicObjectDefinitionTableUtil.
-						getInsertMissingExtensionTableRowsSQL(
-							dbTableName,
-							objectDefinition.getPKObjectFieldDBColumnName(),
-							objectDefinition.getDBTableName()));
-			}
-
 			Object defaultValue = ObjectFieldSettingUtil.getDefaultValue(
 				null, objectField, null);
 
@@ -1117,10 +1091,10 @@ public class ObjectFieldLocalServiceImpl
 					ObjectFieldConstants.BUSINESS_TYPE_PICKLIST) &&
 				objectField.isState()) {
 
-				runSQL(
-					DynamicObjectDefinitionTableUtil.getUpdateDefaultValueSQL(
-						dbColumnName, dbType, defaultValue, dbTableName));
+				_updateDefaultValue(dbColumnName, dbTableName, defaultValue);
 			}
+
+			_objectEntryPersistence.clearCache();
 		}
 
 		return objectField;
@@ -1192,20 +1166,27 @@ public class ObjectFieldLocalServiceImpl
 				}
 			}
 
-			if (objectFieldSetting == null) {
-				if (objectDefinition.isApproved() &&
-					unmodifiableObjectFieldSettingsNames.contains(
-						oldObjectFieldSetting.getName())) {
+			if ((objectFieldSetting != null) ||
+				(newObjectField.isState() &&
+				 StringUtil.equals(
+					 oldObjectFieldSetting.getName(),
+					 ObjectFieldSettingConstants.NAME_STATE_FLOW))) {
 
-					_handleException(
-						new ObjectFieldSettingValueException.UnmodifiableValue(
-							oldObjectFieldSetting.getName()),
-						"objectFieldSettings", null);
-				}
-
-				_objectFieldSettingLocalService.deleteObjectFieldSetting(
-					oldObjectFieldSetting.getObjectFieldSettingId());
+				continue;
 			}
+
+			if (objectDefinition.isApproved() &&
+				unmodifiableObjectFieldSettingsNames.contains(
+					oldObjectFieldSetting.getName())) {
+
+				_handleException(
+					new ObjectFieldSettingValueException.UnmodifiableValue(
+						oldObjectFieldSetting.getName()),
+					"objectFieldSettings", null);
+			}
+
+			_objectFieldSettingLocalService.deleteObjectFieldSetting(
+				oldObjectFieldSetting.getObjectFieldSettingId());
 		}
 
 		objectFieldBusinessType.predefineObjectFieldSettings(
@@ -1309,12 +1290,10 @@ public class ObjectFieldLocalServiceImpl
 				"Only allowed bundles can delete system object fields");
 		}
 
-		int count =
-			_objectValidationRuleSettingLocalService.
-				getObjectValidationRuleSettingsCount(
-					ObjectValidationRuleSettingConstants.
-						NAME_COMPOSITE_KEY_OBJECT_FIELD_ID,
-					String.valueOf(objectField.getObjectFieldId()));
+		int count = _objectValidationRuleSettingPersistence.countByN_V(
+			ObjectValidationRuleSettingConstants.
+				NAME_COMPOSITE_KEY_OBJECT_FIELD_ID,
+			String.valueOf(objectField.getObjectFieldId()));
 
 		if (count > 0) {
 			throw new RequiredObjectFieldException.
@@ -1441,9 +1420,11 @@ public class ObjectFieldLocalServiceImpl
 		}
 
 		if (objectField.isLocalized()) {
-			_alterTableDropColumn(
-				objectDefinition.getLocalizationDBTableName(),
-				objectField.getDBColumnName());
+			for (String dbColumnName : objectField.getDBColumnNames()) {
+				_alterTableDropColumn(
+					objectDefinition.getLocalizationDBTableName(),
+					dbColumnName);
+			}
 
 			return objectField;
 		}
@@ -1459,6 +1440,8 @@ public class ObjectFieldLocalServiceImpl
 		for (String dbColumnName : objectField.getDBColumnNames()) {
 			_alterTableDropColumn(objectField.getDBTableName(), dbColumnName);
 		}
+
+		_objectEntryPersistence.clearCache();
 
 		if (objectField.compareBusinessType(
 				ObjectFieldConstants.BUSINESS_TYPE_AUTO_INCREMENT)) {
@@ -1638,6 +1621,40 @@ public class ObjectFieldLocalServiceImpl
 		}
 	}
 
+	private void _updateDefaultValue(
+		String dbColumnName, String dbTableName, Object defaultValue) {
+
+		try {
+			Connection connection = _currentConnection.getConnection(
+				objectFieldPersistence.getDataSource());
+
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"update ", dbTableName, " set ", dbColumnName,
+							" = ? where ", dbColumnName, " is null"))) {
+
+				preparedStatement.setString(1, String.valueOf(defaultValue));
+
+				preparedStatement.executeUpdate();
+			}
+		}
+		catch (Exception exception) {
+			throw new SystemException(exception);
+		}
+	}
+
+	private ObjectField _updateObjectField(ObjectField objectField) {
+		ObjectFieldModelImpl objectFieldModelImpl =
+			(ObjectFieldModelImpl)objectField;
+
+		if (objectFieldModelImpl.getColumnBitmask() == 0) {
+			return objectField;
+		}
+
+		return objectFieldPersistence.update(objectField);
+	}
+
 	private ObjectField _updateObjectField(
 			String externalReferenceCode, long objectFieldId,
 			long listTypeDefinitionId, String businessType, String dbType,
@@ -1708,6 +1725,10 @@ public class ObjectFieldLocalServiceImpl
 
 		_validateState(required, state);
 
+		if (Validator.isNull(externalReferenceCode)) {
+			externalReferenceCode = newObjectField.getUuid();
+		}
+
 		newObjectField.setExternalReferenceCode(externalReferenceCode);
 		newObjectField.setDescriptionMap(
 			_getDescriptionMap(
@@ -1731,7 +1752,7 @@ public class ObjectFieldLocalServiceImpl
 		newObjectField.setRequired(required);
 
 		if (objectDefinition.isApproved()) {
-			newObjectField = objectFieldPersistence.update(newObjectField);
+			newObjectField = _updateObjectField(newObjectField);
 
 			_addOrUpdateObjectFieldSettings(
 				newObjectField, objectDefinition, objectFieldBusinessType,
@@ -1765,7 +1786,7 @@ public class ObjectFieldLocalServiceImpl
 		newObjectField.setName(name);
 		newObjectField.setState(state);
 
-		newObjectField = objectFieldPersistence.update(newObjectField);
+		newObjectField = _updateObjectField(newObjectField);
 
 		_addOrUpdateObjectFieldSettings(
 			newObjectField, objectDefinition, objectFieldBusinessType,
@@ -1788,18 +1809,27 @@ public class ObjectFieldLocalServiceImpl
 				ResourceConstants.SCOPE_INDIVIDUAL, role.getRoleId(), true);
 
 		for (ResourcePermission resourcePermission : resourcePermissions) {
-			if (!resourcePermission.hasActionId(actionId)) {
-				resourcePermission.addResourceAction(actionId);
-
-				_resourcePermissionLocalService.updateResourcePermission(
-					resourcePermission);
+			if (resourcePermission.hasActionId(actionId)) {
+				continue;
 			}
+
+			resourcePermission.addResourceAction(actionId);
+
+			_resourcePermissionLocalService.updateResourcePermission(
+				resourcePermission);
 		}
 	}
 
 	private void _validateBusinessType(
 			ObjectDefinition objectDefinition, String businessType)
 		throws PortalException {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				objectDefinition.getCompanyId(), "LPD-11388") &&
+			businessType.equals(ObjectFieldConstants.BUSINESS_TYPE_LOCATION)) {
+
+			throw new UnsupportedOperationException();
+		}
 
 		if (Objects.equals(
 				objectDefinition.getStorageType(),
@@ -2016,6 +2046,8 @@ public class ObjectFieldLocalServiceImpl
 						StringPool.COMMA,
 						ObjectFieldConstants.BUSINESS_TYPE_INTEGER,
 						StringPool.COMMA,
+						ObjectFieldConstants.BUSINESS_TYPE_LOCATION,
+						StringPool.COMMA,
 						ObjectFieldConstants.BUSINESS_TYPE_LONG_INTEGER,
 						StringPool.COMMA,
 						ObjectFieldConstants.BUSINESS_TYPE_LONG_TEXT,
@@ -2046,12 +2078,13 @@ public class ObjectFieldLocalServiceImpl
 		char[] nameCharArray = name.toCharArray();
 
 		for (char c : nameCharArray) {
-			if (!Validator.isChar(c) && !Validator.isDigit(c)) {
-				_handleException(
-					new ObjectFieldNameException.
-						MustOnlyContainLettersAndDigits(),
-					"name", name);
+			if (Validator.isChar(c) || Validator.isDigit(c)) {
+				continue;
 			}
+
+			_handleException(
+				new ObjectFieldNameException.MustOnlyContainLettersAndDigits(),
+				"name", name);
 		}
 
 		if (!Character.isLowerCase(nameCharArray[0])) {
@@ -2254,8 +2287,8 @@ public class ObjectFieldLocalServiceImpl
 	private ObjectValidationRuleLocalService _objectValidationRuleLocalService;
 
 	@Reference
-	private ObjectValidationRuleSettingLocalService
-		_objectValidationRuleSettingLocalService;
+	private ObjectValidationRuleSettingPersistence
+		_objectValidationRuleSettingPersistence;
 
 	@Reference
 	private ObjectViewLocalService _objectViewLocalService;

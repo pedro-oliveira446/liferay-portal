@@ -89,22 +89,6 @@ public class CompanyLocalServiceWrapper
 	}
 
 	/**
-	 * Returns the company with the web domain.
-	 *
-	 * The method sets mail domain to the web domain to the default name set in
-	 * portal.properties
-	 *
-	 * @param webId the company's web domain
-	 * @return the company with the web domain
-	 */
-	@Override
-	public com.liferay.portal.kernel.model.Company checkCompany(String webId)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _companyLocalService.checkCompany(webId);
-	}
-
-	/**
 	 * Checks if the company has an encryption key. It will create a key if one
 	 * does not exist.
 	 *
@@ -341,20 +325,6 @@ public class CompanyLocalServiceWrapper
 		return _companyLocalService.fetchCompanyById(companyId);
 	}
 
-	/**
-	 * Returns the company with the virtual host name.
-	 *
-	 * @param virtualHostname the virtual host name
-	 * @return the company with the virtual host name, <code>null</code> if a
-	 company with the virtual host could not be found
-	 */
-	@Override
-	public com.liferay.portal.kernel.model.Company fetchCompanyByVirtualHost(
-		String virtualHostname) {
-
-		return _companyLocalService.fetchCompanyByVirtualHost(virtualHostname);
-	}
-
 	@Override
 	public <E extends Exception> void forEachCompany(
 			com.liferay.petra.function.UnsafeConsumer
@@ -464,20 +434,6 @@ public class CompanyLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _companyLocalService.getCompanyById(companyId);
-	}
-
-	/**
-	 * Returns the company with the virtual host name.
-	 *
-	 * @param virtualHostname the company's virtual host name
-	 * @return the company with the virtual host name
-	 */
-	@Override
-	public com.liferay.portal.kernel.model.Company getCompanyByVirtualHost(
-			String virtualHostname)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _companyLocalService.getCompanyByVirtualHost(virtualHostname);
 	}
 
 	/**
@@ -813,6 +769,15 @@ public class CompanyLocalServiceWrapper
 	}
 
 	@Override
+	public void validateCompany(
+			String webId, String virtualHostname, String mx, int maxUsers)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_companyLocalService.validateCompany(
+			webId, virtualHostname, mx, maxUsers);
+	}
+
+	@Override
 	public BasePersistence<?> getBasePersistence() {
 		return _companyLocalService.getBasePersistence();
 	}
@@ -830,4 +795,4 @@ public class CompanyLocalServiceWrapper
 	private CompanyLocalService _companyLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1129647879
+// LIFERAY-SERVICE-BUILDER-HASH:-2051222514

@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.http.client.utils.URIBuilder;
+
 import org.json.JSONObject;
 
 /**
@@ -194,6 +196,24 @@ public abstract class BasePortalControllerBuildRunner
 		return false;
 	}
 
+	protected String getCommitLink(RemoteGitRef remoteGitRef) {
+		String sha = remoteGitRef.getSHA();
+
+		return JenkinsResultsParserUtil.combine(
+			"<a href=\"https://github.com/", remoteGitRef.getUsername(), "/",
+			remoteGitRef.getRepositoryName(), "/commit/", sha, "\">",
+			sha.substring(0, 7), "</a>");
+	}
+
+	protected String getDescriptionPortalBaseBranchSHA(String description) {
+		return _getDescriptionBranchSHA(
+			description, _portalBaseBranchSHAPattern);
+	}
+
+	protected String getDescriptionPortalBranchSHA(String description) {
+		return _getDescriptionBranchSHA(description, _portalBranchSHAPattern);
+	}
+
 	protected String getInvocationCohortName() {
 		String invocationCohortName = Environment.get("INVOCATION_COHORT_NAME");
 
@@ -248,6 +268,12 @@ public abstract class BasePortalControllerBuildRunner
 		}
 
 		return null;
+	}
+
+	protected String getSkippedCommitsDescription() {
+		S buildData = getBuildData();
+
+		return getCommitLink(buildData.getPortalRemoteGitRef());
 	}
 
 	protected abstract void invokeBuild();
@@ -310,9 +336,14 @@ public abstract class BasePortalControllerBuildRunner
 			String buildURL = buildURLMatcher.group();
 
 			try {
-				JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
+				URIBuilder uriBuilder = JenkinsResultsParserUtil.newURIBuilder(
 					JenkinsResultsParserUtil.getLocalURL(
-						buildURL + "/api/json?tree=result"));
+						buildURL + "/api/json"));
+
+				uriBuilder.addParameter("tree", "result");
+
+				JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
+					uriBuilder.toString());
 
 				Object result = jsonObject.get("result");
 
@@ -334,25 +365,39 @@ public abstract class BasePortalControllerBuildRunner
 				sb.append("<strong style=\"color: red\">FAILURE</strong> - ");
 				sb.append(buildURLMatcher.group());
 
+				Matcher portalBaseBranchSHAMatcher =
+					_portalBaseBranchSHAPattern.matcher(description);
 				Matcher portalBranchSHAMatcher =
 					_portalBranchSHAPattern.matcher(description);
 				Matcher portalGitHubCompareURLMatcher =
 					_portalGitHubCompareURLPattern.matcher(description);
 
-				if (portalBranchSHAMatcher.find() ||
-					portalGitHubCompareURLMatcher.find()) {
+				boolean portalBaseBranchSHAFound =
+					portalBaseBranchSHAMatcher.find();
+				boolean portalBranchSHAFound = portalBranchSHAMatcher.find();
+				boolean portalGitHubCompareURLFound =
+					portalGitHubCompareURLMatcher.find();
+
+				if (portalBaseBranchSHAFound || portalBranchSHAFound ||
+					portalGitHubCompareURLFound) {
 
 					sb.append("<ul>");
 
-					if (portalBranchSHAMatcher.find()) {
+					if (portalBranchSHAFound) {
 						sb.append("<li>");
 						sb.append(portalBranchSHAMatcher.group());
 						sb.append("</li>");
 					}
 
-					if (portalGitHubCompareURLMatcher.find()) {
+					if (portalGitHubCompareURLFound) {
 						sb.append("<li>");
 						sb.append(portalGitHubCompareURLMatcher.group());
+						sb.append("</li>");
+					}
+
+					if (portalBaseBranchSHAFound) {
+						sb.append("<li>");
+						sb.append(portalBaseBranchSHAMatcher.group());
 						sb.append("</li>");
 					}
 
@@ -395,15 +440,25 @@ public abstract class BasePortalControllerBuildRunner
 		}
 	}
 
+	private String _getDescriptionBranchSHA(
+		String description, Pattern pattern) {
+
+		Matcher matcher = pattern.matcher(description);
+
+		if (!matcher.find()) {
+			return null;
+		}
+
+		return matcher.group("branchSHA");
+	}
+
 	private void _updateBuildDescription() {
 		S buildData = getBuildData();
 
 		buildData.setBuildDescription(
 			JenkinsResultsParserUtil.combine(
-				"<strong>SKIPPED</strong> - <a href=\"https://github.com/",
-				"liferay/", buildData.getPortalGitHubRepositoryName(),
-				"/commit/", buildData.getPortalBranchSHA(), "\">",
-				getPortalBranchAbbreviatedSHA(), "</a> was already ran"));
+				"<strong>SKIPPED</strong> - ", getSkippedCommitsDescription(),
+				" was already ran"));
 
 		super.updateBuildDescription();
 	}
@@ -417,6 +472,9 @@ public abstract class BasePortalControllerBuildRunner
 	private static final Pattern _jobURLPattern = Pattern.compile(
 		"https://(?<masterHostname>test-\\d+-\\d+)\\.liferay\\.com/job/" +
 			"(?<jobName>[^/\"]+)/?");
+	private static final Pattern _portalBaseBranchSHAPattern = Pattern.compile(
+		"<strong>Base Git ID:</strong> <a href=\"https://github.com/[^/]+/" +
+			"[^/]+/commit/(?<branchSHA>[0-9a-f]{40})\">[0-9a-f]{7}</a>");
 	private static final Pattern _portalBranchSHAPattern = Pattern.compile(
 		"<strong>Git ID:</strong> <a href=\"https://github.com/[^/]+/[^/]+/" +
 			"commit/(?<branchSHA>[0-9a-f]{40})\">[0-9a-f]{7}</a>");

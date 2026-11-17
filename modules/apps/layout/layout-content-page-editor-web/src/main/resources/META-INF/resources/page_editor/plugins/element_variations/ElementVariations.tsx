@@ -31,7 +31,7 @@ import ElementVariationsPreview, {
 import ElementVariationsSimulation from './ElementVariationsSimulation';
 import {
 	Filter,
-	NO_AUDIENCE_VALUE,
+	getElementVariationIssues,
 	getFilteredVariations,
 } from './elementVariationFilters';
 import {
@@ -173,8 +173,7 @@ function ElementVariations({
 		document.getElementById(`${portletNamespace}elementVariations`)
 	);
 
-	const [missingAudiencesAlertVisible, setMissingAudiencesAlertVisible] =
-		useState(true);
+	const [issuesAlertVisible, setIssuesAlertVisible] = useState(true);
 
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -185,6 +184,34 @@ function ElementVariations({
 	useEffect(() => {
 		hideProductMenuIfPresent({onHide: () => setSidebarOpen(true)});
 	}, []);
+
+	useEffect(() => {
+		const controlMenuContainer = document.querySelector(
+			'.control-menu-container'
+		);
+
+		if (!controlMenuContainer || !open) {
+			return;
+		}
+
+		const keepControlMenuInteractive = () => {
+			if (controlMenuContainer.hasAttribute('inert')) {
+				controlMenuContainer.removeAttribute('inert');
+			}
+		};
+
+		keepControlMenuInteractive();
+
+		const mutationObserver = new MutationObserver(
+			keepControlMenuInteractive
+		);
+
+		mutationObserver.observe(controlMenuContainer, {
+			attributeFilter: ['inert'],
+		});
+
+		return () => mutationObserver.disconnect();
+	}, [open]);
 
 	const createElementVariationDraft = () =>
 		dispatch({
@@ -334,26 +361,31 @@ function ElementVariations({
 								searchTerm={searchTerm}
 							/>
 
-							{missingAudiencesAlertVisible &&
+							{issuesAlertVisible &&
+							editableElementOptions &&
 							experienceElementVariations.some(
 								(elementVariation) =>
-									!elementVariation.audienceEntryERCs.length
+									getElementVariationIssues(
+										elementVariation,
+										editableElementOptions
+									).length
 							) ? (
-								<MissingAudiencesAlert
-									onClose={() =>
-										setMissingAudiencesAlertVisible(false)
-									}
+								<IssuesAlert
+									onClose={() => setIssuesAlertVisible(false)}
 									onShowVariations={() => {
 										dispatch({
 											filter: {
 												exclude: false,
-												type: 'audience',
-												values: [NO_AUDIENCE_VALUE],
+												type: 'issue',
+												values: [
+													'missing-audience',
+													'missing-page-element',
+												],
 											},
 											type: 'ADD_FILTER',
 										});
 
-										setMissingAudiencesAlertVisible(false);
+										setIssuesAlertVisible(false);
 									}}
 								/>
 							) : null}
@@ -572,15 +604,12 @@ function Toolbar({
 	);
 }
 
-interface MissingAudiencesAlertProps {
+interface IssuesAlertProps {
 	onClose: () => void;
 	onShowVariations: () => void;
 }
 
-function MissingAudiencesAlert({
-	onClose,
-	onShowVariations,
-}: MissingAudiencesAlertProps) {
+function IssuesAlert({onClose, onShowVariations}: IssuesAlertProps) {
 	return (
 		<ClayAlert
 			closeButtonAriaLabel={Liferay.Language.get('close')}
@@ -590,7 +619,7 @@ function MissingAudiencesAlert({
 			variant="stripe"
 		>
 			{Liferay.Language.get(
-				'there-are-missing-audiences-for-some-variations'
+				'there-are-missing-audiences-or-page-elements-for-some-variations'
 			)}
 
 			<ClayAlert.Footer>
@@ -613,7 +642,13 @@ function NoAudiencesState({createAudienceURL}: {createAudienceURL: string}) {
 			description={Liferay.Language.get(
 				'you-need-at-least-one-audience-to-build-element-variations'
 			)}
-			imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/empty_state.svg`}
+			image={
+				<ClayIcon
+					className="c-empty-state-icon c-empty-state-icon-empty-state"
+					illustration
+					symbol="empty-state"
+				/>
+			}
 			small
 			title={Liferay.Language.get('no-element-variations')}
 		>
@@ -639,7 +674,13 @@ function NoResultsState({onClearFilters}: {onClearFilters: () => void}) {
 			description={Liferay.Language.get(
 				'review-your-filters-and-try-again'
 			)}
-			imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/search_state.svg`}
+			image={
+				<ClayIcon
+					className="c-empty-state-icon c-empty-state-icon-search-state"
+					illustration
+					symbol="search-state"
+				/>
+			}
 			small
 			title={Liferay.Language.get('no-results-found')}
 		>
@@ -661,7 +702,13 @@ function NoVariationsState({onCreate}: {onCreate: () => void}) {
 			description={Liferay.Language.get(
 				'you-can-create-page-elements-variations-based-on-audiences'
 			)}
-			imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/empty_state.svg`}
+			image={
+				<ClayIcon
+					className="c-empty-state-icon c-empty-state-icon-empty-state"
+					illustration
+					symbol="empty-state"
+				/>
+			}
 			small
 			title={Liferay.Language.get('no-element-variations')}
 		>

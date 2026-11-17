@@ -33,16 +33,6 @@ public class UpstreamPortalTopLevelBuild
 		return super.getBranchName();
 	}
 
-	public String getPortalUpstreamBranchName() {
-		String branchName = getBranchName();
-
-		if (branchName.endsWith("-private")) {
-			return branchName.substring(0, branchName.lastIndexOf("-private"));
-		}
-
-		return branchName;
-	}
-
 	@Override
 	public PortalWorkspace getPortalWorkspace() {
 		Workspace workspace = getWorkspace();
@@ -66,12 +56,7 @@ public class UpstreamPortalTopLevelBuild
 			portalWorkspace.setOSBAsahGitHubURL(_getOSBAsahGitHubURL());
 			portalWorkspace.setOSBFaroGitHubURL(_getOSBFaroGitHubURL());
 
-			String portalUpstreamBranchName = getPortalUpstreamBranchName();
-
-			if (!portalUpstreamBranchName.equals(getBranchName())) {
-				portalWorkspace.setPortalUpstreamBranchName(
-					portalUpstreamBranchName);
-			}
+			_configurePortalBaseWorkspaceGitRepository(portalWorkspace);
 		}
 
 		WorkspaceGitRepository workspaceGitRepository =
@@ -90,6 +75,33 @@ public class UpstreamPortalTopLevelBuild
 		}
 
 		return workspace;
+	}
+
+	private void _configurePortalBaseWorkspaceGitRepository(
+		PortalWorkspace portalWorkspace) {
+
+		PortalWorkspaceGitRepository portalWorkspaceGitRepository =
+			portalWorkspace.getPortalWorkspaceGitRepository();
+
+		PortalWorkspaceGitRepository basePortalWorkspaceGitRepository =
+			portalWorkspaceGitRepository.getBasePortalWorkspaceGitRepository();
+
+		if (basePortalWorkspaceGitRepository == null) {
+			return;
+		}
+
+		String portalBaseGitHubURL = _getPortalBaseGitHubURL();
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(portalBaseGitHubURL)) {
+			basePortalWorkspaceGitRepository.setGitHubURL(portalBaseGitHubURL);
+		}
+
+		String portalBaseGitCommit = _getPortalBaseGitCommit();
+
+		if (JenkinsResultsParserUtil.isSHA(portalBaseGitCommit)) {
+			basePortalWorkspaceGitRepository.setSenderBranchSHA(
+				portalBaseGitCommit);
+		}
 	}
 
 	private String _getOSBAsahGitHubURL() {
@@ -127,6 +139,40 @@ public class UpstreamPortalTopLevelBuild
 		}
 
 		return "https://github.com/liferay/liferay-portal/tree/master";
+	}
+
+	private String _getPortalBaseGitCommit() {
+		String portalBaseGitCommit = getParameterValue(
+			"PORTAL_BASE_GIT_COMMIT");
+
+		if (JenkinsResultsParserUtil.isSHA(portalBaseGitCommit)) {
+			return portalBaseGitCommit;
+		}
+
+		Build controllerBuild = getControllerBuild();
+
+		if (controllerBuild != null) {
+			return controllerBuild.getParameterValue("PORTAL_BASE_GIT_COMMIT");
+		}
+
+		return null;
+	}
+
+	private String _getPortalBaseGitHubURL() {
+		String portalBaseGitHubURL = getParameterValue(
+			"PORTAL_BASE_GITHUB_URL");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(portalBaseGitHubURL)) {
+			return portalBaseGitHubURL;
+		}
+
+		Build controllerBuild = getControllerBuild();
+
+		if (controllerBuild != null) {
+			return controllerBuild.getParameterValue("PORTAL_BASE_GITHUB_URL");
+		}
+
+		return null;
 	}
 
 	private String _getPortalGitCommit() {

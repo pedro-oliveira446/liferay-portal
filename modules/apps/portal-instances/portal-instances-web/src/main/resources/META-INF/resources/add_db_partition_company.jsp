@@ -21,6 +21,11 @@
 	>
 		<div class="add-db-partition-company-content">
 			<div class="px-4 py-2">
+				<clay:alert
+					displayType="warning"
+					message="document-library-files-are-not-included-and-must-be-transferred-separately"
+				/>
+
 				<aui:input label="schema-name" name="schemaName" required="<%= true %>" type="text" />
 
 				<aui:input name="name" type="text" />
@@ -42,5 +47,10 @@
 </clay:container-fluid>
 
 <liferay-frontend:component
+	context='<%=
+		HashMapBuilder.<String, Object>put(
+			"successMessage", LanguageUtil.get(request, "the-instance-is-being-imported-from-the-schema-x-you-will-be-notified-when-it-finishes")
+		).build()
+	%>'
 	module="{AddDBPartitionCompany} from portal-instances-web"
 />

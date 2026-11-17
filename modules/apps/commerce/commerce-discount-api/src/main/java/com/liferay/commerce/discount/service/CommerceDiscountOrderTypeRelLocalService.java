@@ -126,7 +126,8 @@ public interface CommerceDiscountOrderTypeRelLocalService
 			long commerceDiscountOrderTypeRelId)
 		throws PortalException;
 
-	public void deleteCommerceDiscountOrderTypeRels(long commerceDiscountId);
+	public void deleteCommerceDiscountOrderTypeRels(long commerceDiscountId)
+		throws PortalException;
 
 	/**
 	 * @throws PortalException
@@ -330,5 +331,9 @@ public interface CommerceDiscountOrderTypeRelLocalService
 	public CommerceDiscountOrderTypeRel updateCommerceDiscountOrderTypeRel(
 		CommerceDiscountOrderTypeRel commerceDiscountOrderTypeRel);
 
+	public CommerceDiscountOrderTypeRel updatePriority(
+			long commerceDiscountOrderTypeRelId, int priority)
+		throws PortalException;
+
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1096869370
+// LIFERAY-SERVICE-BUILDER-HASH:1591740480

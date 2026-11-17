@@ -51,7 +51,6 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -614,24 +613,6 @@ public class CalendarBookingLocalServiceImpl
 	}
 
 	@Override
-	public CalendarBooking deleteRecurringCalendarBooking(
-			CalendarBooking calendarBooking)
-		throws PortalException {
-
-		return calendarBookingLocalService.deleteCalendarBooking(
-			calendarBooking, true);
-	}
-
-	@Override
-	public CalendarBooking deleteRecurringCalendarBooking(
-			long calendarBookingId)
-		throws PortalException {
-
-		return calendarBookingLocalService.deleteCalendarBooking(
-			calendarBookingId, true);
-	}
-
-	@Override
 	public String exportCalendarBooking(long calendarBookingId, String type)
 		throws Exception {
 
@@ -682,11 +663,6 @@ public class CalendarBookingLocalServiceImpl
 	}
 
 	@Override
-	public List<CalendarBooking> getCalendarBookings(long calendarId) {
-		return calendarBookingPersistence.findByCalendarId(calendarId);
-	}
-
-	@Override
 	public List<CalendarBooking> getCalendarBookings(
 		long calendarId, int[] statuses) {
 
@@ -695,14 +671,6 @@ public class CalendarBookingLocalServiceImpl
 		}
 
 		return calendarBookingPersistence.findByC_S(calendarId, statuses);
-	}
-
-	@Override
-	public List<CalendarBooking> getCalendarBookings(
-		long calendarId, long startTime, long endTime) {
-
-		return getCalendarBookings(
-			calendarId, startTime, endTime, QueryUtil.ALL_POS);
 	}
 
 	@Override
@@ -753,14 +721,6 @@ public class CalendarBookingLocalServiceImpl
 	}
 
 	@Override
-	public List<CalendarBooking> getChildCalendarBookings(
-		long parentCalendarBookingId, int status) {
-
-		return calendarBookingPersistence.findByP_S(
-			parentCalendarBookingId, status);
-	}
-
-	@Override
 	public long[] getChildCalendarIds(long calendarBookingId, long calendarId)
 		throws PortalException {
 
@@ -805,21 +765,6 @@ public class CalendarBookingLocalServiceImpl
 
 		return calendarBookingPersistence.findByRecurringCalendarBookingId(
 			calendarBooking.getRecurringCalendarBookingId());
-	}
-
-	@Override
-	public List<CalendarBooking> getRecurringCalendarBookings(
-		CalendarBooking calendarBooking, long startTime) {
-
-		return TransformUtil.transform(
-			getRecurringCalendarBookings(calendarBooking),
-			recurringCalendarBooking -> {
-				if (recurringCalendarBooking.getStartTime() > startTime) {
-					return recurringCalendarBooking;
-				}
-
-				return null;
-			});
 	}
 
 	@Override
@@ -1125,30 +1070,6 @@ public class CalendarBookingLocalServiceImpl
 		}
 
 		return calendarBookings;
-	}
-
-	@Override
-	public int searchCount(
-		long companyId, long[] groupIds, long[] calendarIds,
-		long[] calendarResourceIds, long parentCalendarBookingId,
-		String keywords, long startTime, long endTime, int[] statuses) {
-
-		return calendarBookingFinder.countByKeywords(
-			companyId, groupIds, calendarIds, calendarResourceIds,
-			parentCalendarBookingId, keywords, startTime, endTime, statuses);
-	}
-
-	@Override
-	public int searchCount(
-		long companyId, long[] groupIds, long[] calendarIds,
-		long[] calendarResourceIds, long parentCalendarBookingId, String title,
-		String description, String location, long startTime, long endTime,
-		int[] statuses, boolean andOperator) {
-
-		return calendarBookingFinder.countByC_G_C_C_P_T_D_L_S_E_S(
-			companyId, groupIds, calendarIds, calendarResourceIds,
-			parentCalendarBookingId, title, description, location, startTime,
-			endTime, statuses, andOperator);
 	}
 
 	@Override
@@ -1860,21 +1781,25 @@ public class CalendarBookingLocalServiceImpl
 
 			oldChildCalendarBooking = childCalendarBookingMap.get(calendarId);
 
-			if (oldChildCalendarBooking != null) {
-				int workflowAction = GetterUtil.getInteger(
-					serviceContext.getAttribute("workflowAction"));
-
-				if ((calendarBooking.getStartTime() ==
-						oldChildCalendarBooking.getStartTime()) &&
-					(calendarBooking.getEndTime() ==
-						oldChildCalendarBooking.getEndTime()) &&
-					(workflowAction != WorkflowConstants.ACTION_SAVE_DRAFT)) {
-
-					updateStatus(
-						childCalendarBooking.getUserId(), childCalendarBooking,
-						oldChildCalendarBooking.getStatus(), serviceContext);
-				}
+			if (oldChildCalendarBooking == null) {
+				continue;
 			}
+
+			int workflowAction = GetterUtil.getInteger(
+				serviceContext.getAttribute("workflowAction"));
+
+			if ((calendarBooking.getStartTime() !=
+					oldChildCalendarBooking.getStartTime()) ||
+				(calendarBooking.getEndTime() !=
+					oldChildCalendarBooking.getEndTime()) ||
+				(workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT)) {
+
+				continue;
+			}
+
+			updateStatus(
+				childCalendarBooking.getUserId(), childCalendarBooking,
+				oldChildCalendarBooking.getStatus(), serviceContext);
 		}
 	}
 
@@ -2062,10 +1987,12 @@ public class CalendarBookingLocalServiceImpl
 		Map<Locale, String> updatedTitleMap = new HashMap<>();
 
 		for (Map.Entry<Locale, String> titleMapEntry : titleMap.entrySet()) {
-			if (titleMapEntry.getValue() != null) {
-				updatedTitleMap.put(
-					titleMapEntry.getKey(), titleMapEntry.getValue());
+			if (titleMapEntry.getValue() == null) {
+				continue;
 			}
+
+			updatedTitleMap.put(
+				titleMapEntry.getKey(), titleMapEntry.getValue());
 		}
 
 		if (Objects.equals(updatedTitleMap, calendarBooking.getTitleMap())) {
@@ -2077,11 +2004,12 @@ public class CalendarBookingLocalServiceImpl
 		for (Map.Entry<Locale, String> descriptionMapEntry :
 				descriptionMap.entrySet()) {
 
-			if (descriptionMapEntry.getValue() != null) {
-				updatedDescriptionMap.put(
-					descriptionMapEntry.getKey(),
-					descriptionMapEntry.getValue());
+			if (descriptionMapEntry.getValue() == null) {
+				continue;
 			}
+
+			updatedDescriptionMap.put(
+				descriptionMapEntry.getKey(), descriptionMapEntry.getValue());
 		}
 
 		if (Objects.equals(

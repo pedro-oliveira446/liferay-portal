@@ -413,8 +413,8 @@ public class LayoutPageTemplateCollectionLocalServiceImpl
 		throws PortalException {
 
 		LayoutPageTemplateCollection layoutPageTemplateCollection =
-			layoutPageTemplateCollectionLocalService.
-				getLayoutPageTemplateCollection(layoutPageTemplateCollectionId);
+			layoutPageTemplateCollectionPersistence.findByPrimaryKey(
+				layoutPageTemplateCollectionId);
 
 		if ((parentLayoutPageTemplateCollectionId ==
 				layoutPageTemplateCollection.
@@ -429,7 +429,8 @@ public class LayoutPageTemplateCollectionLocalServiceImpl
 		layoutPageTemplateCollection.setParentLayoutPageTemplateCollectionId(
 			parentLayoutPageTemplateCollectionId);
 
-		return updateLayoutPageTemplateCollection(layoutPageTemplateCollection);
+		return layoutPageTemplateCollectionLocalService.
+			updateLayoutPageTemplateCollection(layoutPageTemplateCollection);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)

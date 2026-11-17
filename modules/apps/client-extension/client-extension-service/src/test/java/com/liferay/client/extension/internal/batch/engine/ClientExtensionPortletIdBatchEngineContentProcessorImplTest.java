@@ -13,7 +13,9 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,6 +33,20 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
+	@Before
+	public void setUp() {
+		_companyThreadLocalMockedStatic = Mockito.mockStatic(
+			CompanyThreadLocal.class);
+		_exportImportThreadLocalMockedStatic = Mockito.mockStatic(
+			ExportImportThreadLocal.class);
+	}
+
+	@After
+	public void tearDown() {
+		_companyThreadLocalMockedStatic.close();
+		_exportImportThreadLocalMockedStatic.close();
+	}
+
 	@Test
 	public void testProcess() {
 		long sourceCompanyId = RandomTestUtil.randomLong(1, Long.MAX_VALUE - 1);
@@ -44,7 +60,7 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 		Assert.assertEquals(
 			_getPortletId(targetCompanyId, externalReferenceCode),
 			_batchEngineContentProcessor.process(
-				_getPortletId(sourceCompanyId, externalReferenceCode)));
+				_getPortletId(sourceCompanyId, externalReferenceCode), null));
 	}
 
 	@Test
@@ -57,7 +73,7 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 			companyId, RandomTestUtil.randomString());
 
 		Assert.assertEquals(
-			content, _batchEngineContentProcessor.process(content));
+			content, _batchEngineContentProcessor.process(content, null));
 	}
 
 	@Test
@@ -68,7 +84,7 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 			RandomTestUtil.randomLong(), RandomTestUtil.randomString());
 
 		Assert.assertEquals(
-			content, _batchEngineContentProcessor.process(content));
+			content, _batchEngineContentProcessor.process(content, null));
 	}
 
 	@Test
@@ -81,14 +97,14 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 			sourceCompanyId, RandomTestUtil.randomString());
 
 		Assert.assertEquals(
-			content, _batchEngineContentProcessor.process(content));
+			content, _batchEngineContentProcessor.process(content, null));
 	}
 
 	@Test
 	public void testProcessIgnoresNullContent() {
 		_mock(RandomTestUtil.randomLong(), true);
 
-		Assert.assertNull(_batchEngineContentProcessor.process(null));
+		Assert.assertNull(_batchEngineContentProcessor.process(null, null));
 	}
 
 	@Test
@@ -98,7 +114,7 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 		String content = "com_liferay_journal_web_portlet_JournalPortlet";
 
 		Assert.assertEquals(
-			content, _batchEngineContentProcessor.process(content));
+			content, _batchEngineContentProcessor.process(content, null));
 	}
 
 	@Test
@@ -117,7 +133,8 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 				targetCompanyId, externalReferenceCode + instanceSuffix),
 			_batchEngineContentProcessor.process(
 				_getPortletId(
-					sourceCompanyId, externalReferenceCode + instanceSuffix)));
+					sourceCompanyId, externalReferenceCode + instanceSuffix),
+				null));
 	}
 
 	@Test
@@ -138,7 +155,8 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 			_batchEngineContentProcessor.process(
 				_getPageDefinition(
 					_getPortletId(sourceCompanyId, externalReferenceCode1),
-					_getPortletId(sourceCompanyId, externalReferenceCode2))));
+					_getPortletId(sourceCompanyId, externalReferenceCode2)),
+				null));
 	}
 
 	private String _getPageDefinition(
@@ -174,11 +192,8 @@ public class ClientExtensionPortletIdBatchEngineContentProcessorImplTest {
 
 	private final BatchEngineContentProcessor _batchEngineContentProcessor =
 		new ClientExtensionPortletIdBatchEngineContentProcessorImpl();
-	private final MockedStatic<CompanyThreadLocal>
-		_companyThreadLocalMockedStatic = Mockito.mockStatic(
-			CompanyThreadLocal.class);
-	private final MockedStatic<ExportImportThreadLocal>
-		_exportImportThreadLocalMockedStatic = Mockito.mockStatic(
-			ExportImportThreadLocal.class);
+	private MockedStatic<CompanyThreadLocal> _companyThreadLocalMockedStatic;
+	private MockedStatic<ExportImportThreadLocal>
+		_exportImportThreadLocalMockedStatic;
 
 }

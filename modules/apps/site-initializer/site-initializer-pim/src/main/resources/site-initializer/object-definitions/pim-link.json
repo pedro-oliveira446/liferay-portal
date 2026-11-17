@@ -10,6 +10,7 @@
 	"enableObjectEntrySchedule": false,
 	"enableObjectEntrySubscription": false,
 	"externalReferenceCode": "L_PIM_LINK",
+	"friendlyURLSeparator": "l",
 	"label": {
 		"en_US": "PIM Link"
 	},
@@ -43,6 +44,21 @@
 				"en_US": "Cluster Key"
 			},
 			"name": "clusterKey",
+			"required": false,
+			"system": true
+		},
+		{
+			"DBType": "Boolean",
+			"businessType": "Boolean",
+			"defaultValue": false,
+			"externalReferenceCode": "PRIMARY",
+			"indexed": true,
+			"indexedAsKeyword": false,
+			"indexedLanguageId": "",
+			"label": {
+				"en_US": "Primary"
+			},
+			"name": "primary",
 			"required": false,
 			"system": true
 		},

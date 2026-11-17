@@ -1,102 +1,114 @@
-import Card from 'shared/components/Card';
-import DocumentTitle from 'shared/components/DocumentTitle';
-import LifecycleSettingsToolbar from 'lifecycle/components/LifecycleSettingsToolbar';
+import BaseEditPage from 'shared/components/base-edit-page';
+import LifecycleConditionsPanel from 'lifecycle/components/LifecycleConditionsPanel';
+import LifecycleErrorAlert from 'lifecycle/components/LifecycleErrorAlert';
+import LifecycleSummary from 'lifecycle/components/LifecycleSummary';
+import NavigationWarning from 'shared/components/NavigationWarning';
 import React from 'react';
 import StageConfigurationPanel from 'lifecycle/components/StageConfigurationPanel';
-import ClayForm, {ClayInput} from '@clayui/form';
-import ClayIcon from '@clayui/icon';
-import {ICatalogField} from 'shared/api/catalog';
-import {
-	IStageConfig,
-	LIFECYCLE_STAGE_ORDER,
-} from 'lifecycle/utils/stageConfiguration';
+import {useLifecycleSettingsForm} from 'lifecycle/hooks/useLifecycleSettingsForm';
 
 interface ILifecycleSettingsFormProps {
-	backURL: string;
-	catalogFields?: ICatalogField[];
-	lifecycleName: string;
-	onCancel: () => void;
-	onLifecycleNameChange: (name: string) => void;
-	onStageChange: (index: number, value: IStageConfig) => void;
+	authorName: string;
+	form: ReturnType<typeof useLifecycleSettingsForm>;
+	modifiedDate?: number | null;
 	onSubmit: () => void;
-	stageConfigs: IStageConfig[];
-	submitDisabled?: boolean;
 	submitLabel: string;
+	title: string;
 }
 
 const LifecycleSettingsForm: React.FC<ILifecycleSettingsFormProps> = ({
-	backURL,
-	catalogFields,
-	lifecycleName,
-	onCancel,
-	onLifecycleNameChange,
-	onStageChange,
+	authorName,
+	form,
+	modifiedDate,
 	onSubmit,
-	stageConfigs,
-	submitDisabled = false,
 	submitLabel,
-}) => (
-	<div className="d-flex flex-column">
-		<DocumentTitle title={Liferay.Language.get('lifecycle-settings')} />
+	title,
+}) => {
+	const {
+		addStage,
+		blurField,
+		dismissAlert,
+		moveStage,
+		removeStage,
+		selectedStage,
+		setLifecycleDescription,
+		setLifecycleName,
+		setSelectedKey,
+	} = form;
 
-		<LifecycleSettingsToolbar
-			backURL={backURL}
-			onCancel={onCancel}
-			onSubmit={onSubmit}
-			submitDisabled={submitDisabled}
-			submitLabel={submitLabel}
-		/>
+	return (
+		<BaseEditPage className="d-flex flex-column" documentTitle={title}>
+			<NavigationWarning when={form.changed} />
 
-		<div className="justify-self-center d-inline-block mt-5 mx-auto">
-			<Card>
-				<Card.Body>
-					<Card.Title>
-						{Liferay.Language.get('stage-configuration')}
-					</Card.Title>
+			<BaseEditPage.Toolbar backURL={form.backURL} title={title}>
+				<BaseEditPage.Toolbar.Cancel href={form.backURL} />
 
-					<p className="mt-3 text-secondary">
-						{Liferay.Language.get(
-							'define-entry-conditions-for-each-lifecycle-stage-an-account-moves-to-a-stage-when-it-meets-the-selected-conditions'
-						)}
-					</p>
+				<BaseEditPage.Toolbar.Save
+					disabled={form.saving}
+					label={submitLabel}
+					onClick={onSubmit}
+				/>
+			</BaseEditPage.Toolbar>
 
-					<ClayForm.Group className="mb-4">
-						<label
-							className="font-weight-semi-bold"
-							htmlFor="lifecycleName"
-						>
-							{Liferay.Language.get('lifecycle-name')}
+			<BaseEditPage.Body>
+				<BaseEditPage.Sidebar
+					label={Liferay.Language.get('lifecycle-conditions')}
+					position="left"
+				>
+					<LifecycleConditionsPanel
+						lifecycleName={form.lifecycleName}
+						onAddStage={addStage}
+						onMoveStage={moveStage}
+						onRemoveStage={removeStage}
+						onSelect={setSelectedKey}
+						selectedKey={selectedStage?.key ?? null}
+						stageConfigs={form.stageConfigs}
+						stageErrorKeys={form.stageErrorKeys}
+						summaryError={form.summaryError}
+					/>
+				</BaseEditPage.Sidebar>
 
-							<span className="reference-mark">
-								<ClayIcon symbol="asterisk" />
-							</span>
-						</label>
+				<BaseEditPage.Main className="page-container">
+					<LifecycleErrorAlert
+						alertCount={form.alertCount}
+						messages={form.alertMessages}
+						onClose={dismissAlert}
+					/>
 
-						<ClayInput
-							id="lifecycleName"
-							onChange={(event) =>
-								onLifecycleNameChange(event.target.value)
-							}
-							sizing="sm"
-							value={lifecycleName}
-						/>
-					</ClayForm.Group>
-
-					{LIFECYCLE_STAGE_ORDER.map((stageType, index) => (
+					{selectedStage ? (
 						<StageConfigurationPanel
-							defaultExpanded={index === 0}
-							fields={catalogFields}
-							index={index + 1}
-							key={stageType}
-							onChange={(value) => onStageChange(index, value)}
-							stageType={stageType}
-							value={stageConfigs[index]}
+							fields={form.catalogFields?.items}
+							isFieldErrorVisible={form.isFieldErrorVisible}
+							key={selectedStage.key}
+							lifecycleName={form.lifecycleName}
+							nameTaken={form.duplicateStageKeys.includes(
+								selectedStage.key
+							)}
+							onChange={(value) =>
+								form.updateStage(selectedStage.key, value)
+							}
+							onFieldBlur={blurField}
+							onSelectSummary={() => setSelectedKey(null)}
+							value={selectedStage}
 						/>
-					))}
-				</Card.Body>
-			</Card>
-		</div>
-	</div>
-);
+					) : (
+						<LifecycleSummary
+							authorName={authorName}
+							description={form.lifecycleDescription}
+							isFieldErrorVisible={form.isFieldErrorVisible}
+							modifiedDate={modifiedDate}
+							name={form.lifecycleName}
+							nameTaken={form.nameTaken}
+							onDescriptionChange={setLifecycleDescription}
+							onFieldBlur={blurField}
+							onNameChange={setLifecycleName}
+							stageCount={form.stageConfigs.length}
+						/>
+					)}
+				</BaseEditPage.Main>
+			</BaseEditPage.Body>
+		</BaseEditPage>
+	);
+};
 
 export default LifecycleSettingsForm;

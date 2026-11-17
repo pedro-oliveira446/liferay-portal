@@ -196,7 +196,8 @@ public class ReportsEngineDisplayContext {
 			ReportsEngineWebKeys.DEFINITION);
 
 		String reportParameters = BeanParamUtil.getString(
-			definition, _httpServletRequest, "reportParameters");
+			definition, _httpServletRequest, "reportParameters",
+			Definition::getReportParameters);
 
 		if (!JSONUtil.isJSONArray(reportParameters)) {
 			return null;
@@ -216,12 +217,13 @@ public class ReportsEngineDisplayContext {
 						reportParameterJSONObject.getString("value")));
 			}
 
-			if (reportParameterJSONObject.has("key")) {
-				reportParameterJSONObject.put(
-					"key",
-					HtmlUtil.escapeJS(
-						reportParameterJSONObject.getString("key")));
+			if (!reportParameterJSONObject.has("key")) {
+				continue;
 			}
+
+			reportParameterJSONObject.put(
+				"key",
+				HtmlUtil.escapeJS(reportParameterJSONObject.getString("key")));
 		}
 
 		return reportParametersJSONArray.toString();

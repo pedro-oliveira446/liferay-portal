@@ -193,6 +193,10 @@ public class DefaultDLEditFileEntryDisplayContext
 
 	@Override
 	public String getPublishButtonLabel() {
+		if (_fileEntryDisplayContextHelper.isCheckedOut()) {
+			return "save";
+		}
+
 		if (_hasFolderWorkflowDefinitionLink()) {
 			return "submit-for-workflow";
 		}
@@ -200,9 +204,7 @@ public class DefaultDLEditFileEntryDisplayContext
 		DLPortletInstanceSettings dlPortletInstanceSettings =
 			_dlRequestHelper.getDLPortletInstanceSettings();
 
-		if (dlPortletInstanceSettings.isEnableFileEntryDrafts() ||
-			_fileEntryDisplayContextHelper.isCheckedOut()) {
-
+		if (dlPortletInstanceSettings.isEnableFileEntryDrafts()) {
 			return "save";
 		}
 
@@ -444,11 +446,12 @@ public class DefaultDLEditFileEntryDisplayContext
 		for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
 			String parameterName = entry.getKey();
 
-			if (StringUtil.startsWith(parameterName, namespace)) {
-				dynamicServletRequest.setParameterValues(
-					parameterName.substring(namespace.length()),
-					entry.getValue());
+			if (!StringUtil.startsWith(parameterName, namespace)) {
+				continue;
 			}
+
+			dynamicServletRequest.setParameterValues(
+				parameterName.substring(namespace.length()), entry.getValue());
 		}
 
 		return dynamicServletRequest;
@@ -465,7 +468,8 @@ public class DefaultDLEditFileEntryDisplayContext
 	private boolean _hasFolderWorkflowDefinitionLink() {
 		try {
 			long folderId = BeanParamUtil.getLong(
-				_fileEntry, _dlRequestHelper.getRequest(), "folderId");
+				_fileEntry, _dlRequestHelper.getRequest(), "folderId",
+				FileEntry::getFolderId);
 
 			long fileEntryTypeId =
 				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT;

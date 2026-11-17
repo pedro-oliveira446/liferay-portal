@@ -8,6 +8,7 @@ import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClayModal from '@clayui/modal';
 import {useIsMounted} from '@liferay/frontend-js-react-web';
 import {openToast} from 'frontend-js-components-web';
+import {fetch} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 
@@ -42,8 +43,6 @@ const FriendlyURLHistoryModal = ({
 	const isMounted = useIsMounted();
 
 	const getFriendlyUrlLocalizations = useCallback(() => {
-
-		// eslint-disable-next-line @liferay/portal/no-global-fetch
 		fetch(friendlyURLEntryURL)
 			.then((response) => response.json())
 			.then((response) => {
@@ -117,8 +116,6 @@ const FriendlyURLHistoryModal = ({
 
 	const sendRequest = useCallback(
 		(url, friendlyURLEntryId, method = 'GET') => {
-
-			// eslint-disable-next-line @liferay/portal/no-global-fetch
 			return fetch(`${url}/${friendlyURLEntryId}/${languageId}`, {
 				method,
 			})
@@ -223,7 +220,7 @@ const FriendlyURLHistoryModal = ({
 			<ClayModal.Header
 				closeButtonAriaLabel={Liferay.Language.get('close')}
 			>
-				{Liferay.Language.get('history')}
+				{Liferay.Language.get('history[record]')}
 			</ClayModal.Header>
 
 			<ClayModal.Body>

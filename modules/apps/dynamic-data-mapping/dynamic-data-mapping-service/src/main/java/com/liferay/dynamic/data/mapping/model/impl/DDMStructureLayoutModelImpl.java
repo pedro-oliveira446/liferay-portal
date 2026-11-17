@@ -63,7 +63,6 @@ import java.util.function.Function;
  * @see DDMStructureLayoutImpl
  * @generated
  */
-@JSON(strict = true)
 public class DDMStructureLayoutModelImpl
 	extends BaseModelImpl<DDMStructureLayout>
 	implements DDMStructureLayoutModel {
@@ -401,7 +400,6 @@ public class DDMStructureLayoutModelImpl
 
 	}
 
-	@JSON
 	@Override
 	public long getMvccVersion() {
 		return _mvccVersion;
@@ -416,7 +414,6 @@ public class DDMStructureLayoutModelImpl
 		_mvccVersion = mvccVersion;
 	}
 
-	@JSON
 	@Override
 	public long getCtCollectionId() {
 		return _ctCollectionId;
@@ -431,7 +428,6 @@ public class DDMStructureLayoutModelImpl
 		_ctCollectionId = ctCollectionId;
 	}
 
-	@JSON
 	@Override
 	public String getUuid() {
 		if (_uuid == null) {
@@ -460,7 +456,6 @@ public class DDMStructureLayoutModelImpl
 		return getColumnOriginalValue("uuid_");
 	}
 
-	@JSON
 	@Override
 	public long getStructureLayoutId() {
 		return _structureLayoutId;
@@ -475,7 +470,6 @@ public class DDMStructureLayoutModelImpl
 		_structureLayoutId = structureLayoutId;
 	}
 
-	@JSON
 	@Override
 	public long getGroupId() {
 		return _groupId;
@@ -499,7 +493,6 @@ public class DDMStructureLayoutModelImpl
 		return GetterUtil.getLong(this.<Long>getColumnOriginalValue("groupId"));
 	}
 
-	@JSON
 	@Override
 	public long getCompanyId() {
 		return _companyId;
@@ -524,7 +517,6 @@ public class DDMStructureLayoutModelImpl
 			this.<Long>getColumnOriginalValue("companyId"));
 	}
 
-	@JSON
 	@Override
 	public long getUserId() {
 		return _userId;
@@ -555,7 +547,6 @@ public class DDMStructureLayoutModelImpl
 	public void setUserUuid(String userUuid) {
 	}
 
-	@JSON
 	@Override
 	public String getUserName() {
 		if (_userName == null) {
@@ -575,7 +566,6 @@ public class DDMStructureLayoutModelImpl
 		_userName = userName;
 	}
 
-	@JSON
 	@Override
 	public Date getCreateDate() {
 		return _createDate;
@@ -590,7 +580,6 @@ public class DDMStructureLayoutModelImpl
 		_createDate = createDate;
 	}
 
-	@JSON
 	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
@@ -631,7 +620,6 @@ public class DDMStructureLayoutModelImpl
 		setClassNameId(classNameId);
 	}
 
-	@JSON
 	@Override
 	public long getClassNameId() {
 		return _classNameId;
@@ -656,7 +644,6 @@ public class DDMStructureLayoutModelImpl
 			this.<Long>getColumnOriginalValue("classNameId"));
 	}
 
-	@JSON
 	@Override
 	public String getStructureLayoutKey() {
 		if (_structureLayoutKey == null) {
@@ -685,7 +672,6 @@ public class DDMStructureLayoutModelImpl
 		return getColumnOriginalValue("structureLayoutKey");
 	}
 
-	@JSON
 	@Override
 	public long getStructureVersionId() {
 		return _structureVersionId;
@@ -710,7 +696,6 @@ public class DDMStructureLayoutModelImpl
 			this.<Long>getColumnOriginalValue("structureVersionId"));
 	}
 
-	@JSON
 	@Override
 	public String getName() {
 		if (_name == null) {
@@ -817,7 +802,6 @@ public class DDMStructureLayoutModelImpl
 				LocaleUtil.toLanguageId(defaultLocale)));
 	}
 
-	@JSON
 	@Override
 	public String getDescription() {
 		if (_description == null) {
@@ -929,7 +913,6 @@ public class DDMStructureLayoutModelImpl
 				LocaleUtil.toLanguageId(defaultLocale)));
 	}
 
-	@JSON
 	@Override
 	public String getDefinition() {
 		if (_definition == null) {
@@ -1196,10 +1179,16 @@ public class DDMStructureLayoutModelImpl
 			return;
 		}
 
-		DDMStructureLayoutModelImpl sourceModelImpl =
-			(DDMStructureLayoutModelImpl)source;
-
-		setDDMFormLayout(sourceModelImpl.getDDMFormLayout());
+		try {
+			_ddmFormLayoutSetterMethodHandle.invokeExact(
+				(DDMStructureLayoutImpl)this,
+				(com.liferay.dynamic.data.mapping.model.DDMFormLayout)
+					_ddmFormLayoutGetterMethodHandle.invokeExact(
+						(DDMStructureLayoutImpl)source));
+		}
+		catch (Throwable throwable) {
+			ReflectionUtil.throwException(throwable);
+		}
 	}
 
 	@Override
@@ -1355,7 +1344,7 @@ public class DDMStructureLayoutModelImpl
 
 			ddmStructureLayoutCacheModel.ddmFormLayout =
 				(com.liferay.dynamic.data.mapping.model.DDMFormLayout)
-					_ddmFormLayoutMethodHandle.invokeExact(
+					_ddmFormLayoutGetterMethodHandle.invokeExact(
 						(DDMStructureLayoutImpl)this);
 		}
 		catch (Throwable throwable) {
@@ -1570,13 +1559,17 @@ public class DDMStructureLayoutModelImpl
 					}
 				};
 
-	private static final MethodHandle _ddmFormLayoutMethodHandle;
+	private static final MethodHandle _ddmFormLayoutGetterMethodHandle;
+	private static final MethodHandle _ddmFormLayoutSetterMethodHandle;
 
 	static {
 		MethodHandles.Lookup lookup = ReflectionUtil.getImplLookup();
 
 		try {
-			_ddmFormLayoutMethodHandle = lookup.findGetter(
+			_ddmFormLayoutGetterMethodHandle = lookup.findGetter(
+				DDMStructureLayoutImpl.class, "_ddmFormLayout",
+				com.liferay.dynamic.data.mapping.model.DDMFormLayout.class);
+			_ddmFormLayoutSetterMethodHandle = lookup.findSetter(
 				DDMStructureLayoutImpl.class, "_ddmFormLayout",
 				com.liferay.dynamic.data.mapping.model.DDMFormLayout.class);
 		}
@@ -1588,4 +1581,4 @@ public class DDMStructureLayoutModelImpl
 	private DDMStructureLayout _escapedModel;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-408088305
+// LIFERAY-SERVICE-BUILDER-HASH:10945092

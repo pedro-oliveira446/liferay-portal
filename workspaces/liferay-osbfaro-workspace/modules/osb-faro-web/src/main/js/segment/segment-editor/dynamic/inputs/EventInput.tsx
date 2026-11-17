@@ -1,7 +1,7 @@
 import Alert from '@clayui/alert';
 import AttributeFilterSection from './components/AttributeFilterSection';
 import ClayButton from '@clayui/button';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import DateFilterConjunctionInput from './components/DateFilterConjunctionInput';
 import Form from 'shared/components/form';
 import OccurenceConjunctionInput from './components/OccurenceConjunctionInput';
@@ -9,7 +9,8 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import RealTimePeriodInput, {
 	DEFAULT_OPTIONS,
 } from './components/RealTimePeriodInput';
-import {Attribute, DataTypes} from 'event-analysis/utils/types';
+import {DataTypes} from 'shared/types/DataTypes';
+import {Attribute} from 'event-analysis/utils/types';
 import {
 	AttributeConjunctionChangeParams,
 	Criterion,
@@ -32,6 +33,7 @@ import {
 } from '../utils/custom-inputs';
 import {isBoolean, isNil} from 'lodash';
 import {SegmentCategories, SegmentTypes} from 'shared/util/constants';
+import {getSegmentCategoryLabel} from 'segment/utils/labels';
 
 type Touched = {
 	attribute: boolean;
@@ -367,16 +369,16 @@ const EventInput: React.FC<IEventInputProps> = ({
 					label
 					shrink
 				>
-					{isAccountSegment
-						? Liferay.Language.get('account')
-						: Liferay.Language.get('individual')}
+					{getSegmentCategoryLabel(segmentCategory)}
 				</Form.GroupItem>
 
 				<OperatorDropdown />
 
 				{isAccountSegment ? (
 					<Form.GroupItem className="entity-name" label shrink>
-						{Liferay.Language.get('individual-who-triggered')}
+						{Liferay.Language.get(
+							'at-least-one-individual-who-triggered'
+						)}
 					</Form.GroupItem>
 				) : (
 					<Form.GroupItem className="entity-name" label shrink>

@@ -229,8 +229,7 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		alterColumnName(
-			"JournalFeed", "feedType", "feedFormat VARCHAR(75) null");
+		alterColumnName("JournalFeed", "feedType", "feedFormat");
 
 		setUpStrutureAttributesMappings();
 
@@ -966,10 +965,12 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 				Long newPrimaryKey = _ddmStructurePKs.get(
 					GetterUtil.getLong(oldPrimaryKey));
 
-				if (Validator.isNotNull(newPrimaryKey)) {
-					newValue = StringUtil.replace(
-						newValue, oldPrimaryKey, String.valueOf(newPrimaryKey));
+				if (Validator.isNull(newPrimaryKey)) {
+					continue;
 				}
+
+				newValue = StringUtil.replace(
+					newValue, oldPrimaryKey, String.valueOf(newPrimaryKey));
 			}
 
 			newValues[i] = newValue;

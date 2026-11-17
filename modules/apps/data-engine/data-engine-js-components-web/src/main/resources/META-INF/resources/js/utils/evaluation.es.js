@@ -157,7 +157,8 @@ const doEvaluate = debounce((fieldName, evaluatorContext, callback) => {
 	makeFetch({
 		body: convertToFormData({
 			languageId:
-				containerId === 'editObjectEntry'
+				containerId === `${portletNamespace}editConfiguration` ||
+				containerId === `${portletNamespace}editObjectEntry`
 					? defaultLanguageId
 					: editingLanguageId,
 			p_auth: Liferay.authToken,

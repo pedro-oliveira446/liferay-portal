@@ -8,6 +8,8 @@ package com.liferay.jenkins.results.parser;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,26 +35,29 @@ public abstract class BaseWorkspace implements Workspace {
 	}
 
 	@Override
-	public List<WorkspaceGitRepository> getWorkspaceGitRepositories() {
+	public synchronized List<WorkspaceGitRepository>
+		getWorkspaceGitRepositories() {
+
 		if (_workspaceGitRepositories != null) {
 			return new ArrayList<>(_workspaceGitRepositories.values());
 		}
 
-		_workspaceGitRepositories = new HashMap<>();
+		Map<String, WorkspaceGitRepository> workspaceGitRepositories =
+			new HashMap<>();
 
-		String workspaceRepositoryDirNames = jsonObject.getString(
-			"workspace_repository_dir_names");
+		List<String> workspaceRepositoryDirNames =
+			getWorkspaceRepositoryDirNames();
 
-		if (JenkinsResultsParserUtil.isNullOrEmpty(
-				workspaceRepositoryDirNames)) {
+		if (workspaceRepositoryDirNames.isEmpty()) {
+			_workspaceGitRepositories = workspaceGitRepositories;
 
-			return new ArrayList<>(_workspaceGitRepositories.values());
+			return new ArrayList<>(workspaceGitRepositories.values());
 		}
 
 		List<Callable<WorkspaceGitRepository>> callables = new ArrayList<>();
 
 		for (final String workspaceRepositoryDirName :
-				workspaceRepositoryDirNames.split(",")) {
+				workspaceRepositoryDirNames) {
 
 			Callable<WorkspaceGitRepository> callable =
 				new Callable<WorkspaceGitRepository>() {
@@ -60,7 +65,7 @@ public abstract class BaseWorkspace implements Workspace {
 					@Override
 					public WorkspaceGitRepository call() {
 						return GitRepositoryFactory.getWorkspaceGitRepository(
-							workspaceRepositoryDirName.trim());
+							workspaceRepositoryDirName);
 					}
 
 				};
@@ -74,18 +79,17 @@ public abstract class BaseWorkspace implements Workspace {
 				"getWorkspaceGitRepositories");
 
 		try {
-			List<WorkspaceGitRepository> workspaceGitRepositories =
-				parallelExecutor.execute();
-
 			for (WorkspaceGitRepository workspaceGitRepository :
-					workspaceGitRepositories) {
+					parallelExecutor.execute()) {
 
-				_workspaceGitRepositories.put(
+				workspaceGitRepositories.put(
 					workspaceGitRepository.getDirectoryName(),
 					workspaceGitRepository);
 			}
 
-			return new ArrayList<>(_workspaceGitRepositories.values());
+			_workspaceGitRepositories = workspaceGitRepositories;
+
+			return new ArrayList<>(workspaceGitRepositories.values());
 		}
 		catch (TimeoutException timeoutException) {
 			throw new RuntimeException(timeoutException);
@@ -93,7 +97,7 @@ public abstract class BaseWorkspace implements Workspace {
 	}
 
 	@Override
-	public WorkspaceGitRepository getWorkspaceGitRepository(
+	public synchronized WorkspaceGitRepository getWorkspaceGitRepository(
 		String repositoryDirName) {
 
 		if (_workspaceGitRepositories == null) {
@@ -267,13 +271,10 @@ public abstract class BaseWorkspace implements Workspace {
 
 		BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase();
 
-		String workspaceRepositoryDirNames = jsonObject.getString(
-			"workspace_repository_dir_names");
-
 		_workspaceGitRepositories = new HashMap<>();
 
 		for (final String workspaceRepositoryDirName :
-				workspaceRepositoryDirNames.split("\\s*,\\s*")) {
+				getWorkspaceRepositoryDirNames()) {
 
 			try {
 				_workspaceGitRepositories.put(
@@ -332,6 +333,37 @@ public abstract class BaseWorkspace implements Workspace {
 		_validateKeys();
 	}
 
+	protected List<String> getWorkspaceRepositoryDirNames() {
+		if (_workspaceRepositoryDirNames != null) {
+			return _workspaceRepositoryDirNames;
+		}
+
+		String workspaceRepositoryDirNamesString = jsonObject.optString(
+			"workspace_repository_dir_names");
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(
+				workspaceRepositoryDirNamesString)) {
+
+			return Collections.emptyList();
+		}
+
+		workspaceRepositoryDirNamesString =
+			workspaceRepositoryDirNamesString.trim();
+
+		_workspaceRepositoryDirNames = Collections.unmodifiableList(
+			Arrays.asList(
+				workspaceRepositoryDirNamesString.split("\\s*,\\s*")));
+
+		return _workspaceRepositoryDirNames;
+	}
+
+	protected void updateBuildDatabase() {
+		BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase();
+
+		buildDatabase.putWorkspace(
+			_primaryWorkspaceGitRepository.getDirectoryName(), this);
+	}
+
 	protected static final ThreadPoolExecutor threadPoolExecutor =
 		JenkinsResultsParserUtil.getNewThreadPoolExecutor(16, true);
 
@@ -353,5 +385,6 @@ public abstract class BaseWorkspace implements Workspace {
 	private ParallelExecutor<Object> _parallelExecutor;
 	private final WorkspaceGitRepository _primaryWorkspaceGitRepository;
 	private Map<String, WorkspaceGitRepository> _workspaceGitRepositories;
+	private List<String> _workspaceRepositoryDirNames;
 
 }

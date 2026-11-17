@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {ObjectDefinitionAPI} from '@liferay/object-admin-rest-client-js';
+import {ObjectDefinitionAPI} from '@liferay/object-admin-rest-client-js/v1_0';
 import {expect, mergeTests} from '@playwright/test';
 
 import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
@@ -501,9 +501,14 @@ test(
 			pageElements: [checkboxDefinition, submitFragmentDefinition],
 		});
 
+		// Give height to the container so that we have some scroll
+
 		const layout = await apiHelpers.headlessDelivery.createSitePage({
 			pageDefinition: getPageDefinition([
-				getContainerDefinition({id: getRandomString()}),
+				getContainerDefinition({
+					fragmentStyle: {minHeight: '2000px'},
+					id: getRandomString(),
+				}),
 				formDefinition,
 				headingFragmentDefinition,
 			]),
@@ -551,7 +556,11 @@ test(
 
 		const highlightedClass = /highlighted-from-rule/;
 
+		await expect(checkboxFragment).not.toBeInViewport();
+
 		await rule.click();
+
+		await expect(checkboxFragment).toBeInViewport();
 
 		await expect(checkboxFragment).toHaveClass(highlightedClass);
 		await expect(headingFragment).toHaveClass(highlightedClass);
@@ -577,18 +586,6 @@ test(
 		await page.keyboard.press('Tab');
 		await page.keyboard.press('Tab');
 		await page.keyboard.press('Enter');
-
-		// Scroll when the rule is clicked
-
-		await page.evaluate(() => window.scrollTo(0, 0));
-
-		const beforeScrollY = await page.evaluate(() => window.scrollY);
-
-		await rule.click();
-
-		const afterScrollY = await page.evaluate(() => window.scrollY);
-
-		expect(afterScrollY).not.toBe(beforeScrollY);
 
 		// Unhighlight the fragments when another fragment is selected
 

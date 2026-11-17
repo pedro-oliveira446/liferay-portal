@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {expect, mergeTests} from '@playwright/test';
+import {Locator, expect, mergeTests} from '@playwright/test';
 
 import {apiHelpersTest} from '../../../../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../../../../fixtures/featureFlagsTest';
@@ -212,5 +212,111 @@ test(
 				});
 			});
 		}
+	}
+);
+
+test(
+	'Action column stays frozen during horizontal scroll',
+	{tag: ['@LPD-106210', '@LPD-114095']},
+	async ({fdsSamplePage, page}) => {
+		const actionsHeaderCell = fdsSamplePage.table.headerCells.last();
+		const firstRowActionsCell = fdsSamplePage.table.bodyRows
+			.first()
+			.locator('.cell-item-actions');
+		const scrollContainer = page.locator('.fds .table-responsive');
+
+		async function getBoxShadow(locator: Locator) {
+			return locator.evaluate(
+				(element) => getComputedStyle(element).boxShadow
+			);
+		}
+
+		async function getRightEdge(locator: Locator) {
+			const boundingBox = await locator.boundingBox();
+
+			return boundingBox.x + boundingBox.width;
+		}
+
+		async function hasHorizontalScroll() {
+			return scrollContainer.evaluate(
+				(element) => element.scrollWidth > element.clientWidth
+			);
+		}
+
+		await test.step('Check the action column has no shadow without horizontal scroll', async () => {
+			await page.setViewportSize({height: 900, width: 2560});
+
+			await expect.poll(hasHorizontalScroll).toBe(false);
+
+			await expect
+				.poll(() => getBoxShadow(actionsHeaderCell))
+				.toBe('none');
+			await expect
+				.poll(() => getBoxShadow(firstRowActionsCell))
+				.toBe('none');
+		});
+
+		await test.step('Narrow the viewport to force horizontal scroll', async () => {
+			await page.setViewportSize({height: 900, width: 700});
+
+			await expect.poll(hasHorizontalScroll).toBe(true);
+		});
+
+		await test.step('Check the action column has a shadow with horizontal scroll', async () => {
+			await expect
+				.poll(() => getBoxShadow(actionsHeaderCell))
+				.not.toBe('none');
+			await expect
+				.poll(() => getBoxShadow(firstRowActionsCell))
+				.not.toBe('none');
+		});
+
+		for (const scrollPosition of ['start', 'middle', 'end']) {
+			await test.step(`Check the action column is pinned to the right edge at the ${scrollPosition}`, async () => {
+				await scrollContainer.evaluate((element, scrollPosition) => {
+					const maxScrollLeft =
+						element.scrollWidth - element.clientWidth;
+
+					element.scrollLeft =
+						scrollPosition === 'start'
+							? 0
+							: scrollPosition === 'middle'
+								? maxScrollLeft / 2
+								: maxScrollLeft;
+				}, scrollPosition);
+
+				const containerRightEdge = await scrollContainer.evaluate(
+					(element) =>
+						element.getBoundingClientRect().left +
+						element.clientLeft +
+						element.clientWidth
+				);
+
+				expect(
+					Math.abs(
+						(await getRightEdge(actionsHeaderCell)) -
+							containerRightEdge
+					)
+				).toBeLessThanOrEqual(2);
+
+				expect(
+					Math.abs(
+						(await getRightEdge(firstRowActionsCell)) -
+							containerRightEdge
+					)
+				).toBeLessThanOrEqual(2);
+			});
+		}
+
+		await test.step('Open the row actions with the table scrolled to the middle', async () => {
+			await scrollContainer.evaluate((element) => {
+				element.scrollLeft =
+					(element.scrollWidth - element.clientWidth) / 2;
+			});
+
+			await fdsSamplePage.table.itemActionButtons.first().click();
+
+			await expect(fdsSamplePage.dropdownMenu).toBeVisible();
+		});
 	}
 );

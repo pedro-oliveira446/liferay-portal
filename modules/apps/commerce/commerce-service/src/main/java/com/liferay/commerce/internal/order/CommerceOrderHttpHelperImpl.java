@@ -530,11 +530,16 @@ public class CommerceOrderHttpHelperImpl implements CommerceOrderHttpHelper {
 				 PermissionThreadLocal.getPermissionChecker(), commerceOrder,
 				 ActionKeys.VIEW))) {
 
-			CookiesManagerUtil.deleteCookies(
-				CookiesManagerUtil.getDomain(httpServletRequest),
-				httpServletRequest, themeDisplay.getResponse(),
-				CommerceOrder.class.getName() + StringPool.POUND +
-					commerceOrder.getGroupId());
+			if (!_commerceOrderModelResourcePermission.contains(
+					PermissionThreadLocal.getPermissionChecker(), commerceOrder,
+					ActionKeys.VIEW)) {
+
+				CookiesManagerUtil.deleteCookies(
+					CookiesManagerUtil.getDomain(httpServletRequest),
+					httpServletRequest, themeDisplay.getResponse(),
+					CommerceOrder.class.getName() + StringPool.POUND +
+						commerceOrder.getGroupId());
+			}
 
 			httpSession.removeAttribute(
 				CommerceOrder.class.getName() + StringPool.POUND +
@@ -589,12 +594,6 @@ public class CommerceOrderHttpHelperImpl implements CommerceOrderHttpHelper {
 	public boolean hasCommerceOrderAttachments(
 			HttpServletRequest httpServletRequest)
 		throws PortalException {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				_portal.getCompanyId(httpServletRequest), "LPD-6252")) {
-
-			return false;
-		}
 
 		CommerceOrder commerceOrder =
 			CommerceOrderInfoItemUtil.getCommerceOrder(

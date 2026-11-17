@@ -6,7 +6,9 @@
 package com.liferay.oauth2.provider.rest.internal.endpoint.dynamic.registration.container.request.filter;
 
 import com.liferay.oauth2.provider.constants.OAuth2ApplicationConstants;
+import com.liferay.oauth2.provider.constants.OAuth2AuthorizationConstants;
 import com.liferay.oauth2.provider.constants.OAuth2ProviderActionKeys;
+import com.liferay.oauth2.provider.exception.NoSuchOAuth2AuthorizationException;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.model.OAuth2Authorization;
 import com.liferay.oauth2.provider.rest.internal.configuration.OAuth2DynamicRegistrationConfiguration;
@@ -54,6 +56,8 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
@@ -65,16 +69,18 @@ import java.security.Principal;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.cxf.jaxrs.utils.ExceptionUtils;
-import org.apache.cxf.rs.security.jose.jws.JwsJwtCompactConsumer;
 import org.apache.cxf.rs.security.jose.jwt.JwtClaims;
 import org.apache.cxf.rs.security.jose.jwt.JwtToken;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -139,7 +145,8 @@ public class DynamicRegistrationServiceContainerRequestFilter
 					_getClientHost(httpServletRequest, false));
 
 				user = _authorize(
-					httpServletRequest, httpServletRequest.getMethod());
+					httpServletRequest, httpServletRequest.getMethod(),
+					uriInfo);
 			}
 		}
 		catch (WebApplicationException webApplicationException) {
@@ -181,15 +188,27 @@ public class DynamicRegistrationServiceContainerRequestFilter
 			DynamicRegistrationServiceContainerRequestFilter.class.getName());
 	}
 
+	@Deactivate
+	protected void deactivate() {
+		PortalCacheHelperUtil.removePortalCache(
+			PortalCacheManagerNames.SINGLE_VM,
+			DynamicRegistrationServiceContainerRequestFilter.class.getName());
+	}
+
 	private User _authorize(
-			HttpServletRequest httpServletRequest, String method)
+			HttpServletRequest httpServletRequest, String method,
+			UriInfo uriInfo)
 		throws Exception {
 
-		JwtToken jwtToken = _getJwtToken(httpServletRequest);
+		String authorization = httpServletRequest.getHeader("Authorization");
 
-		if (jwtToken == null) {
+		if (!StringUtil.startsWith(authorization, "Bearer ")) {
 			throw ExceptionUtils.toNotAuthorizedException(null, null);
 		}
+
+		String accessTokenContent = authorization.substring("Bearer ".length());
+
+		JwtToken jwtToken = _getJwtToken(accessTokenContent);
 
 		long currentTime = System.currentTimeMillis() / Time.SECOND;
 		long expirationTime = GetterUtil.getLong(jwtToken.getClaim("exp"));
@@ -246,17 +265,17 @@ public class DynamicRegistrationServiceContainerRequestFilter
 			OAuth2ApplicationConstants.NAME_DYNAMIC_REGISTRATOR,
 			oAuth2Application.getName());
 
-		if (!dynamicRegistrator &&
-			StringUtil.equalsIgnoreCase(method, "POST")) {
-
+		if (dynamicRegistrator != StringUtil.equalsIgnoreCase(method, "POST")) {
 			throw ExceptionUtils.toNotAuthorizedException(null, null);
 		}
 
-		clientId = _getClientId(httpServletRequest);
+		clientId = _getClientId(uriInfo);
 
-		if (Validator.isNotNull(clientId) && !dynamicRegistrator &&
-			!StringUtil.equalsIgnoreCase(
-				clientId, oAuth2Application.getClientId())) {
+		if ((Validator.isNotNull(clientId) &&
+			 !StringUtil.equalsIgnoreCase(
+				 clientId, oAuth2Application.getClientId())) ||
+			(!dynamicRegistrator &&
+			 !StringUtil.startsWith(accessTokenContent, "reg-"))) {
 
 			throw ExceptionUtils.toNotAuthorizedException(null, null);
 		}
@@ -381,55 +400,52 @@ public class DynamicRegistrationServiceContainerRequestFilter
 		return _normalizeHost(httpServletRequest.getRemoteAddr());
 	}
 
-	private String _getClientId(HttpServletRequest httpServletRequest) {
-		String requestURI = httpServletRequest.getRequestURI();
+	private String _getClientId(UriInfo uriInfo) {
+		List<PathSegment> pathSegments = uriInfo.getPathSegments();
 
-		String clientId = requestURI.substring(
-			requestURI.lastIndexOf(StringPool.SLASH) + 1);
+		if (pathSegments.size() > 1) {
+			PathSegment pathSegment = pathSegments.get(pathSegments.size() - 1);
 
-		if (clientId.startsWith("id-")) {
-			return clientId;
+			if (!Validator.isBlank(pathSegment.getPath())) {
+				return pathSegment.getPath();
+			}
 		}
 
-		return null;
+		MultivaluedMap<String, String> queryParameters =
+			uriInfo.getQueryParameters();
+
+		return queryParameters.getFirst(OAuthConstants.CLIENT_ID);
 	}
 
-	private JwtToken _getJwtToken(HttpServletRequest httpServletRequest) {
-		String authorization = httpServletRequest.getHeader("Authorization");
-
-		if (!StringUtil.startsWith(authorization, "Bearer ")) {
-			throw ExceptionUtils.toNotAuthorizedException(null, null);
-		}
-
-		String accessTokenContent = authorization.substring("Bearer ".length());
-
+	private JwtToken _getJwtToken(String accessTokenContent) throws Exception {
 		OAuth2Authorization oAuth2Authorization =
 			_oAuth2AuthorizationLocalService.
-				fetchOAuth2AuthorizationByAccessTokenContent(
-					accessTokenContent);
+				getOAuth2AuthorizationByAccessTokenContent(accessTokenContent);
 
-		if (oAuth2Authorization != null) {
-			JwtClaims jwtClaims = new JwtClaims();
+		if (Objects.equals(
+				oAuth2Authorization.getAccessTokenContent(),
+				OAuth2AuthorizationConstants.
+					ACCESS_TOKEN_CONTENT_EXPIRED_TOKEN)) {
 
-			jwtClaims.setClaim(
-				"application_id", oAuth2Authorization.getOAuth2ApplicationId());
-			jwtClaims.setClaim("sub", oAuth2Authorization.getUserId());
-
-			Date accessTokenExpirationDate =
-				oAuth2Authorization.getAccessTokenExpirationDate();
-
-			if (accessTokenExpirationDate != null) {
-				jwtClaims.setExpiryTime(
-					accessTokenExpirationDate.getTime() / Time.SECOND);
-			}
-
-			return new JwtToken(jwtClaims);
+			throw new NoSuchOAuth2AuthorizationException(
+				"Access token is revoked");
 		}
 
-		JwsJwtCompactConsumer jwsJwtCompactConsumer = new JwsJwtCompactConsumer(
-			accessTokenContent);
+		JwtClaims jwtClaims = new JwtClaims();
 
-		return jwsJwtCompactConsumer.getJwtToken();
+		jwtClaims.setClaim(
+			"application_id", oAuth2Authorization.getOAuth2ApplicationId());
+		jwtClaims.setClaim("sub", oAuth2Authorization.getUserId());
+
+		Date accessTokenExpirationDate =
+			oAuth2Authorization.getAccessTokenExpirationDate();
+
+		if (accessTokenExpirationDate != null) {
+			jwtClaims.setExpiryTime(
+				accessTokenExpirationDate.getTime() / Time.SECOND);
+		}
+
+		return new JwtToken(jwtClaims);
 	}
 
 	private AuditMessage _getRejectAuditMessage(
@@ -438,7 +454,9 @@ public class DynamicRegistrationServiceContainerRequestFilter
 		String mode) {
 
 		return new AuditMessage(
-			0, companyId, 0, StringPool.BLANK, null,
+			companyId, 0, StringPool.BLANK,
+			OAuth2ProviderRESTEndpointConstants.
+				ACTION_DYNAMIC_REGISTRATION_REGISTER_REJECT,
 			JSONUtil.put(
 				"clientHost", clientHost
 			).put(
@@ -454,7 +472,7 @@ public class DynamicRegistrationServiceContainerRequestFilter
 			OAuth2Application.class.getName(), StringPool.BLANK,
 			OAuth2ProviderRESTEndpointConstants.
 				EVENT_TYPE_DYNAMIC_REGISTRATION_REJECT,
-			StringPool.BLANK);
+			StringPool.BLANK, null);
 	}
 
 	private String _normalizeHost(String host) {

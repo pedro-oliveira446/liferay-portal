@@ -6,6 +6,7 @@
 package com.liferay.site.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringPool;
@@ -30,6 +31,8 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroupRole;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -72,6 +75,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -125,6 +129,32 @@ public class GroupServiceTest {
 		Assert.assertTrue(_group.isCompanyStagingGroup());
 
 		Assert.assertEquals(companyGroup.getGroupId(), _group.getLiveGroupId());
+	}
+
+	@Test(expected = PrincipalException.class)
+	public void testAddGroupWithForeignLiveGroupId() throws Exception {
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		RoleTestUtil.addResourcePermission(
+			role, PortletKeys.PORTAL, ResourceConstants.SCOPE_COMPANY,
+			String.valueOf(TestPropsValues.getCompanyId()),
+			ActionKeys.ADD_COMMUNITY);
+
+		User user = UserTestUtil.addUser();
+
+		_userLocalService.addRoleUser(role.getRoleId(), user.getUserId());
+
+		Group liveGroup = GroupTestUtil.addGroup();
+
+		UserTestUtil.setUser(user);
+
+		_groupService.addGroup(
+			RandomTestUtil.randomString(),
+			GroupConstants.DEFAULT_PARENT_GROUP_ID, liveGroup.getGroupId(),
+			RandomTestUtil.randomLocaleStringMap(), null,
+			GroupConstants.TYPE_SITE_OPEN, null, true,
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false, false,
+			true, ServiceContextTestUtil.getServiceContext());
 	}
 
 	@Test
@@ -321,16 +351,19 @@ public class GroupServiceTest {
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
-		int initialTagsCount = _assetTagLocalService.getGroupTagsCount(
+		List<AssetTag> assetTags = _assetTagLocalService.getGroupTags(
 			group.getGroupId());
+
+		int initialTagsCount = assetTags.size();
 
 		_assetTagLocalService.addTag(
 			null, TestPropsValues.getUserId(), group.getGroupId(),
 			RandomTestUtil.randomString(), serviceContext);
 
+		assetTags = _assetTagLocalService.getGroupTags(group.getGroupId());
+
 		Assert.assertEquals(
-			initialTagsCount + 1,
-			_assetTagLocalService.getGroupTagsCount(group.getGroupId()));
+			assetTags.toString(), initialTagsCount + 1, assetTags.size());
 
 		Assert.assertEquals(
 			1,
@@ -352,9 +385,10 @@ public class GroupServiceTest {
 
 		_groupService.deleteGroup(group.getGroupId());
 
+		assetTags = _assetTagLocalService.getGroupTags(group.getGroupId());
+
 		Assert.assertEquals(
-			initialTagsCount,
-			_assetTagLocalService.getGroupTagsCount(group.getGroupId()));
+			assetTags.toString(), initialTagsCount, assetTags.size());
 
 		Assert.assertEquals(
 			0,
@@ -375,13 +409,7 @@ public class GroupServiceTest {
 		_group = GroupTestUtil.addGroup(GroupConstants.DEFAULT_PARENT_GROUP_ID);
 
 		Assert.assertEquals(
-			1,
-			_groupService.searchCount(
-				TestPropsValues.getCompanyId(), null,
-				_group.getDescription(_getLocale()),
-				new String[] {
-					"manualMembership:true:boolean", "site:true:boolean"
-				}));
+			1, _getSearchCount(_group.getDescription(_getLocale()), null));
 	}
 
 	@Test
@@ -395,13 +423,7 @@ public class GroupServiceTest {
 		_group = _groupLocalService.updateGroup(_group);
 
 		Assert.assertEquals(
-			1,
-			_groupService.searchCount(
-				TestPropsValues.getCompanyId(), null,
-				_group.getDescription(_getLocale()),
-				new String[] {
-					"manualMembership:true:boolean", "site:true:boolean"
-				}));
+			1, _getSearchCount(_group.getDescription(_getLocale()), null));
 	}
 
 	@Test
@@ -409,13 +431,7 @@ public class GroupServiceTest {
 		_group = GroupTestUtil.addGroup(GroupConstants.DEFAULT_PARENT_GROUP_ID);
 
 		Assert.assertEquals(
-			1,
-			_groupService.searchCount(
-				TestPropsValues.getCompanyId(), _group.getName(_getLocale()),
-				null,
-				new String[] {
-					"manualMembership:true:boolean", "site:true:boolean"
-				}));
+			1, _getSearchCount(null, _group.getName(_getLocale())));
 	}
 
 	@Test
@@ -429,13 +445,7 @@ public class GroupServiceTest {
 		_group = _groupLocalService.updateGroup(_group);
 
 		Assert.assertEquals(
-			1,
-			_groupService.searchCount(
-				TestPropsValues.getCompanyId(), _group.getName(_getLocale()),
-				null,
-				new String[] {
-					"manualMembership:true:boolean", "site:true:boolean"
-				}));
+			1, _getSearchCount(null, _group.getName(_getLocale())));
 	}
 
 	@Test
@@ -446,15 +456,18 @@ public class GroupServiceTest {
 
 		_role = _roleLocalService.fetchRole(roleId);
 
-		String[] groupParams = {
-			"groupsRoles:" + String.valueOf(roleId) + ":long",
-			"site:true:boolean"
-		};
+		LinkedHashMap<String, Object> groupParams =
+			LinkedHashMapBuilder.<String, Object>put(
+				"groupsRoles", roleId
+			).put(
+				"site", true
+			).build();
 
 		Assert.assertEquals(
 			1,
 			_groupService.searchCount(
-				TestPropsValues.getCompanyId(), null, null, groupParams));
+				TestPropsValues.getCompanyId(), (String)null, null,
+				groupParams));
 
 		List<Group> groups = _groupService.search(
 			TestPropsValues.getCompanyId(), null, null, groupParams,
@@ -473,35 +486,17 @@ public class GroupServiceTest {
 
 	@Test
 	public void testFindGuestGroupByCompanyName() throws Exception {
-		Assert.assertEquals(
-			1,
-			_groupService.searchCount(
-				TestPropsValues.getCompanyId(), "liferay%", null,
-				new String[] {
-					"manualMembership:true:boolean", "site:true:boolean"
-				}));
+		Assert.assertEquals(1, _getSearchCount(null, "liferay%"));
 	}
 
 	@Test
 	public void testFindGuestGroupByCompanyNameCapitalized() throws Exception {
-		Assert.assertEquals(
-			1,
-			_groupService.searchCount(
-				TestPropsValues.getCompanyId(), "Liferay%", null,
-				new String[] {
-					"manualMembership:true:boolean", "site:true:boolean"
-				}));
+		Assert.assertEquals(1, _getSearchCount(null, "Liferay%"));
 	}
 
 	@Test
 	public void testFindNonexistentGroup() throws Exception {
-		Assert.assertEquals(
-			0,
-			_groupService.searchCount(
-				TestPropsValues.getCompanyId(), "cabina14", null,
-				new String[] {
-					"manualMembership:true:boolean", "site:true:boolean"
-				}));
+		Assert.assertEquals(0, _getSearchCount(null, "cabina14"));
 	}
 
 	@Test
@@ -1026,10 +1021,10 @@ public class GroupServiceTest {
 	public void testInheritLocalesByDefault() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		Assert.assertTrue(_language.isInheritLocales(_group.getGroupId()));
 		Assert.assertEquals(
 			_language.getAvailableLocales(),
 			_language.getAvailableLocales(_group.getGroupId()));
+		Assert.assertTrue(_language.isInheritLocales(_group));
 	}
 
 	@Test
@@ -1434,6 +1429,18 @@ public class GroupServiceTest {
 		return themeDisplay.getLocale();
 	}
 
+	private int _getSearchCount(String description, String name)
+		throws Exception {
+
+		return _groupService.searchCount(
+			TestPropsValues.getCompanyId(), name, description,
+			LinkedHashMapBuilder.<String, Object>put(
+				"manualMembership", true
+			).put(
+				"site", true
+			).build());
+	}
+
 	private void _testSelectableParentSites(boolean staging) throws Exception {
 		_group = GroupTestUtil.addGroup();
 
@@ -1469,11 +1476,13 @@ public class GroupServiceTest {
 				"A group cannot be its own parent", _group.getGroupId(),
 				selectableGroupId);
 
-			if (staging) {
-				Assert.assertNotEquals(
-					"A group cannot have its live group as parent",
-					_group.getLiveGroupId(), selectableGroupId);
+			if (!staging) {
+				continue;
 			}
+
+			Assert.assertNotEquals(
+				"A group cannot have its live group as parent",
+				_group.getLiveGroupId(), selectableGroupId);
 		}
 	}
 

@@ -420,6 +420,11 @@ public interface Portal {
 	public Company getCompany(HttpServletRequest httpServletRequest)
 		throws PortalException;
 
+	public Company getCompany(
+			HttpServletRequest httpServletRequest,
+			boolean fallbackToDefaultCompany)
+		throws PortalException;
+
 	public Company getCompany(PortletRequest portletRequest)
 		throws PortalException;
 
@@ -944,6 +949,8 @@ public interface Portal {
 	public String[] getSystemSiteRoles();
 
 	public String getURLWithSessionId(String url, String sessionId);
+
+	public String getUniqueElementId();
 
 	public String getUniqueElementId(
 		HttpServletRequest httpServletRequest, String namespace, String id);

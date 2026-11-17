@@ -168,7 +168,7 @@ public class PreupgradeVerifyDatabaseStateTest
 
 	@Test
 	public void testVerifyPreupgradeMissingColumnName() throws Exception {
-		alterColumnName("UserTracker", "companyId", "companyId_backup LONG");
+		alterColumnName("UserTracker", "companyId", "companyId_backup");
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				PreupgradeVerifyDatabaseState.class.getName(),
@@ -187,8 +187,7 @@ public class PreupgradeVerifyDatabaseStateTest
 				exception.getMessage());
 		}
 		finally {
-			alterColumnName(
-				"UserTracker", "companyId_backup", "companyId LONG");
+			alterColumnName("UserTracker", "companyId_backup", "companyId");
 		}
 	}
 
@@ -382,9 +381,7 @@ public class PreupgradeVerifyDatabaseStateTest
 					verifyMessages.add(entry.getMessage());
 				}
 
-				Assert.assertEquals(
-					verifyMessages.toString(), expectedMessages,
-					verifyMessages);
+				Assert.assertEquals(expectedMessages, verifyMessages);
 			}
 			finally {
 				db.runSQL("DROP_TABLE_IF_EXISTS(" + tableName + ")");
@@ -490,9 +487,7 @@ public class PreupgradeVerifyDatabaseStateTest
 					verifyMessages.add(entry.getMessage());
 				}
 
-				Assert.assertEquals(
-					verifyMessages.toString(), expectedMessages,
-					verifyMessages);
+				Assert.assertEquals(expectedMessages, verifyMessages);
 			}
 			finally {
 				serviceComponent.setData(originalData);

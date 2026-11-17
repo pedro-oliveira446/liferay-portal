@@ -974,6 +974,40 @@ public class EditInfoItemStrutsActionTest {
 	}
 
 	@Test
+	@TestInfo("LPD-109228")
+	public void testUpdateInfoItemWithObjectFieldNamePrefix() throws Exception {
+		ObjectEntry objectEntry = _objectEntryLocalService.addObjectEntry(
+			0, _user.getUserId(), _objectDefinition.getObjectDefinitionId(), 0,
+			null,
+			HashMapBuilder.<String, Serializable>put(
+				"myText", RandomTestUtil.randomString()
+			).build(),
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), _user.getUserId()));
+
+		String attachmentAuthor = RandomTestUtil.randomString();
+
+		Assert.assertNull(
+			_execute(
+				HashMapBuilder.<String, List<String>>put(
+					"classPK",
+					Collections.singletonList(
+						String.valueOf(objectEntry.getObjectEntryId()))
+				).put(
+					"ObjectField_myAttachmentAuthor_en_US",
+					Collections.singletonList(attachmentAuthor)
+				).build()));
+
+		objectEntry = _objectEntryLocalService.fetchObjectEntry(
+			objectEntry.getObjectEntryId());
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		Assert.assertEquals(attachmentAuthor, values.get("myAttachmentAuthor"));
+		Assert.assertEquals(0, GetterUtil.getLong(values.get("myAttachment")));
+	}
+
+	@Test
 	public void testUpdateInfoItemWithWrongRedirect() throws Exception {
 		MockMultipartHttpServletRequest mockMultipartHttpServletRequest =
 			new MockMultipartHttpServletRequest();
@@ -1044,6 +1078,61 @@ public class EditInfoItemStrutsActionTest {
 				"Redirect URL https://example.com/error is not allowed",
 				logEntry.getMessage());
 		}
+	}
+
+	@Test
+	public void testUpdateInfoItemWithoutReferer() throws Exception {
+		MockMultipartHttpServletRequest mockMultipartHttpServletRequest =
+			new MockMultipartHttpServletRequest();
+
+		mockMultipartHttpServletRequest.setContentType(
+			"multipart/form-data;boundary=" + System.currentTimeMillis());
+
+		String backURL = "/web/guest/" + RandomTestUtil.randomString();
+
+		UploadPortletRequest uploadPortletRequest =
+			UploadTestUtil.createUploadPortletRequest(
+				UploadTestUtil.createUploadServletRequest(
+					mockMultipartHttpServletRequest, null,
+					HashMapBuilder.put(
+						"backURL", Collections.singletonList(backURL)
+					).put(
+						"classNameId", Collections.singletonList(_classNameId)
+					).put(
+						"formItemId", Collections.singletonList(_formItemId)
+					).put(
+						"groupId",
+						Collections.singletonList(
+							String.valueOf(_group.getGroupId()))
+					).put(
+						"p_l_id",
+						Collections.singletonList(
+							String.valueOf(_layout.getPlid()))
+					).put(
+						"p_l_mode", Collections.singletonList(Constants.EDIT)
+					).put(
+						"plid",
+						Collections.singletonList(
+							String.valueOf(_layout.getPlid()))
+					).put(
+						"segmentsExperienceId",
+						Collections.singletonList(
+							String.valueOf(_defaultSegmentsExperienceId))
+					).build()),
+				null, RandomTestUtil.randomString());
+
+		MockHttpServletResponse mockHttpServletResponse =
+			new MockHttpServletResponse();
+
+		_processEvents(mockHttpServletResponse, uploadPortletRequest, _user);
+
+		_editInfoItemStrutsAction.execute(
+			uploadPortletRequest,
+			new PipingServletResponse(
+				mockHttpServletResponse, new UnsyncStringWriter()));
+
+		Assert.assertEquals(
+			backURL, mockHttpServletResponse.getRedirectedUrl());
 	}
 
 	private Layout _addLayout() throws Exception {
@@ -1167,6 +1256,14 @@ public class EditInfoItemStrutsActionTest {
 				true
 			).name(
 				"myLocalizedMultiselectPicklist"
+			).build(),
+			new TextObjectFieldBuilder(
+			).labelMap(
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
+			).localized(
+				true
+			).name(
+				"myAttachmentAuthor"
 			).build(),
 			ObjectFieldUtil.createObjectField(
 				ObjectFieldConstants.BUSINESS_TYPE_DATE,

@@ -1,6 +1,10 @@
-variable "deletion_protection" {
-	default=true
-	type=bool
+variable "control_plane_logging_config" {
+	default={}
+	type=object(
+		{
+			enabled=optional(bool, false)
+		}
+	)
 }
 variable "deployment_name" {
 	type=string
@@ -9,12 +13,9 @@ variable "deployment_name" {
 		error_message="The variable \"deployment_name\" must be 3-24 characters, start with a lowercase letter, and contain only lowercase letters, numbers, and hyphens."
 	}
 }
-variable "envoy_gateway_helm_chart_version" {
-	type=string
-}
-variable "gateway_namespace" {
-	default="envoy-gateway-system"
-	type=string
+variable "envoy_listener_ports" {
+	default=["10080", "10443"]
+	type=list(string)
 }
 variable "gke_security_group" {
 	default=null
@@ -33,7 +34,7 @@ variable "master_ipv4_cidr_block" {
 	type=string
 }
 variable "max_node_count" {
-	default=4
+	default=8
 	type=number
 }
 variable "min_node_count" {

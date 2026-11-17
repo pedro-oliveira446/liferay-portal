@@ -37,7 +37,11 @@ export async function navigateTo({
 	page: Page;
 	pageName: string;
 }) {
-	await page.getByRole('link', {name: pageName}).first().click();
+	await page
+		.getByRole('link', {name: pageName})
+		.or(page.getByRole('menuitem', {name: pageName}))
+		.first()
+		.click();
 
 	await waitForLoading(page);
 }
@@ -48,7 +52,7 @@ export async function navigateToACAdmin({page}: {page: Page}) {
 
 export async function navigateToACWorkspace({
 	page,
-	workspaceName = 'FARO-DEV-liferay Liferay Demo Enterprise Plan',
+	workspaceName = 'FARO-DEV-liferay Liferay Demo Liferay Data Platform Enterprise',
 }: {
 	page: Page;
 	workspaceName?: string;

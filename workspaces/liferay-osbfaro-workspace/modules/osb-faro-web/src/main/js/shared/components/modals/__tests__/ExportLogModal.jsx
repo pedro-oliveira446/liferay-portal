@@ -8,30 +8,59 @@ import {MockedProvider} from '@apollo/client/testing';
 import {mockPreferenceReq} from 'test/graphql-data';
 import {noop} from 'lodash';
 import {Provider} from 'react-redux';
+import {useModal} from '@clayui/modal';
+import {waitForModal} from 'test/render-modal';
 
 jest.unmock('react-dom');
 
-// Mock DateRangeInput to simplify the test and avoid complex portal/calendar logic
-jest.mock('shared/components/DateRangeInput', () => ({onChange}) => (
-	<div data-testid='mock-date-range-input'>
-		<button
-			onClick={() =>
-				onChange({
-					end: require('moment')('2024-01-02'),
-					start: require('moment')('2024-01-01')
-				})
-			}
-		>
-			{'Set Date Range'}
-		</button>
-	</div>
-));
+// Mock DateRangeInput to simplify the test and avoid complex portal/calendar
+// logic. Tests that pin the displayed range opt into rendering the real input
+// next to the mock button through mockRenderActualDateRangeInput.
+
+let mockRenderActualDateRangeInput = false;
+
+jest.mock('shared/components/DateRangeInput', () => props => {
+	const {onChange} = props;
+
+	const {default: ActualDateRangeInput} = jest.requireActual(
+		'shared/components/DateRangeInput'
+	);
+
+	return (
+		<div data-testid='mock-date-range-input'>
+			<button
+				onClick={() =>
+					onChange(
+						mockRenderActualDateRangeInput
+							? {end: '2026-06-17', start: '2026-06-10'}
+							: {
+									end: require('moment')('2024-01-02'),
+									start: require('moment')('2024-01-01')
+								}
+					)
+				}
+			>
+				{'Set Date Range'}
+			</button>
+
+			{mockRenderActualDateRangeInput && (
+				<ActualDateRangeInput {...props} />
+			)}
+		</div>
+	);
+});
 
 jest.mock('shared/hooks/useTimeZone', () => ({
 	useTimeZone: () => ({
 		timeZoneId: 'UTC'
 	})
 }));
+
+const TestModal = props => {
+	const {observer} = useModal({defaultOpen: true});
+
+	return <ExportLogModal observer={observer} {...props} />;
+};
 
 const Wrapper = ({children, mocks = [mockPreferenceReq()]}) => (
 	<Provider store={mockStore()}>
@@ -58,10 +87,10 @@ const Wrapper = ({children, mocks = [mockPreferenceReq()]}) => (
 );
 
 describe('ExportLogModal', () => {
-	it('renders', () => {
-		const {container} = render(
+	it('renders', async () => {
+		render(
 			<Wrapper>
-				<ExportLogModal
+				<TestModal
 					description='Test description'
 					onClose={noop}
 					title='Test Title'
@@ -69,7 +98,9 @@ describe('ExportLogModal', () => {
 			</Wrapper>
 		);
 
-		expect(container).toMatchSnapshot();
+		await waitForModal();
+
+		expect(document.body).toMatchSnapshot();
 	});
 
 	it('should have a loading state when download is triggered', async () => {
@@ -81,9 +112,9 @@ describe('ExportLogModal', () => {
 				})
 		);
 
-		const {container} = render(
+		render(
 			<Wrapper>
-				<ExportLogModal
+				<TestModal
 					description='Test description'
 					onClose={noop}
 					onSubmit={onSubmit}
@@ -91,6 +122,8 @@ describe('ExportLogModal', () => {
 				/>
 			</Wrapper>
 		);
+
+		await waitForModal();
 
 		// Set date range via mock
 		fireEvent.click(screen.getByText('Set Date Range'));
@@ -103,7 +136,7 @@ describe('ExportLogModal', () => {
 		fireEvent.click(downloadBtn);
 
 		// Verify loading indicator appears in the button
-		expect(container.querySelector('.loading-root')).toBeTruthy();
+		expect(document.querySelector('.loading-root')).toBeTruthy();
 
 		// Resolve the submission
 		await act(async () => {
@@ -112,7 +145,7 @@ describe('ExportLogModal', () => {
 
 		// Verify loading indicator is removed
 		await waitFor(() =>
-			expect(container.querySelector('.loading-root')).toBeNull()
+			expect(document.querySelector('.loading-root')).toBeNull()
 		);
 	});
 
@@ -125,9 +158,9 @@ describe('ExportLogModal', () => {
 				})
 		);
 
-		const {container} = render(
+		render(
 			<Wrapper>
-				<ExportLogModal
+				<TestModal
 					description='Test description'
 					onClose={noop}
 					onSubmit={onSubmit}
@@ -135,6 +168,8 @@ describe('ExportLogModal', () => {
 				/>
 			</Wrapper>
 		);
+
+		await waitForModal();
 
 		// Set date range via mock
 		fireEvent.click(screen.getByText('Set Date Range'));
@@ -145,7 +180,7 @@ describe('ExportLogModal', () => {
 
 		fireEvent.click(downloadBtn);
 
-		expect(container.querySelector('.loading-root')).toBeTruthy();
+		expect(document.querySelector('.loading-root')).toBeTruthy();
 
 		// Reject the submission
 		await act(async () => {
@@ -153,7 +188,36 @@ describe('ExportLogModal', () => {
 		});
 
 		await waitFor(() =>
-			expect(container.querySelector('.loading-root')).toBeNull()
+			expect(document.querySelector('.loading-root')).toBeNull()
 		);
+	});
+	describe('with the real date range input', () => {
+		afterEach(() => {
+			mockRenderActualDateRangeInput = false;
+		});
+
+		beforeEach(() => {
+			mockRenderActualDateRangeInput = true;
+		});
+
+		it('renders the selected date range in the custom date format', async () => {
+			render(
+				<Wrapper>
+					<TestModal
+						description='Test description'
+						onClose={noop}
+						title='Test Title'
+					/>
+				</Wrapper>
+			);
+
+			await waitForModal();
+
+			fireEvent.click(screen.getByText('Set Date Range'));
+
+			expect(screen.getByTestId('date-range-input')).toHaveValue(
+				'Jun 10, 2026 to Jun 17, 2026'
+			);
+		});
 	});
 });

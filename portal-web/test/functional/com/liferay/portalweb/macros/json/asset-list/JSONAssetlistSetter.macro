@@ -75,14 +75,14 @@ definition {
 		}
 
 		var classNameIds = ListUtil.toString(${list});
-		var googleDriveShortcutClassTypeId = JSONDLfileentrytype._getFileEntryTypeKey(
+		var googleDriveShortcutClassTypeId = JSONDLfileentrytype._getFileEntryTypeId(
 			fileEntryTypeName = "Google Drive Shortcut",
 			groupId = ${globalGroupId});
-		var externalVideoShortcutClassTypeId = JSONDLfileentrytype._getFileEntryTypeKey(
+		var externalVideoShortcutClassTypeId = JSONDLfileentrytype._getFileEntryTypeId(
 			fileEntryTypeName = "External Video Shortcut",
 			groupId = ${globalGroupId});
 		var basicDocumentClassTypeId = 0;
-		var classTypeIdsDLFileEntry = JSONDLfileentrytype._getFileEntryTypeKeys(groupId = ${groupId});
+		var classTypeIdsDLFileEntry = JSONDLfileentrytype._getFileEntryTypeIds(groupId = ${groupId});
 
 		if (${classTypeIdsDLFileEntry} == "") {
 			var classTypeIdsDLFileEntry = ${basicDocumentClassTypeId};
@@ -138,9 +138,6 @@ orderByColumn1=modifiedDate
 orderByColumn2=title
 orderByType1=DESC
 orderByType2=ASC
-queryAndOperator0=true
-queryContains0=true
-queryName0=assetTags
 subtypeFieldsFilterEnabledDLFileEntryAssetRendererFactory=false
 subtypeFieldsFilterEnabledJournalArticleAssetRendererFactory=false
 ''';
@@ -170,9 +167,6 @@ orderByColumn1=modifiedDate
 orderByColumn2=title
 orderByType1=DESC
 orderByType2=ASC
-queryAndOperator0=true
-queryContains0=true
-queryName0=assetTags
 subtypeFieldsFilterEnabledDLFileEntryAssetRendererFactory=false
 subtypeFieldsFilterEnabledJournalArticleAssetRendererFactory=false
 ''';
@@ -210,9 +204,6 @@ orderByColumn1=modifiedDate
 orderByColumn2=title
 orderByType1=DESC
 orderByType2=ASC
-queryAndOperator0=true
-queryContains0=true
-queryName0=assetTags
 subtypeFieldsFilterEnabledDLFileEntryAssetRendererFactory=false
 subtypeFieldsFilterEnabledJournalArticleAssetRendererFactory=false
 ''';
@@ -252,9 +243,6 @@ orderByColumn1=modifiedDate
 orderByColumn2=title
 orderByType1=DESC
 orderByType2=ASC
-queryAndOperator0=true
-queryContains0=true
-queryName0=assetTags
 subtypeFieldsFilterEnabledDLFileEntryAssetRendererFactory=false
 subtypeFieldsFilterEnabledJournalArticleAssetRendererFactory=false
 ''';
@@ -284,9 +272,6 @@ orderByColumn1=modifiedDate
 orderByColumn2=title
 orderByType1=DESC
 orderByType2=ASC
-queryAndOperator0=true
-queryContains0=true
-queryName0=assetTags
 subtypeFieldsFilterEnabledDLFileEntryAssetRendererFactory=false
 subtypeFieldsFilterEnabledJournalArticleAssetRendererFactory=false
 ''';
@@ -309,7 +294,7 @@ classTypeIdsJournalArticleAssetRendererFactory=${classTypeIdsDDMStructure}
 					var classTypeId = ${googleDriveShortcutClassTypeId};
 				}
 				else {
-					var classTypeId = JSONDLfileentrytype._getFileEntryTypeKey(
+					var classTypeId = JSONDLfileentrytype._getFileEntryTypeId(
 						fileEntryTypeName = ${itemSubtype},
 						groupId = ${groupId});
 				}
@@ -326,9 +311,6 @@ orderByColumn1=modifiedDate
 orderByColumn2=title
 orderByType1=DESC
 orderByType2=ASC
-queryAndOperator0=true
-queryContains0=true
-queryName0=assetTags
 subtypeFieldsFilterEnabledDLFileEntryAssetRendererFactory=false
 subtypeFieldsFilterEnabledJournalArticleAssetRendererFactory=false
 ''';

@@ -10,7 +10,7 @@ import {
 	ObjectRelationship,
 	ObjectRelationshipAPI,
 	ObjectValidationRuleAPI,
-} from '@liferay/object-admin-rest-client-js';
+} from '@liferay/object-admin-rest-client-js/v1_0';
 import {expect, mergeTests} from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
@@ -32,6 +32,7 @@ import {pagesAdminPagesTest} from '../../../fixtures/pagesAdminPagesTest';
 import {productMenuPageTest} from '../../../fixtures/productMenuPageTest';
 import {usersAndOrganizationsPagesTest} from '../../../fixtures/usersAndOrganizationsPagesTest';
 import {workflowPagesTest} from '../../../fixtures/workflowPagesTest';
+import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import createUserWithPermissions from '../../../utils/createUserWithPermissions';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
@@ -424,16 +425,10 @@ cmsTest.describe('Manage attachment ObjectField storage locations', () => {
 		async ({apiHelpers, page, viewObjectEntriesPage}) => {
 			const fileName = `file_${getRandomString()}.png`;
 			const fileTitle = `title ${getRandomString()}`;
-			const spaceName = `Space ${getRandomString()}`;
 			let space;
 
 			await test.step('Create a new Space and add a file entry to it', async () => {
-				space =
-					await apiHelpers.headlessAssetLibrary.createAssetLibrary({
-						name: spaceName,
-						settings: {},
-						type: 'Space',
-					});
+				space = await apiHelpers.headlessAssetLibrary.createSpace();
 
 				await apiHelpers.objectEntry.postObjectEntry(
 					{
@@ -521,7 +516,7 @@ cmsTest.describe('Manage attachment ObjectField storage locations', () => {
 
 			await viewObjectEntriesPage.selectFileButton.first().click();
 
-			await page.getByRole('img', {name: spaceName}).click();
+			await page.getByRole('img', {name: space.name}).click();
 
 			await page.getByLabel(fileTitle, {exact: true}).click();
 
@@ -559,10 +554,8 @@ cmsTest.describe('Manage attachment ObjectField storage locations', () => {
 			const spaceName = getRandomString();
 
 			await test.step('Create a new Space', async () => {
-				await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+				await apiHelpers.headlessAssetLibrary.createSpace({
 					name: spaceName,
-					settings: {},
-					type: 'Space',
 				});
 			});
 
@@ -653,14 +646,8 @@ cmsTest.describe('Manage attachment ObjectField storage locations', () => {
 		async ({apiHelpers, page, spaceSummaryPage, viewObjectEntriesPage}) => {
 			const childFolderName = `Child${getRandomString()}`;
 			const parentFolderName = `Parent${getRandomString()}`;
-			const spaceName = getRandomString();
 
-			const space =
-				await apiHelpers.headlessAssetLibrary.createAssetLibrary({
-					name: spaceName,
-					settings: {},
-					type: 'Space',
-				});
+			const space = await apiHelpers.headlessAssetLibrary.createSpace();
 
 			const objectDefinition =
 				await apiHelpers.objectAdmin.postRandomObjectDefinition({
@@ -765,12 +752,7 @@ cmsTest.describe('Manage attachment ObjectField storage locations', () => {
 			let space;
 
 			await test.step('Create a new Space and add a draft file to it', async () => {
-				space =
-					await apiHelpers.headlessAssetLibrary.createAssetLibrary({
-						name: `Space ${getRandomString()}`,
-						settings: {},
-						type: 'Space',
-					});
+				space = await apiHelpers.headlessAssetLibrary.createSpace();
 
 				await apiHelpers.objectEntry.postObjectEntry(
 					{
@@ -2096,6 +2078,151 @@ test.describe('Manage object entries through Friendly URL', () => {
 });
 
 test.describe('Manage object entries through Object Definition widget', () => {
+	test(
+		'verify that an entry can be added while the form of another object definition widget is open',
+		{tag: '@LPD-107403'},
+		async ({apiHelpers, page, pageEditorPage, site}) => {
+
+			// Add two object definitions with friendly URL customization and
+			// differently named required text fields
+
+			const objectDefinitions: ObjectDefinition[] = [];
+
+			for (let i = 0; i < 2; i++) {
+				const objectDefinition =
+					await apiHelpers.objectAdmin.postRandomObjectDefinition({
+						className: `com.liferay.object.model.ObjectDefinition#${getRandomInt()}`,
+						enableFriendlyURLCustomization: true,
+						objectFields: generateObjectFields({
+							objectFieldBusinessTypes: [
+								{
+									businessType: 'Text',
+									label: {en_US: 'textField' + i},
+									name: 'textField' + i,
+									required: true,
+								},
+							],
+						}),
+						status: {code: 0},
+					});
+
+				apiHelpers.data.push({
+					id: objectDefinition.id,
+					type: 'objectDefinition',
+				});
+
+				objectDefinitions.push(objectDefinition);
+			}
+
+			// Add both object definition widgets to a content page
+
+			const getPortletId = (objectDefinition: ObjectDefinition) =>
+				`com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_${objectDefinition.className.split('#')[1]}`;
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition(
+					objectDefinitions.map((objectDefinition) =>
+						getWidgetDefinition({
+							id: getRandomString(),
+							widgetName: getPortletId(objectDefinition),
+						})
+					)
+				),
+				siteId: site.id,
+				title: getRandomString(),
+			});
+
+			await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+			await pageEditorPage.publishPage();
+
+			const consoleMessages: string[] = [];
+
+			page.on('console', (message) =>
+				consoleMessages.push(message.text())
+			);
+
+			await page.goto(
+				`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			// Add an entry through the second widget, whose form stays open
+			// after saving, and then through the first widget
+
+			const getTextInput = (objectDefinition: ObjectDefinition) =>
+				page
+					.locator(`[id="p_p_id_${getPortletId(objectDefinition)}_"]`)
+					.getByLabel(
+						objectDefinition.objectFields.find(({name}) =>
+							name.startsWith('textField')
+						).name
+					);
+
+			const [objectDefinition1, objectDefinition2] = objectDefinitions;
+
+			for (const [objectDefinition, openObjectDefinition] of [
+				[objectDefinition2, null],
+				[objectDefinition1, objectDefinition2],
+			]) {
+				const portlet = page.locator(
+					`[id="p_p_id_${getPortletId(objectDefinition)}_"]`
+				);
+
+				const textInput = getTextInput(objectDefinition);
+
+				await clickAndExpectToBeVisible({
+					target: textInput,
+					trigger: portlet.getByLabel(
+						'Add ' + objectDefinition.label['en_US']
+					),
+				});
+
+				await textInput.fill(getRandomString());
+
+				const friendlyURL = getRandomString().toLowerCase();
+
+				await portlet
+					.getByRole('textbox', {name: 'Friendly URL'})
+					.fill(friendlyURL);
+
+				if (openObjectDefinition) {
+					await expect(
+						getTextInput(openObjectDefinition)
+					).toBeVisible();
+				}
+
+				const responsePromise = page.waitForResponse(
+					(response) =>
+						response.request().method() === 'POST' &&
+						response
+							.url()
+							.includes(objectDefinition.restContextPath)
+				);
+
+				await portlet.getByRole('button', {name: 'Save'}).click();
+
+				const response = await responsePromise;
+
+				expect(response.status()).toBe(200);
+				expect(
+					response.request().postDataJSON().friendlyUrlPath_i18n.en_US
+				).toBe(friendlyURL);
+
+				await waitForAlert(page);
+			}
+
+			// Check that the forms of both widgets are registered separately
+
+			expect(
+				consoleMessages.filter((consoleMessage) =>
+					consoleMessage.includes(
+						'Component with id "editObjectEntry" is being registered twice'
+					)
+				)
+			).toEqual([]);
+		}
+	);
+
 	test('verify that object labels are shown according to user language', async ({
 		accountSettingsPage,
 		apiHelpers,
@@ -3682,11 +3809,13 @@ test.describe('Manage object entries through View Object Entries', () => {
 				.click();
 
 			await expect(
-				page.locator('#editObjectEntry').getByPlaceholder('Search')
+				page
+					.locator('[id$="editObjectEntry"]')
+					.getByPlaceholder('Search')
 			).toHaveValue('Entry A');
 
 			await page
-				.locator('#editObjectEntry')
+				.locator('[id$="editObjectEntry"]')
 				.getByPlaceholder('Search')
 				.click();
 
@@ -3703,7 +3832,9 @@ test.describe('Manage object entries through View Object Entries', () => {
 				.click();
 
 			await expect(
-				page.locator('#editObjectEntry').getByPlaceholder('Search')
+				page
+					.locator('[id$="editObjectEntry"]')
+					.getByPlaceholder('Search')
 			).toHaveValue('Entry C');
 		});
 	});
@@ -6607,19 +6738,15 @@ test.describe('Manage object entries through View Object Entries', () => {
 
 		// Upload first file from user computer
 
-		await viewObjectEntriesPage.selectFileFromUserComputer(
-			__dirname,
-			'sampleFile.txt'
-		);
+		const fileEntryId1 =
+			await viewObjectEntriesPage.selectFileFromUserComputerToDocumentsAndMedia(
+				__dirname,
+				'sampleFile.txt'
+			);
 
 		await page
 			.getByRole('button', {name: 'sampleFile.txt'})
 			.waitFor({state: 'visible'});
-
-		const fileEntryId1 = await page.getAttribute(
-			'input[data-field-name^="testAttachment"]',
-			'value'
-		);
 
 		expect(
 			await apiHelpers.headlessDelivery.getDocument(fileEntryId1)
@@ -6631,10 +6758,11 @@ test.describe('Manage object entries through View Object Entries', () => {
 
 		// Verify that the first file is removed after the second file is uploaded
 
-		await viewObjectEntriesPage.selectFileFromUserComputer(
-			__dirname,
-			'astronaut.png'
-		);
+		const fileEntryId2 =
+			await viewObjectEntriesPage.selectFileFromUserComputerToDocumentsAndMedia(
+				__dirname,
+				'astronaut.png'
+			);
 
 		await page
 			.getByRole('button', {name: 'astronaut.png'})
@@ -6647,11 +6775,6 @@ test.describe('Manage object entries through View Object Entries', () => {
 				{timeout: 30 * 1000}
 			)
 			.toEqual({status: 'NOT_FOUND'});
-
-		const fileEntryId2 = await page.getAttribute(
-			'input[data-field-name^="testAttachment"]',
-			'value'
-		);
 
 		expect(
 			await apiHelpers.headlessDelivery.getDocument(fileEntryId2)
@@ -6675,19 +6798,15 @@ test.describe('Manage object entries through View Object Entries', () => {
 
 		// Verify that the file is removed after page reload
 
-		await viewObjectEntriesPage.selectFileFromUserComputer(
-			__dirname,
-			'sampleFile.txt'
-		);
+		const fileEntryId3 =
+			await viewObjectEntriesPage.selectFileFromUserComputerToDocumentsAndMedia(
+				__dirname,
+				'sampleFile.txt'
+			);
 
 		await page
 			.getByRole('button', {name: 'sampleFile.txt'})
 			.waitFor({state: 'visible'});
-
-		const fileEntryId3 = await page.getAttribute(
-			'input[data-field-name^="testAttachment"]',
-			'value'
-		);
 
 		await page.reload();
 

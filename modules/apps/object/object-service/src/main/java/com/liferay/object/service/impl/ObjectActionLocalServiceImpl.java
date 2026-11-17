@@ -31,6 +31,7 @@ import com.liferay.object.exception.ObjectActionSystemException;
 import com.liferay.object.exception.ObjectActionTriggerKeyException;
 import com.liferay.object.internal.action.trigger.util.ObjectActionTriggerUtil;
 import com.liferay.object.model.ObjectAction;
+import com.liferay.object.model.impl.ObjectActionModelImpl;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFolder;
@@ -46,6 +47,7 @@ import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
 import com.liferay.object.service.persistence.ObjectFieldPersistence;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -465,7 +467,7 @@ public class ObjectActionLocalServiceImpl
 					objectDefinition.getDefaultLocale()),
 				objectDefinition.getDefaultLocale());
 
-			return objectActionPersistence.update(objectAction);
+			return _updateObjectAction(objectAction);
 		}
 
 		_validateExternalReferenceCode(
@@ -505,7 +507,7 @@ public class ObjectActionLocalServiceImpl
 		objectAction.setStatus(ObjectActionConstants.STATUS_NEVER_RAN);
 
 		if (objectDefinition.isApproved()) {
-			return objectActionPersistence.update(objectAction);
+			return _updateObjectAction(objectAction);
 		}
 
 		_validateName(
@@ -520,7 +522,7 @@ public class ObjectActionLocalServiceImpl
 		objectAction.setName(name);
 		objectAction.setObjectActionTriggerKey(objectActionTriggerKey);
 
-		return objectActionPersistence.update(objectAction);
+		return _updateObjectAction(objectAction);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -612,17 +614,30 @@ public class ObjectActionLocalServiceImpl
 			return labelMap;
 		}
 
+		Map<Locale, String> populatedLabelMap = new HashMap<>(labelMap);
+
 		if (labelMap.size() == 1) {
-			for (Map.Entry<Locale, String> entry : labelMap.entrySet()) {
-				labelMap.put(locale, entry.getValue());
+			for (String label : labelMap.values()) {
+				populatedLabelMap.put(locale, label);
 			}
 
-			return labelMap;
+			return populatedLabelMap;
 		}
 
-		labelMap.put(locale, name);
+		populatedLabelMap.put(locale, name);
 
-		return labelMap;
+		return populatedLabelMap;
+	}
+
+	private ObjectAction _updateObjectAction(ObjectAction objectAction) {
+		ObjectActionModelImpl objectActionModelImpl =
+			(ObjectActionModelImpl)objectAction;
+
+		if (objectActionModelImpl.getColumnBitmask() == 0) {
+			return objectAction;
+		}
+
+		return objectActionPersistence.update(objectAction);
 	}
 
 	private void _validateActive(
@@ -1020,6 +1035,20 @@ public class ObjectActionLocalServiceImpl
 			if (Validator.isNull(parametersUnicodeProperties.get("url"))) {
 				errorMessageKeys.put("url", "required");
 			}
+
+			parametersUnicodeProperties.put(
+				"urlHostsAllowed",
+				StringUtil.removeChar(
+					parametersUnicodeProperties.get("urlHostsAllowed"),
+					CharPool.SPACE));
+		}
+
+		if (!Objects.equals(
+				objectActionExecutorKey,
+				ObjectActionExecutorConstants.KEY_WEBHOOK)) {
+
+			parametersUnicodeProperties.remove("urlHostsAllowed");
+			parametersUnicodeProperties.remove("urlLocalNetworkAccessEnabled");
 		}
 
 		if (Objects.nonNull(

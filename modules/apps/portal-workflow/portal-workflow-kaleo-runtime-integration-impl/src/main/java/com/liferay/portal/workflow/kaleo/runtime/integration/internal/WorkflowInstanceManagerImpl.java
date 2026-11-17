@@ -5,8 +5,10 @@
 
 package com.liferay.portal.workflow.kaleo.runtime.integration.internal;
 
+import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -34,6 +36,13 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = WorkflowInstanceManager.class)
 public class WorkflowInstanceManagerImpl implements WorkflowInstanceManager {
+
+	@Override
+	public void deleteWorkflowInstance(long workflowInstanceId)
+		throws PortalException {
+
+		_workflowEngine.deleteWorkflowInstance(workflowInstanceId);
+	}
 
 	@Override
 	public void deleteWorkflowInstance(long companyId, long workflowInstanceId)
@@ -77,6 +86,13 @@ public class WorkflowInstanceManagerImpl implements WorkflowInstanceManager {
 		catch (Exception exception) {
 			throw new WorkflowException(exception);
 		}
+	}
+
+	@Override
+	public WorkflowInstance getWorkflowInstance(long workflowInstanceId)
+		throws PortalException {
+
+		return _workflowEngine.getWorkflowInstance(workflowInstanceId);
 	}
 
 	@Override
@@ -198,6 +214,20 @@ public class WorkflowInstanceManagerImpl implements WorkflowInstanceManager {
 	}
 
 	@Override
+	public WorkflowInstance liberalStartWorkflowInstance(
+			long companyId, long groupId, long userId,
+			String workflowDefinitionName, Integer workflowDefinitionVersion,
+			String transitionName, Map<String, Serializable> workflowContext,
+			boolean waitForCompletion)
+		throws WorkflowException {
+
+		return _startWorkflowInstance(
+			companyId, groupId, userId, workflowDefinitionName,
+			workflowDefinitionVersion, transitionName, workflowContext, true,
+			waitForCompletion);
+	}
+
+	@Override
 	public List<WorkflowInstance> search(
 			long companyId, Long userId, Boolean active, String assetClassName,
 			String assetTitle, String assetDescription, String nodeName,
@@ -299,6 +329,65 @@ public class WorkflowInstanceManagerImpl implements WorkflowInstanceManager {
 			boolean waitForCompletion)
 		throws WorkflowException {
 
+		return _startWorkflowInstance(
+			companyId, groupId, userId, workflowDefinitionName,
+			workflowDefinitionVersion, transitionName, workflowContext, false,
+			waitForCompletion);
+	}
+
+	@Override
+	public WorkflowInstance updateActive(
+			long userId, long companyId, long workflowInstanceId,
+			boolean active)
+		throws WorkflowException {
+
+		return _workflowEngine.updateWorkflowInstanceActive(
+			userId, companyId, workflowInstanceId, active);
+	}
+
+	@Override
+	public WorkflowInstance updateContext(
+			long workflowInstanceId, Map<String, Serializable> workflowContext)
+		throws PortalException {
+
+		return _workflowEngine.updateContext(
+			workflowInstanceId, workflowContext);
+	}
+
+	@Override
+	public WorkflowInstance updateWorkflowContext(
+			long companyId, long workflowInstanceId,
+			Map<String, Serializable> workflowContext)
+		throws WorkflowException {
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(companyId);
+
+		return _workflowEngine.updateContext(
+			workflowInstanceId, workflowContext, serviceContext);
+	}
+
+	private <T> T _get(
+			boolean liberal,
+			UnsafeSupplier<T, PortalException> localServiceUnsafeSupplier,
+			UnsafeSupplier<T, PortalException> serviceUnsafeSupplier)
+		throws PortalException {
+
+		if (liberal) {
+			return localServiceUnsafeSupplier.get();
+		}
+
+		return serviceUnsafeSupplier.get();
+	}
+
+	private WorkflowInstance _startWorkflowInstance(
+			long companyId, long groupId, long userId,
+			String workflowDefinitionName, Integer workflowDefinitionVersion,
+			String transitionName, Map<String, Serializable> workflowContext,
+			boolean liberal, boolean waitForCompletion)
+		throws WorkflowException {
+
 		String className = WorkflowDefinition.class.getName();
 		String key = WorkflowLockUtil.encodeKey(
 			workflowDefinitionName, workflowDefinitionVersion);
@@ -318,33 +407,24 @@ public class WorkflowInstanceManagerImpl implements WorkflowInstanceManager {
 		serviceContext.setScopeGroupId(groupId);
 		serviceContext.setUserId(userId);
 
-		return _workflowEngine.startWorkflowInstance(
-			workflowDefinitionName, workflowDefinitionVersion, transitionName,
-			workflowContext, serviceContext, waitForCompletion);
-	}
-
-	@Override
-	public WorkflowInstance updateActive(
-			long userId, long companyId, long workflowInstanceId,
-			boolean active)
-		throws WorkflowException {
-
-		return _workflowEngine.updateWorkflowInstanceActive(
-			userId, companyId, workflowInstanceId, active);
-	}
-
-	@Override
-	public WorkflowInstance updateWorkflowContext(
-			long companyId, long workflowInstanceId,
-			Map<String, Serializable> workflowContext)
-		throws WorkflowException {
-
-		ServiceContext serviceContext = new ServiceContext();
-
-		serviceContext.setCompanyId(companyId);
-
-		return _workflowEngine.updateContext(
-			workflowInstanceId, workflowContext, serviceContext);
+		try {
+			return _get(
+				liberal,
+				() -> _workflowEngine.liberalStartWorkflowInstance(
+					workflowDefinitionName, workflowDefinitionVersion,
+					transitionName, workflowContext, serviceContext,
+					waitForCompletion),
+				() -> _workflowEngine.startWorkflowInstance(
+					workflowDefinitionName, workflowDefinitionVersion,
+					transitionName, workflowContext, serviceContext,
+					waitForCompletion));
+		}
+		catch (WorkflowException workflowException) {
+			throw workflowException;
+		}
+		catch (PortalException portalException) {
+			throw new WorkflowException(portalException);
+		}
 	}
 
 	@Reference

@@ -82,9 +82,9 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.SystemEventLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
-import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
@@ -330,7 +330,6 @@ public class CommercePriceListLocalServiceImpl
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceList deleteCommercePriceList(
 			CommercePriceList commercePriceList)
 		throws PortalException {
@@ -355,20 +354,6 @@ public class CommercePriceListLocalServiceImpl
 	}
 
 	@Override
-	public void deleteCommercePriceLists(long companyId)
-		throws PortalException {
-
-		List<CommercePriceList> commercePriceLists =
-			commercePriceListPersistence.findByCompanyId(
-				companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-		for (CommercePriceList commercePriceList : commercePriceLists) {
-			commercePriceListLocalService.forceDeleteCommercePriceList(
-				commercePriceList);
-		}
-	}
-
-	@Override
 	public CommercePriceList fetchCatalogBaseCommercePriceList(long groupId) {
 		return commercePriceListPersistence.fetchByG_CBPL_T_First(
 			groupId, true, CommercePriceListConstants.TYPE_PRICE_LIST, null);
@@ -384,7 +369,6 @@ public class CommercePriceListLocalServiceImpl
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceList forceDeleteCommercePriceList(
 			CommercePriceList commercePriceList)
 		throws PortalException {
@@ -433,6 +417,14 @@ public class CommercePriceListLocalServiceImpl
 			commercePriceList.getCompanyId(), commercePriceList.getGroupId(),
 			CommercePriceList.class.getName(),
 			commercePriceList.getCommercePriceListId());
+
+		_systemEventLocalService.addSystemEvent(
+			commercePriceList.getCompanyId(),
+			commercePriceList.getExternalReferenceCode(),
+			CommercePriceList.class.getName(),
+			commercePriceList.getCommercePriceListId(),
+			commercePriceList.getUuid(), null, SystemEventConstants.TYPE_DELETE,
+			StringPool.BLANK);
 
 		return commercePriceList;
 	}
@@ -769,11 +761,13 @@ public class CommercePriceListLocalServiceImpl
 					BigDecimal actualPrice = commercePriceModifierType.evaluate(
 						originalPrice, commercePriceModifier);
 
-					if (BigDecimalUtil.lt(actualPrice, lowestPrice)) {
-						commercePriceListId =
-							commercePriceList.getCommercePriceListId();
-						lowestPrice = actualPrice;
+					if (!BigDecimalUtil.lt(actualPrice, lowestPrice)) {
+						continue;
 					}
+
+					commercePriceListId =
+						commercePriceList.getCommercePriceListId();
+					lowestPrice = actualPrice;
 				}
 			}
 		}
@@ -799,14 +793,6 @@ public class CommercePriceListLocalServiceImpl
 		}
 
 		return commercePriceLists.get(0);
-	}
-
-	@Override
-	public List<CommercePriceList> getCommercePriceLists(
-		long companyId, int start, int end) {
-
-		return commercePriceListPersistence.findByCompanyId(
-			companyId, start, end);
 	}
 
 	@Override
@@ -1028,14 +1014,6 @@ public class CommercePriceListLocalServiceImpl
 
 	@Override
 	public int getCommercePriceListsCount(
-		long commercePricingClassId, String name) {
-
-		return commercePriceListFinder.countByCommercePricingClassId(
-			commercePricingClassId, name);
-	}
-
-	@Override
-	public int getCommercePriceListsCount(
 		long[] groupIds, long companyId, int status) {
 
 		if (status == WorkflowConstants.STATUS_ANY) {
@@ -1087,14 +1065,6 @@ public class CommercePriceListLocalServiceImpl
 		catch (Exception exception) {
 			throw new SystemException(exception);
 		}
-	}
-
-	@Override
-	public List<CommercePriceList> searchByCommercePricingClassId(
-		long commercePricingClassId, String name, int start, int end) {
-
-		return commercePriceListFinder.findByCommercePricingClassId(
-			commercePricingClassId, name, start, end);
 	}
 
 	@Override
@@ -1234,26 +1204,6 @@ public class CommercePriceListLocalServiceImpl
 			user.getUserId(), commercePriceList, serviceContext);
 
 		return commercePriceList;
-	}
-
-	@Override
-	public void updateCommercePriceListCurrencies(
-			long companyId, String oldCommerceCurrencyCode,
-			String newCommerceCurrencyCode)
-		throws PortalException {
-
-		List<CommercePriceList> commercePriceLists =
-			commercePriceListPersistence.findByC_C(
-				companyId, oldCommerceCurrencyCode);
-
-		for (CommercePriceList commercePriceList : commercePriceLists) {
-			commercePriceList.setCommerceCurrencyCode(newCommerceCurrencyCode);
-
-			commercePriceList = commercePriceListPersistence.update(
-				commercePriceList);
-
-			_reindex(commercePriceList.getCommercePriceListId());
-		}
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -1754,13 +1704,6 @@ public class CommercePriceListLocalServiceImpl
 		return joinStep.where(predicate);
 	}
 
-	private void _reindex(long commercePriceListId) throws PortalException {
-		Indexer<CommercePriceList> indexer =
-			IndexerRegistryUtil.nullSafeGetIndexer(CommercePriceList.class);
-
-		indexer.reindex(CommercePriceList.class.getName(), commercePriceListId);
-	}
-
 	private BaseModelSearchResult<CommercePriceList> _searchCommercePriceLists(
 			SearchContext searchContext)
 		throws PortalException {
@@ -1932,6 +1875,9 @@ public class CommercePriceListLocalServiceImpl
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
+
+	@Reference
+	private SystemEventLocalService _systemEventLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

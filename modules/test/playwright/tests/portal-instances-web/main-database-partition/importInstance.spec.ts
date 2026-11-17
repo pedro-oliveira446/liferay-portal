@@ -7,6 +7,8 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {loginTest} from '../../../fixtures/loginTest';
 import {virtualInstancesPagesTest} from '../../../fixtures/virtualInstancesPagesTest';
+import {ApiHelpers} from '../../../helpers/ApiHelpers';
+import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
 
 const test = mergeTests(loginTest(), virtualInstancesPagesTest);
@@ -30,7 +32,7 @@ test(
 test(
 	'LPD-92621 Importing an exported schema shows the import success message',
 	{tag: '@LPD-92621'},
-	async ({virtualInstancesPage}) => {
+	async ({page, virtualInstancesPage}) => {
 		test.setTimeout(5 * 180 * 1000);
 
 		const exportedWebId = getRandomString();
@@ -47,16 +49,33 @@ test(
 			const schemaName =
 				await virtualInstancesPage.exportVirtualInstance(exportedWebId);
 
-			await virtualInstancesPage.deleteVirtualInstance(exportedWebId);
+			const apiHelpers = new ApiHelpers(page);
+
+			const headlessBatchEngine = apiHelpers.headlessBatchEngine;
+
+			const headlessPortalInstance = apiHelpers.headlessPortalInstance;
+
+			const importTask =
+				await headlessPortalInstance.deleteVirtualInstancesBatch([
+					exportedWebId,
+				]);
+
+			const finishedImportTask =
+				await headlessBatchEngine.waitForImportTask(importTask.id);
+
+			expect(finishedImportTask.executeStatus).toBe('COMPLETED');
 
 			exportedCreated = false;
 
 			await virtualInstancesPage.openImportVirtualInstanceModal();
 
+			await expect(
+				virtualInstancesPage.importInstanceDocumentLibraryFilesWarning
+			).toBeVisible();
+
 			await virtualInstancesPage.submitImportVirtualInstance({
 				name: importedWebId,
 				schemaName,
-				timeout: 180 * 1000,
 				virtualHost: importedWebId,
 				webId: importedWebId,
 			});
@@ -64,8 +83,10 @@ test(
 			imported = true;
 
 			await expect(
-				virtualInstancesPage.importInstanceSuccessMessage(importedWebId)
-			).toBeVisible({timeout: 180 * 1000});
+				virtualInstancesPage.importStartedMessage(schemaName)
+			).toBeVisible();
+
+			await virtualInstancesPage.waitForImportNotification(importedWebId);
 		}
 		finally {
 			if (exportedCreated || imported) {
@@ -74,5 +95,21 @@ test(
 				);
 			}
 		}
+	}
+);
+
+test(
+	'LPD-93377 Importing a nonexistent schema shows an error',
+	{tag: '@LPD-93377'},
+	async ({virtualInstancesPage}) => {
+		await virtualInstancesPage.openImportVirtualInstanceModal();
+
+		await virtualInstancesPage.submitImportVirtualInstance({
+			schemaName: `lexported_${getRandomInt()}`,
+		});
+
+		await expect(
+			virtualInstancesPage.importInstanceNonexistentSchemaErrorMessage
+		).toBeVisible();
 	}
 );

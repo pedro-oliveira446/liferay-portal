@@ -95,6 +95,10 @@ public class ViewRelatedAssetsSectionDisplayContext
 			).putData(
 				"documentClassName", _cmsBasicDocumentClassName
 			).putData(
+				"maxFileSize",
+				String.valueOf(
+					ActionUtil.getUploadMaximumFileSize(themeDisplay))
+			).putData(
 				"objectEntryId", String.valueOf(objectEntry.getObjectEntryId())
 			).putData(
 				"parentObjectEntryFolderExternalReferenceCode", StringPool.BLANK
@@ -107,7 +111,7 @@ public class ViewRelatedAssetsSectionDisplayContext
 			).setIcon(
 				"upload-multiple"
 			).setLabel(
-				LanguageUtil.get(httpServletRequest, "upload")
+				LanguageUtil.get(httpServletRequest, "upload[verb]")
 			).build(),
 			DropdownItemBuilder.putData(
 				"action", "selectAssets"

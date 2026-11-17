@@ -89,6 +89,8 @@ public class OpenAPIResourceImpl {
 
 			add(BatchTestEntityResourceImpl.class);
 
+			add(BatchTestEntityActionResourceImpl.class);
+
 			add(CompanyTestEntityResourceImpl.class);
 
 			add(ERCAssetLibraryTestEntityResourceImpl.class);
@@ -100,6 +102,8 @@ public class OpenAPIResourceImpl {
 			add(EntityModelResourceTestEntity1ResourceImpl.class);
 
 			add(EntityModelResourceTestEntity2ResourceImpl.class);
+
+			add(FeatureFlagMethodTestEntityResourceImpl.class);
 
 			add(FilterResourceImpl.class);
 
@@ -126,4 +130,4 @@ public class OpenAPIResourceImpl {
 	};
 
 }
-// LIFERAY-REST-BUILDER-HASH:346215076
+// LIFERAY-REST-BUILDER-HASH:744547155

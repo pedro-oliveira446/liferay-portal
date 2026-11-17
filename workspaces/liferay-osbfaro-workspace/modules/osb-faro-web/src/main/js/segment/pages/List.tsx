@@ -4,13 +4,16 @@ import BasePage from 'shared/components/base-page';
 import Card from 'shared/components/Card';
 import ClayButton from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import ClayLink from '@clayui/link';
 import CrossPageSelect from 'shared/hoc/CrossPageSelect';
+import DataValue from 'shared/components/DataValue';
 import LinkCell from 'shared/components/table/cell-components/LinkCell';
 import getCN from 'classnames';
 import Nav from 'shared/components/Nav';
 import NoResultsDisplay from 'shared/components/NoResultsDisplay';
+import ManageSegmentNotificationsModal from 'shared/components/modals/ManageSegmentNotificationsModal';
+import UnassignedSegmentsModal from 'shared/components/modals/unassigned-segments-modal';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import RowActions from 'shared/components/RowActions';
 import SearchableEntityTable from 'shared/components/SearchableEntityTable';
@@ -26,12 +29,7 @@ import {
 	useSelectionContext,
 	withSelectionProvider,
 } from 'shared/context/selection';
-import {addAlert} from 'shared/actions/alerts';
-import {Alert, FilterByType} from 'shared/types';
 import {ALERT_CONFIG_MAP, AlertTypes} from 'shared/components/Alert';
-import {close, modalTypes, open} from 'shared/actions/modals';
-import {compose} from 'shared/hoc';
-import {connect, ConnectedProps} from 'react-redux';
 import {createOrderIOMap} from 'shared/util/pagination';
 import {
 	DATE_MODIFIED,
@@ -70,21 +68,13 @@ import {
 import {setUriQueryValues} from 'shared/util/router';
 import {sub} from 'shared/util/lang';
 import {toThousands} from 'shared/util/numbers';
+import {useModal} from '@clayui/modal';
 import {useChannelContext} from 'shared/context/channel';
 import {useCurrentUser} from 'shared/hooks/useCurrentUser';
+import {useDeleteSegments} from 'segment/hooks/useDeleteSegments';
 import {useLDPEnabled} from 'shared/hooks/useLDPEnabled';
 import {useQueryPagination} from 'shared/hooks/useQueryPagination';
 import {useRequest} from 'shared/hooks/useRequest';
-
-export interface FetchSegmentsParams {
-	channelId: string;
-	delta?: number;
-	filterBy: FilterByType;
-	groupId: string;
-	orderIOMap: OrderedMap<string, OrderParams>;
-	page: number;
-	query: string;
-}
 
 function fetchDisabledSegments(
 	channelId: string,
@@ -100,11 +90,7 @@ function fetchDisabledSegments(
 	});
 }
 
-const connector = connect(null, {addAlert, close, open});
-
-type PropsFromRedux = ConnectedProps<typeof connector>;
-
-interface IListProps extends PropsFromRedux {
+interface IListProps {
 	channelId: string;
 	groupId: string;
 	history: any;
@@ -130,16 +116,25 @@ const SEGMENT_TYPES_LABEL_MAP = {
 const isMembershipProcessing = (lastMembershipUpdateDate: number | null) =>
 	isNil(lastMembershipUpdateDate);
 
-const getMembershipLabel = (count: number, accountSegment: boolean) => {
-	if (!count) {
-		return '-';
-	}
-
+const getMembershipLabel = (
+	count: number,
+	accountSegment: boolean,
+	processing: boolean
+) => {
 	const membershipLabel = accountSegment
 		? Liferay.Language.get('x-accounts')
 		: Liferay.Language.get('x-individuals');
 
-	return sub(membershipLabel.toLowerCase(), [toThousands(count)]);
+	return (
+		<DataValue
+			format={(value) =>
+				sub(membershipLabel.toLowerCase(), [toThousands(value)])
+			}
+			processing={processing}
+			type="count"
+			value={count}
+		/>
+	);
 };
 
 const FILTER_BY_OPTIONS = [
@@ -206,17 +201,15 @@ const ORDER_BY_OPTIONS = [
 	},
 ];
 
-export const List: React.FC<IListProps> = ({
-	addAlert,
-	channelId,
-	close,
-	groupId,
-	history,
-	open,
-}) => {
+export const List: React.FC<IListProps> = ({channelId, groupId, history}) => {
 	const currentUser = useCurrentUser();
 	const LDPEnabled = useLDPEnabled({groupId});
 	const {selectedChannel} = useChannelContext();
+	const {deleteSegments, deleteSegmentsModal} = useDeleteSegments(groupId);
+	const notificationsModal = useModal();
+	const unassignedModal = useModal();
+
+	const [notificationsSegmentId, setNotificationsSegmentId] = useState('');
 	const _tableRef = useRef<HTMLDivElement & SearchableEntityTable>();
 
 	const {selectedItems, selectionDispatch} = useSelectionContext();
@@ -318,16 +311,7 @@ export const List: React.FC<IListProps> = ({
 	];
 
 	const handleUnassignedSegmentsAlert = () => {
-		const openModal = () => {
-			open(
-				modalTypes.UNASSIGNED_SEGMENTS_MODAL,
-				{
-					groupId,
-					onClose: close,
-				},
-				{closeOnBlur: false}
-			);
-		};
+		const openModal = () => unassignedModal.onOpenChange(true);
 
 		return {
 			message: sub(
@@ -364,79 +348,25 @@ export const List: React.FC<IListProps> = ({
 		items: unknown[];
 		name?: string;
 	}) => {
-		const isMultiple = ids.length > 1;
+		deleteSegments({
+			ids,
+			name,
+			onSuccess: () => {
+				_tableRef?.current?.reload();
 
-		const MODAL_MESSAGES = {
-			confirmation: isMultiple
-				? Liferay.Language.get(
-						'are-you-sure-you-want-to-delete-the-selected-segments'
-					)
-				: Liferay.Language.get(
-						'are-you-sure-you-want-to-delete-this-segment'
-					),
-			subtitle: isMultiple
-				? Liferay.Language.get(
-						'you-will-lose-all-data-related-to-these-segments.-you-will-not-be-able-to-undo-this-operation'
-					)
-				: Liferay.Language.get(
-						'you-will-lose-all-data-related-to-this-segment.-you-will-not-be-able-to-undo-this-operation'
-					),
-			title: isMultiple
-				? Liferay.Language.get('delete-segments')
-				: sub(Liferay.Language.get('deleting-x'), [name]),
-		};
+				if (items.length === 1 && page !== 1) {
+					history.push(
+						setUriQueryValue(
+							window.location.href,
+							'page',
+							Number(page) - 1
+						)
+					);
+				}
+				selectionDispatch?.({type: ActionTypes.ClearAll});
 
-		open(modalTypes.CONFIRMATION_MODAL, {
-			message: (
-				<div>
-					<div className="h4 text-secondary">
-						{MODAL_MESSAGES.confirmation}
-					</div>
-
-					<p>{MODAL_MESSAGES.subtitle}</p>
-				</div>
-			),
-			modalVariant: 'modal-warning',
-			onClose: close,
-			onSubmit: () =>
-				API.individualSegment
-					.delete({
-						groupId,
-						ids,
-					})
-					.then(() => {
-						_tableRef?.current?.reload();
-
-						addAlert({
-							alertType: Alert.Types.Success,
-							message: Liferay.Language.get(
-								'the-segment-has-been-deleted'
-							),
-						});
-
-						if (items.length === 1 && page !== 1) {
-							history.push(
-								setUriQueryValue(
-									window.location.href,
-									'page',
-									Number(page) - 1
-								)
-							);
-						}
-						selectionDispatch?.({type: ActionTypes.ClearAll});
-
-						refetch?.();
-					})
-					.catch(() => {
-						addAlert({
-							alertType: Alert.Types.Error,
-							message: Liferay.Language.get('error'),
-						});
-					}),
-			submitButtonDisplay: 'warning',
-			submitMessage: Liferay.Language.get('delete'),
-			title: MODAL_MESSAGES.title,
-			titleIcon: 'warning-full',
+				refetch?.();
+			},
 		});
 	};
 
@@ -467,6 +397,15 @@ export const List: React.FC<IListProps> = ({
 				}),
 				iconSymbol: 'pencil',
 				label: Liferay.Language.get('edit'),
+			},
+			{
+				iconSymbol: 'bell-on',
+				label: Liferay.Language.get('manage-notifications'),
+				onClick: () => {
+					setNotificationsSegmentId(id);
+
+					notificationsModal.onOpenChange(true);
+				},
 			},
 			{
 				className: 'text-danger',
@@ -764,18 +703,15 @@ export const List: React.FC<IListProps> = ({
 										return (
 											<td className="table-cell-expand">
 												<div className="text-truncate text-right">
-													{isMembershipProcessing(
-														lastMembershipUpdateDate
-													)
-														? Liferay.Language.get(
-																'processing'
-															)
-														: getMembershipLabel(
-																accountSegment
-																	? accountsCount
-																	: individualCount,
-																accountSegment
-															)}
+													{getMembershipLabel(
+														accountSegment
+															? accountsCount
+															: individualCount,
+														accountSegment,
+														isMembershipProcessing(
+															lastMembershipUpdateDate
+														)
+													)}
 												</div>
 											</td>
 										);
@@ -791,19 +727,10 @@ export const List: React.FC<IListProps> = ({
 												| number
 												| null;
 										};
-									}) =>
-										isMembershipProcessing(
-											item.data.lastMembershipUpdateDate
-										) ? (
-											<td className={item.className}>
-												{Liferay.Language.get(
-													'processing'
-												)}
-											</td>
-										) : (
-											<DateCell
-												{...item}
-												dateFormatter={(
+									}) => (
+										<td className={item.className}>
+											<DataValue
+												format={(
 													date: string | number
 												) =>
 													formatDateToTimeZone(
@@ -811,9 +738,17 @@ export const List: React.FC<IListProps> = ({
 														getCustomDateTimeFormat()
 													)
 												}
-												datePath="lastMembershipUpdateDate"
+												processing={isMembershipProcessing(
+													item.data
+														.lastMembershipUpdateDate
+												)}
+												value={
+													item.data
+														.lastMembershipUpdateDate
+												}
 											/>
-										),
+										</td>
+									),
 									className: 'table-column-text-start',
 									label: Liferay.Language.get(
 										'last-membership-update'
@@ -898,7 +833,26 @@ export const List: React.FC<IListProps> = ({
 					</Card.Body>
 				</Card>
 			</BasePage.Body>
+
+			{deleteSegmentsModal}
+
+			{unassignedModal.open && (
+				<UnassignedSegmentsModal
+					groupId={groupId}
+					observer={unassignedModal.observer}
+					onClose={() => unassignedModal.onOpenChange(false)}
+				/>
+			)}
+
+			{notificationsModal.open && (
+				<ManageSegmentNotificationsModal
+					groupId={groupId}
+					observer={notificationsModal.observer}
+					onClose={() => notificationsModal.onOpenChange(false)}
+					segmentId={notificationsSegmentId}
+				/>
+			)}
 		</BasePage>
 	);
 };
-export default compose(connector, withSelectionProvider)(List);
+export default withSelectionProvider(List);

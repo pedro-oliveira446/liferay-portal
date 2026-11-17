@@ -267,7 +267,9 @@ public class CPDefinitionLocalServiceUtil {
 		getService().deleteCPDefinitions(companyId);
 	}
 
-	public static void deleteCPDefinitions(long cProductId, int status) {
+	public static void deleteCPDefinitions(long cProductId, int status)
+		throws PortalException {
+
 		getService().deleteCPDefinitions(cProductId, status);
 	}
 
@@ -549,12 +551,6 @@ public class CPDefinitionLocalServiceUtil {
 	}
 
 	public static List<CPDefinition> getCPDefinitions(
-		long groupId, boolean subscriptionEnabled) {
-
-		return getService().getCPDefinitions(groupId, subscriptionEnabled);
-	}
-
-	public static List<CPDefinition> getCPDefinitions(
 		long groupId, int status, int start, int end) {
 
 		return getService().getCPDefinitions(groupId, status, start, end);
@@ -616,12 +612,6 @@ public class CPDefinitionLocalServiceUtil {
 	 */
 	public static int getCPDefinitionsCount() {
 		return getService().getCPDefinitionsCount();
-	}
-
-	public static int getCPDefinitionsCount(
-		long groupId, boolean subscriptionEnabled) {
-
-		return getService().getCPDefinitionsCount(groupId, subscriptionEnabled);
 	}
 
 	public static int getCPDefinitionsCount(long groupId, int status) {
@@ -706,11 +696,13 @@ public class CPDefinitionLocalServiceUtil {
 
 	public static CPDefinition getOrAddEmptyCPDefinition(
 			String externalReferenceCode, long companyId, long userId,
-			long groupId, String productTypeName)
+			long groupId, Map<java.util.Locale, String> nameMap,
+			String productTypeName)
 		throws PortalException {
 
 		return getService().getOrAddEmptyCPDefinition(
-			externalReferenceCode, companyId, userId, groupId, productTypeName);
+			externalReferenceCode, companyId, userId, groupId, nameMap,
+			productTypeName);
 	}
 
 	/**
@@ -1011,4 +1003,4 @@ public class CPDefinitionLocalServiceUtil {
 			CPDefinitionLocalServiceUtil.class, CPDefinitionLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-420942032
+// LIFERAY-SERVICE-BUILDER-HASH:1874314472

@@ -125,13 +125,6 @@ public class LayoutSEOEntryLocalServiceWrapper
 			groupId, privateLayout, layoutId);
 	}
 
-	@Override
-	public void deleteLayoutSEOEntry(String uuid, long groupId)
-		throws com.liferay.layout.seo.exception.NoSuchEntryException {
-
-		_layoutSEOEntryLocalService.deleteLayoutSEOEntry(uuid, groupId);
-	}
-
 	/**
 	 * @throws PortalException
 	 */
@@ -244,6 +237,13 @@ public class LayoutSEOEntryLocalServiceWrapper
 
 		return _layoutSEOEntryLocalService.dynamicQueryCount(
 			dynamicQuery, projection);
+	}
+
+	@Override
+	public LayoutSEOEntry fetchLayoutSEOEntry(
+		com.liferay.portal.kernel.model.Layout layout) {
+
+		return _layoutSEOEntryLocalService.fetchLayoutSEOEntry(layout);
 	}
 
 	@Override
@@ -552,4 +552,4 @@ public class LayoutSEOEntryLocalServiceWrapper
 	private LayoutSEOEntryLocalService _layoutSEOEntryLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-583181398
+// LIFERAY-SERVICE-BUILDER-HASH:1732395369

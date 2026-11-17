@@ -18,13 +18,13 @@ import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryMetadataLocalService;
 import com.liferay.document.library.kernel.service.DLFileShortcutLocalService;
+import com.liferay.document.library.kernel.service.DLFileVersionLocalService;
 import com.liferay.document.library.kernel.service.persistence.DLFileEntryPersistence;
 import com.liferay.document.library.service.DLFileVersionPreviewLocalService;
 import com.liferay.dynamic.data.mapping.constants.DDMStructureConstants;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
-import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
 import com.liferay.dynamic.data.mapping.service.DDMFieldLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
@@ -177,11 +177,8 @@ public class DLFileEntryDataCleanupPreupgradeProcessTest
 
 		upgrade();
 
-		DDMStructureVersion ddmStructureVersion =
-			ddmStructure.getStructureVersion();
-
-		_ddmFieldLocalService.deleteDDMFields(
-			ddmStructureVersion.getStructureId());
+		_ddmFieldLocalService.deleteDDMFormValues(
+			dlFileEntryMetadata.getDDMStorageId());
 
 		_ddmStructureLocalService.deleteStructure(ddmStructure);
 	}
@@ -253,7 +250,8 @@ public class DLFileEntryDataCleanupPreupgradeProcessTest
 
 		FileVersion latestFileVersion = fileEntry.getLatestFileVersion();
 
-		_dlAppService.deleteFileVersion(latestFileVersion.getFileVersionId());
+		_dlFileVersionLocalService.deleteDLFileVersion(
+			latestFileVersion.getFileVersionId());
 
 		upgrade();
 
@@ -341,6 +339,9 @@ public class DLFileEntryDataCleanupPreupgradeProcessTest
 
 	@Inject
 	private DLFileShortcutLocalService _dlFileShortcutLocalService;
+
+	@Inject
+	private DLFileVersionLocalService _dlFileVersionLocalService;
 
 	@Inject
 	private DLFileVersionPreviewLocalService _dlFileVersionPreviewLocalService;

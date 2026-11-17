@@ -37,6 +37,7 @@ import com.liferay.commerce.discount.service.CommerceDiscountRelLocalService;
 import com.liferay.commerce.discount.service.CommerceDiscountRuleLocalService;
 import com.liferay.commerce.discount.service.CommerceDiscountUsageEntryLocalService;
 import com.liferay.commerce.discount.service.base.CommerceDiscountLocalServiceBaseImpl;
+import com.liferay.commerce.discount.service.persistence.CommerceDiscountRulePersistence;
 import com.liferay.commerce.discount.target.CommerceDiscountTarget;
 import com.liferay.commerce.discount.target.CommerceDiscountTargetRegistry;
 import com.liferay.commerce.discount.util.comparator.CommerceDiscountCreateDateComparator;
@@ -60,6 +61,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -338,13 +340,13 @@ public class CommerceDiscountLocalServiceImpl
 				commerceDiscount.setLevel1(level1);
 			}
 			else if (level.equals(CommerceDiscountConstants.LEVEL_L2)) {
-				commerceDiscount.setLevel2(level1);
+				commerceDiscount.setLevel2(_getLevel(level2, level1));
 			}
 			else if (level.equals(CommerceDiscountConstants.LEVEL_L3)) {
-				commerceDiscount.setLevel3(level1);
+				commerceDiscount.setLevel3(_getLevel(level3, level1));
 			}
 			else if (level.equals(CommerceDiscountConstants.LEVEL_L4)) {
-				commerceDiscount.setLevel4(level1);
+				commerceDiscount.setLevel4(_getLevel(level4, level1));
 			}
 		}
 		else {
@@ -477,13 +479,13 @@ public class CommerceDiscountLocalServiceImpl
 
 			if (commerceDiscount != null) {
 				return commerceDiscountLocalService.updateCommerceDiscount(
-					commerceDiscountId, title, target, useCouponCode,
-					couponCode, usePercentage, maximumDiscountAmount, level,
-					level1, level2, level3, level4, limitationType,
-					limitationTimes, rulesConjunction, active, displayDateMonth,
-					displayDateDay, displayDateYear, displayDateHour,
-					displayDateMinute, expirationDateMonth, expirationDateDay,
-					expirationDateYear, expirationDateHour,
+					commerceDiscount.getCommerceDiscountId(), title, target,
+					useCouponCode, couponCode, usePercentage,
+					maximumDiscountAmount, level, level1, level2, level3,
+					level4, limitationType, limitationTimes, rulesConjunction,
+					active, displayDateMonth, displayDateDay, displayDateYear,
+					displayDateHour, displayDateMinute, expirationDateMonth,
+					expirationDateDay, expirationDateYear, expirationDateHour,
 					expirationDateMinute, neverExpire, serviceContext);
 			}
 		}
@@ -551,15 +553,15 @@ public class CommerceDiscountLocalServiceImpl
 
 			if (commerceDiscount != null) {
 				return commerceDiscountLocalService.updateCommerceDiscount(
-					commerceDiscountId, title, target, useCouponCode,
-					couponCode, usePercentage, maximumDiscountAmount, level,
-					level1, level2, level3, level4, limitationType,
-					limitationTimes, limitationTimesPerAccount,
-					rulesConjunction, active, displayDateMonth, displayDateDay,
-					displayDateYear, displayDateHour, displayDateMinute,
-					expirationDateMonth, expirationDateDay, expirationDateYear,
-					expirationDateHour, expirationDateMinute, neverExpire,
-					serviceContext);
+					commerceDiscount.getCommerceDiscountId(), title, target,
+					useCouponCode, couponCode, usePercentage,
+					maximumDiscountAmount, level, level1, level2, level3,
+					level4, limitationType, limitationTimes,
+					limitationTimesPerAccount, rulesConjunction, active,
+					displayDateMonth, displayDateDay, displayDateYear,
+					displayDateHour, displayDateMinute, expirationDateMonth,
+					expirationDateDay, expirationDateYear, expirationDateHour,
+					expirationDateMinute, neverExpire, serviceContext);
 			}
 		}
 
@@ -981,14 +983,6 @@ public class CommerceDiscountLocalServiceImpl
 	}
 
 	@Override
-	public int getCommerceDiscountsCountByPricingClassId(
-		long commercePricingClassId, String title) {
-
-		return commerceDiscountFinder.countByCommercePricingClassId(
-			commercePricingClassId, title);
-	}
-
-	@Override
 	public CommerceDiscount getOrAddEmptyCommerceDiscount(
 			String externalReferenceCode, long companyId, long userId)
 		throws PortalException {
@@ -1124,14 +1118,6 @@ public class CommerceDiscountLocalServiceImpl
 		commerceDiscount.setNumberOfUse(commerceDiscount.getNumberOfUse() + 1);
 
 		return commerceDiscountPersistence.update(commerceDiscount);
-	}
-
-	@Override
-	public List<CommerceDiscount> searchByCommercePricingClassId(
-		long commercePricingClassId, String title, int start, int end) {
-
-		return commerceDiscountFinder.findByCommercePricingClassId(
-			commercePricingClassId, title, start, end);
 	}
 
 	@Override
@@ -1876,6 +1862,14 @@ public class CommerceDiscountLocalServiceImpl
 					cpDefinitionId, cpInstanceId, unitOfMeasureKey)));
 	}
 
+	private BigDecimal _getLevel(BigDecimal level, BigDecimal level1) {
+		if ((level1 == null) && LazyReferencingThreadLocal.isEnabled()) {
+			return level;
+		}
+
+		return level1;
+	}
+
 	private boolean _isWorkflowEnabled(
 		long companyId, long groupId, String className) {
 
@@ -2044,7 +2038,7 @@ public class CommerceDiscountLocalServiceImpl
 
 		if (commerceDiscountId > 0) {
 			List<CommerceDiscountRule> commerceDiscountRules =
-				_commerceDiscountRuleLocalService.getCommerceDiscountRules(
+				_commerceDiscountRulePersistence.findByCommerceDiscountId(
 					commerceDiscountId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 					null);
 
@@ -2096,6 +2090,9 @@ public class CommerceDiscountLocalServiceImpl
 
 	@Reference
 	private CommerceDiscountRuleLocalService _commerceDiscountRuleLocalService;
+
+	@Reference
+	private CommerceDiscountRulePersistence _commerceDiscountRulePersistence;
 
 	@Reference
 	private CommerceDiscountRuleTypeRegistry _commerceDiscountRuleTypeRegistry;

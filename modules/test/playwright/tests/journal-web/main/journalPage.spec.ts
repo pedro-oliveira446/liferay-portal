@@ -79,13 +79,17 @@ test(
 
 		await journalPage.changeView('table');
 
-		await expect(page.getByRole('cell', {name: 'Title'})).toBeVisible();
-
 		await expect(
-			page.getByRole('cell', {name: 'Description'})
+			page.getByRole('columnheader', {name: 'Title'})
 		).toBeVisible();
 
-		await expect(page.getByRole('cell', {name: 'Author'})).toBeVisible();
+		await expect(
+			page.getByRole('columnheader', {name: 'Description'})
+		).toBeVisible();
+
+		await expect(
+			page.getByRole('columnheader', {name: 'Author'})
+		).toBeVisible();
 
 		await expect(
 			page.getByRole('cell', {exact: true, name: 'Web Content'})
@@ -95,20 +99,24 @@ test(
 			page.getByRole('cell', {exact: true, name: 'Folders'})
 		).toBeVisible();
 
-		await expect(page.getByRole('cell', {name: 'Status'})).toBeVisible();
-
-		await expect(page.getByRole('cell', {name: 'Type'})).toBeVisible();
-
 		await expect(
-			page.getByRole('cell', {name: 'Modified Date'})
+			page.getByRole('columnheader', {name: 'Status'})
 		).toBeVisible();
 
 		await expect(
-			page.getByRole('cell', {name: 'Display Date'})
+			page.getByRole('columnheader', {name: 'Type'})
 		).toBeVisible();
 
 		await expect(
-			page.getByRole('cell', {name: 'Create Date'})
+			page.getByRole('columnheader', {name: 'Modified Date'})
+		).toBeVisible();
+
+		await expect(
+			page.getByRole('columnheader', {name: 'Display Date'})
+		).toBeVisible();
+
+		await expect(
+			page.getByRole('columnheader', {name: 'Create Date'})
 		).toBeVisible();
 	}
 );
@@ -285,8 +293,11 @@ test(
 
 		await page.getByRole('button', {name: 'Versions'}).waitFor();
 
-		await page.getByLabel('Select View, Currently').click();
-		await page.getByRole('menuitem', {name: 'Table'}).click();
+		await journalPage.changeView('Table');
+
+		const resultRows = page.locator('tbody tr[data-selectable="true"]');
+
+		await resultRows.first().waitFor({state: 'visible'});
 
 		const searchInput = page.locator('input[type="search"]');
 		await searchInput.waitFor({state: 'visible'});
@@ -298,7 +309,6 @@ test(
 			.filter({hasText: /^Clear$/})
 			.waitFor();
 
-		const resultRows = page.locator('tbody tr[data-selectable="true"]');
 		await resultRows.first().waitFor({state: 'visible'});
 		const count = await resultRows.count();
 		expect(count).toBe(1);

@@ -9,7 +9,7 @@ import com.liferay.account.admin.web.internal.portlet.action.util.TicketUtil;
 import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.account.service.AccountRoleLocalService;
-import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.NoSuchTicketException;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -128,9 +128,9 @@ public class CreateAccountUserMVCActionCommand
 		String firstName = ParamUtil.getString(actionRequest, "firstName");
 		String middleName = ParamUtil.getString(actionRequest, "middleName");
 		String lastName = ParamUtil.getString(actionRequest, "lastName");
-		long prefixListTypeId = ParamUtil.getInteger(
+		long prefixListTypeId = ParamUtil.getLong(
 			actionRequest, "prefixListTypeId");
-		long suffixListTypeId = ParamUtil.getInteger(
+		long suffixListTypeId = ParamUtil.getLong(
 			actionRequest, "suffixListTypeId");
 		boolean male = true;
 		int birthdayMonth = Month.JANUARY.getValue();
@@ -173,7 +173,7 @@ public class CreateAccountUserMVCActionCommand
 		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
 
 		if (fileEntryId > 0) {
-			FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
+			FileEntry fileEntry = _dlAppService.getFileEntry(fileEntryId);
 
 			portraitBytes = _file.getBytes(fileEntry.getContentStream());
 		}
@@ -244,7 +244,7 @@ public class CreateAccountUserMVCActionCommand
 	private AccountRoleLocalService _accountRoleLocalService;
 
 	@Reference
-	private DLAppLocalService _dlAppLocalService;
+	private DLAppService _dlAppService;
 
 	@Reference
 	private File _file;

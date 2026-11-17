@@ -34,17 +34,23 @@ export async function addNestedSegmentField({
 export async function addSegmentField({
 	criterionName,
 	criterionType,
+	customField = false,
 	page,
 }: {
 	criterionName: string;
 	criterionType: string;
+	customField?: boolean;
 	page: Page;
 }) {
 	await clickAndExpectToBeVisible({
 		autoClick: true,
 		target: page.getByRole('option', {name: criterionType}),
-		trigger: page.getByRole('combobox'),
+		trigger: page.getByRole('combobox', {name: 'Condition Type'}),
 	});
+
+	if (customField) {
+		await page.getByRole('tab', {name: 'Custom'}).click();
+	}
 
 	await dragAndDropCriteriaItem({
 		page,
@@ -171,8 +177,17 @@ export async function editCriteriaConjunction({
 }
 
 export async function editSegment(page: Page) {
-	await page.getByRole('link', {name: 'Edit Segment'}).click();
-	await page.waitForSelector('text=Edit Individuals Segment');
+	await clickAndExpectToBeVisible({
+		autoClick: true,
+		target: page.getByRole('menuitem', {name: 'Edit Segment'}),
+		trigger: page
+			.locator('.page-actions-toolbar')
+			.getByRole('button', {name: 'Menu'}),
+	});
+
+	await expect(
+		page.getByRole('heading', {level: 1, name: 'Edit Segment'})
+	).toBeVisible();
 }
 
 export async function includeAnonymousToggle({
@@ -182,7 +197,7 @@ export async function includeAnonymousToggle({
 	enable: boolean;
 	page: Page;
 }) {
-	const toggle = page.getByTestId('toggle-switch-input');
+	const toggle = page.getByRole('switch', {name: 'Include Anonymous'});
 
 	if (enable) {
 		await toggle.check();
@@ -193,7 +208,7 @@ export async function includeAnonymousToggle({
 }
 
 export async function saveSegment(page: Page) {
-	await page.locator('button[type="submit"]').click();
+	await page.getByRole('button', {name: 'Save Segment'}).click();
 
 	await waitForAlert(page, 'Success:Changes to segment saved.', {
 		autoClose: false,
@@ -220,6 +235,62 @@ export async function selectAsset({
 	await page.getByRole('button', {name: 'Add'}).click();
 }
 
+export async function selectBehaviorAsset({
+	assetName,
+	assetType,
+	page,
+}: {
+	assetName: string;
+	assetType: string;
+	page: Page;
+}) {
+	await clickAndExpectToBeVisible({
+		autoClick: true,
+		target: page.getByRole('option', {name: assetType}),
+		trigger: page.getByRole('combobox', {exact: true, name: 'Asset Type'}),
+	});
+
+	await page.getByRole('button', {name: 'Add Assets'}).click();
+
+	await page
+		.getByRole('dialog')
+		.getByRole('row', {name: assetName})
+		.getByRole('checkbox')
+		.check();
+
+	await page
+		.getByRole('dialog')
+		.getByRole('button', {exact: true, name: 'Select'})
+		.click();
+}
+
+export async function selectBehaviorPage({
+	page,
+	pageName,
+}: {
+	page: Page;
+	pageName: string;
+}) {
+	await clickAndExpectToBeVisible({
+		autoClick: true,
+		target: page.getByRole('option', {exact: true, name: 'Page'}),
+		trigger: page.getByRole('combobox', {name: 'Page or Asset Type'}),
+	});
+
+	await page.getByRole('button', {name: 'Add Pages'}).click();
+
+	await page
+		.getByRole('dialog')
+		.getByRole('row', {name: pageName})
+		.getByRole('checkbox')
+		.check();
+
+	await page
+		.getByRole('dialog')
+		.getByRole('button', {exact: true, name: 'Select'})
+		.click();
+}
+
 export async function selectOperator({
 	index = 0,
 	operator,
@@ -242,15 +313,11 @@ export async function setSegmentName({
 	page: Page;
 	segmentName: string;
 }) {
-	const input = page.getByPlaceholder('Unnamed Segment');
+	const input = page.getByLabel('Title', {exact: true});
 
-	await expect(async () => {
-		await page.getByLabel('Edit').click();
+	await input.fill(segmentName);
 
-		await input.fill(segmentName, {timeout: 2000});
-
-		await expect(input).toHaveValue(segmentName);
-	}).toPass();
+	await expect(input).toHaveValue(segmentName);
 
 	await page.keyboard.press('Tab');
 }

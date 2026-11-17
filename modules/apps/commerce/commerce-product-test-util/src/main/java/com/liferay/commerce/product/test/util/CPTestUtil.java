@@ -53,7 +53,6 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
-import com.liferay.portal.kernel.settings.SystemSettingsLocator;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -257,7 +256,8 @@ public class CPTestUtil {
 	public static CPDefinition addCPDefinitionFromCatalog(
 			long groupId, String productTypeName, Date displayDate,
 			Date expirationDate, boolean ignoreSKUCombinations,
-			boolean hasDefaultInstance, int status)
+			boolean hasDefaultInstance, int status,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		String defaultSku = null;
@@ -268,9 +268,7 @@ public class CPTestUtil {
 
 		return _addCPDefinitionWithSku(
 			groupId, productTypeName, displayDate, expirationDate,
-			ignoreSKUCombinations,
-			ServiceContextTestUtil.getServiceContext(groupId), defaultSku,
-			status);
+			ignoreSKUCombinations, serviceContext, defaultSku, status);
 	}
 
 	public static CPDefinitionOptionRel addCPDefinitionOptionRel(
@@ -1420,9 +1418,8 @@ public class CPTestUtil {
 	private static CPOptionConfiguration _getCPOptionConfiguration()
 		throws ConfigurationException {
 
-		return ConfigurationProviderUtil.getConfiguration(
-			CPOptionConfiguration.class,
-			new SystemSettingsLocator(CPConstants.SERVICE_NAME_CP_OPTION));
+		return ConfigurationProviderUtil.getSystemConfiguration(
+			CPOptionConfiguration.class);
 	}
 
 	private static CPInstance _getRandomApprovedCPInstance(

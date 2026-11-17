@@ -8,10 +8,9 @@ package com.liferay.users.admin.web.internal.portlet.action;
 import com.liferay.announcements.kernel.model.AnnouncementsDelivery;
 import com.liferay.asset.kernel.exception.AssetCategoryException;
 import com.liferay.asset.kernel.exception.AssetTagException;
-import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.bean.BeanParamUtil;
 import com.liferay.portal.kernel.exception.CompanyMaxUsersException;
 import com.liferay.portal.kernel.exception.ContactBirthdayException;
 import com.liferay.portal.kernel.exception.ContactNameException;
@@ -76,7 +75,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
 import com.liferay.portlet.InvokerPortletUtil;
-import com.liferay.portlet.admin.util.AdminUtil;
 import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
 import com.liferay.users.admin.constants.UsersAdminPortletKeys;
 
@@ -352,14 +350,11 @@ public class EditUserMVCActionCommand
 
 		User user = portal.getSelectedUser(actionRequest);
 
-		Contact contact = user.getContact();
-
-		String oldPassword = AdminUtil.getUpdateUserPassword(
-			actionRequest, user.getUserId());
+		String oldPassword = ParamUtil.getString(actionRequest, "password");
 
 		String oldScreenName = user.getScreenName();
-		String screenName = BeanParamUtil.getString(
-			user, actionRequest, "screenName");
+		String screenName = ParamUtil.getString(
+			actionRequest, "screenName", user.getScreenName());
 
 		if (PrefsPropsUtil.getBoolean(
 				user.getCompanyId(),
@@ -369,8 +364,8 @@ public class EditUserMVCActionCommand
 		}
 
 		String oldEmailAddress = user.getEmailAddress();
-		String emailAddress = BeanParamUtil.getString(
-			user, actionRequest, "emailAddress");
+		String emailAddress = ParamUtil.getString(
+			actionRequest, "emailAddress", user.getEmailAddress());
 
 		Company company = portal.getCompany(actionRequest);
 
@@ -383,8 +378,7 @@ public class EditUserMVCActionCommand
 
 			int authResult = _userLocalService.authenticateByUserId(
 				themeDisplay.getCompanyId(), portal.getUserId(actionRequest),
-				ParamUtil.getString(actionRequest, "password"), new HashMap<>(),
-				new HashMap<>(), new HashMap<>());
+				oldPassword, new HashMap<>(), new HashMap<>(), new HashMap<>());
 
 			if (authResult != Authenticator.SUCCESS) {
 				throw new PrincipalException();
@@ -398,25 +392,28 @@ public class EditUserMVCActionCommand
 		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
 
 		if (fileEntryId > 0) {
-			FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
+			FileEntry fileEntry = _dlAppService.getFileEntry(fileEntryId);
 
 			portraitBytes = FileUtil.getBytes(fileEntry.getContentStream());
 		}
 
-		String languageId = BeanParamUtil.getString(
-			user, actionRequest, "languageId");
-		String firstName = BeanParamUtil.getString(
-			user, actionRequest, "firstName");
-		String middleName = BeanParamUtil.getString(
-			user, actionRequest, "middleName");
-		String lastName = BeanParamUtil.getString(
-			user, actionRequest, "lastName");
-		long prefixListTypeId = BeanParamUtil.getInteger(
-			contact, actionRequest, "prefixListTypeId");
-		long suffixListTypeId = BeanParamUtil.getInteger(
-			contact, actionRequest, "suffixListTypeId");
-		boolean male = BeanParamUtil.getBoolean(
-			user, actionRequest, "male", true);
+		String languageId = ParamUtil.getString(
+			actionRequest, "languageId", user.getLanguageId());
+		String firstName = ParamUtil.getString(
+			actionRequest, "firstName", user.getFirstName());
+		String middleName = ParamUtil.getString(
+			actionRequest, "middleName", user.getMiddleName());
+		String lastName = ParamUtil.getString(
+			actionRequest, "lastName", user.getLastName());
+
+		Contact contact = user.getContact();
+
+		long prefixListTypeId = ParamUtil.getLong(
+			actionRequest, "prefixListTypeId", contact.getPrefixListTypeId());
+		long suffixListTypeId = ParamUtil.getLong(
+			actionRequest, "suffixListTypeId", contact.getSuffixListTypeId());
+		boolean male = ParamUtil.getBoolean(
+			actionRequest, "male", contact.isMale());
 
 		Calendar calendar = CalendarFactoryUtil.getCalendar();
 
@@ -429,10 +426,10 @@ public class EditUserMVCActionCommand
 		int birthdayYear = ParamUtil.getInteger(
 			actionRequest, "birthdayYear", calendar.get(Calendar.YEAR));
 
-		String comments = BeanParamUtil.getString(
-			user, actionRequest, "comments");
-		String jobTitle = BeanParamUtil.getString(
-			user, actionRequest, "jobTitle");
+		String comments = ParamUtil.getString(
+			actionRequest, "comments", user.getComments());
+		String jobTitle = ParamUtil.getString(
+			actionRequest, "jobTitle", user.getJobTitle());
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			User.class.getName(), actionRequest);
@@ -541,9 +538,9 @@ public class EditUserMVCActionCommand
 		String firstName = ParamUtil.getString(actionRequest, "firstName");
 		String middleName = ParamUtil.getString(actionRequest, "middleName");
 		String lastName = ParamUtil.getString(actionRequest, "lastName");
-		long prefixListTypeId = ParamUtil.getInteger(
+		long prefixListTypeId = ParamUtil.getLong(
 			actionRequest, "prefixListTypeId");
-		long suffixListTypeId = ParamUtil.getInteger(
+		long suffixListTypeId = ParamUtil.getLong(
 			actionRequest, "suffixListTypeId");
 		boolean male = ParamUtil.getBoolean(actionRequest, "male", true);
 		int birthdayMonth = ParamUtil.getInteger(
@@ -574,7 +571,7 @@ public class EditUserMVCActionCommand
 		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
 
 		if (fileEntryId > 0) {
-			FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
+			FileEntry fileEntry = _dlAppService.getFileEntry(fileEntryId);
 
 			portraitBytes = FileUtil.getBytes(fileEntry.getContentStream());
 		}
@@ -717,7 +714,7 @@ public class EditUserMVCActionCommand
 	}
 
 	@Reference
-	private DLAppLocalService _dlAppLocalService;
+	private DLAppService _dlAppService;
 
 	@Reference
 	private Language _language;

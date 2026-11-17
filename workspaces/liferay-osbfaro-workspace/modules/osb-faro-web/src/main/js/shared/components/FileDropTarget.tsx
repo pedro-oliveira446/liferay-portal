@@ -1,5 +1,5 @@
 import ClayButton from '@clayui/button';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import DropTarget, {TYPES} from 'shared/components/DropTarget';
 import FileUploader, {ERROR_TYPES} from '../util/FileUploader';
 import getCN from 'classnames';
@@ -9,6 +9,7 @@ import TextTruncate from 'shared/components/TextTruncate';
 import {addAlert} from 'shared/actions/alerts';
 import {Alert} from 'shared/types';
 import {connect, ConnectedProps} from 'react-redux';
+import {getLocale} from 'shared/util/locale';
 import {round} from 'lodash';
 import {sub} from 'shared/util/lang';
 
@@ -33,12 +34,12 @@ export const getFileSizeLabel = (value: number): string => {
 
 	if (kbSize < 1000) {
 		return sub(Liferay.Language.get('x-kb'), [
-			kbSize.toLocaleString(),
+			kbSize.toLocaleString(getLocale()),
 		]) as string;
 	}
 
 	return sub(Liferay.Language.get('x-mb'), [
-		round(value / mb, 1).toLocaleString(),
+		round(value / mb, 1).toLocaleString(getLocale()),
 	]) as string;
 };
 
@@ -97,7 +98,7 @@ export const FileItem: React.FC<IFileItemProps> = ({file, onCancel}) => {
 							{file.name}
 						</TextTruncate>
 
-						<div className="status-wrapper">
+						<div className="ml-2 status-wrapper">
 							{getFileStatusIcon(file)}
 						</div>
 					</div>
@@ -113,7 +114,7 @@ export const FileItem: React.FC<IFileItemProps> = ({file, onCancel}) => {
 
 				<div className="d-flex align-items-center">
 					{file && file.completed && !error && !!file.size && (
-						<div className="file-size">
+						<div className="file-size mr-2">
 							{getFileSizeLabel(file.size)}
 						</div>
 					)}
@@ -149,6 +150,8 @@ export class FileDropTarget extends React.Component<IFileDropTargetProps> {
 		file: null,
 	};
 
+	private _uploader: any;
+
 	constructor(props: IFileDropTargetProps) {
 		super(props);
 		this.handleCancel = this.handleCancel.bind(this);
@@ -169,8 +172,6 @@ export class FileDropTarget extends React.Component<IFileDropTargetProps> {
 			useJaxRS,
 		}).render();
 	}
-
-	private _uploader: any;
 
 	handleCancel() {
 		const {onChange} = this.props;

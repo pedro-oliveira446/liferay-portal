@@ -331,6 +331,54 @@ public class CTCacheTest {
 	}
 
 	@Test
+	public void testDeleteClearsCTCollectionCounts() throws Exception {
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_group);
+
+		FinderPath finderPath = new FinderPath(
+			LayoutPersistenceImpl.FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
+			"countByGroupId", new String[] {Long.class.getName()},
+			new String[] {"groupId"}, false);
+
+		Object[] finderArgs = {RandomTestUtil.randomLong()};
+
+		BasePersistence<?> basePersistence =
+			_layoutLocalService.getBasePersistence();
+
+		CTCollection ctCollection = _ctCollectionLocalService.addCTCollection(
+			null, TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+			0, RandomTestUtil.randomString(), RandomTestUtil.randomString());
+
+		_ctCollections.add(ctCollection);
+
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollection.getCtCollectionId())) {
+
+			Assert.assertNull(
+				FinderCacheUtil.getResult(
+					finderPath, finderArgs, basePersistence));
+
+			FinderCacheUtil.putResult(finderPath, finderArgs, 1L);
+
+			Assert.assertEquals(
+				1L,
+				FinderCacheUtil.getResult(
+					finderPath, finderArgs, basePersistence));
+		}
+
+		_layoutLocalService.deleteLayout(layout);
+
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollection.getCtCollectionId())) {
+
+			Assert.assertNull(
+				FinderCacheUtil.getResult(
+					finderPath, finderArgs, basePersistence));
+		}
+	}
+
+	@Test
 	public void testWithoutCTAwareDSLQueryCacheResults() throws Exception {
 		DSLQuery dslQuery = DSLQueryFactoryUtil.select(
 			ContactTable.INSTANCE
@@ -357,9 +405,18 @@ public class CTCacheTest {
 			null, TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
 			0, RandomTestUtil.randomString(), RandomTestUtil.randomString());
 
-		int count = _contactLocalService.getContactsCount(
-			_classNameLocalService.getClassNameId(User.class.getName()),
-			TestPropsValues.getUserId());
+		int count = _contactLocalService.dslQueryCount(
+			DSLQueryFactoryUtil.count(
+			).from(
+				ContactTable.INSTANCE
+			).where(
+				ContactTable.INSTANCE.classNameId.eq(
+					_classNameLocalService.getClassNameId(User.class.getName())
+				).and(
+					ContactTable.INSTANCE.classPK.eq(
+						TestPropsValues.getUserId())
+				)
+			));
 
 		List<Contact> cachedContacts = null;
 
@@ -520,18 +577,15 @@ public class CTCacheTest {
 
 		FinderPath finderPath = new FinderPath(
 			ContactPersistenceImpl.FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByCompanyId", new String[] {Long.class.getName()},
-			new String[] {"companyId"}, true);
+			"findAll", new String[0], new String[0], true);
 
-		Object[] finderArgs = {TestPropsValues.getCompanyId()};
+		Object[] finderArgs = new Object[0];
 
 		BasePersistence<?> basePersistence =
 			_contactLocalService.getBasePersistence();
 
-		List<Contact> productionContacts =
-			_contactLocalService.getCompanyContacts(
-				TestPropsValues.getCompanyId(), QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
+		List<Contact> productionContacts = _contactLocalService.getContacts(
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		List<Contact> cachedContacts = (List<Contact>)FinderCacheUtil.getResult(
 			finderPath, finderArgs, basePersistence);
@@ -562,9 +616,8 @@ public class CTCacheTest {
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				RandomTestUtil.randomString());
 
-			ctCollection1Contacts = _contactLocalService.getCompanyContacts(
-				TestPropsValues.getCompanyId(), QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
+			ctCollection1Contacts = _contactLocalService.getContacts(
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 			cachedContacts = (List<Contact>)FinderCacheUtil.getResult(
 				finderPath, finderArgs, basePersistence);
@@ -577,9 +630,8 @@ public class CTCacheTest {
 				productionContacts.size());
 		}
 
-		productionContacts = _contactLocalService.getCompanyContacts(
-			TestPropsValues.getCompanyId(), QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS);
+		productionContacts = _contactLocalService.getContacts(
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		Assert.assertEquals(
 			cachedContacts.toString(), cachedContacts.size(),
@@ -607,9 +659,8 @@ public class CTCacheTest {
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				RandomTestUtil.randomString());
 
-			ctCollection2Contacts = _contactLocalService.getCompanyContacts(
-				TestPropsValues.getCompanyId(), QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
+			ctCollection2Contacts = _contactLocalService.getContacts(
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 			cachedContacts = (List<Contact>)FinderCacheUtil.getResult(
 				finderPath, finderArgs, basePersistence);
@@ -625,9 +676,8 @@ public class CTCacheTest {
 				ctCollection1Contacts.size());
 		}
 
-		productionContacts = _contactLocalService.getCompanyContacts(
-			TestPropsValues.getCompanyId(), QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS);
+		productionContacts = _contactLocalService.getContacts(
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		Assert.assertEquals(
 			cachedContacts.toString(), cachedContacts.size(),

@@ -5,9 +5,9 @@
 
 package com.liferay.layout.seo.web.internal.servlet.taglib;
 
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryMetadataLocalService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.service.DDMFieldLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.info.constants.InfoDisplayWebKeys;
@@ -72,6 +72,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	configurationPid = "com.liferay.layout.seo.web.internal.configuration.LayoutSEODynamicRenderingConfiguration",
+	property = "dynamic.include.key=/html/common/themes/top_head.jsp#pre",
 	service = DynamicInclude.class
 )
 public class OpenGraphTopHeadDynamicInclude extends BaseDynamicInclude {
@@ -136,9 +137,7 @@ public class OpenGraphTopHeadDynamicInclude extends BaseDynamicInclude {
 			}
 
 			LayoutSEOEntry layoutSEOEntry =
-				_layoutSEOEntryLocalService.fetchLayoutSEOEntry(
-					layout.getGroupId(), layout.isPrivateLayout(),
-					layout.getLayoutId());
+				_layoutSEOEntryLocalService.fetchLayoutSEOEntry(layout);
 
 			if (layoutSEOEntry != null) {
 				List<LayoutSEOEntryCustomMetaTag> layoutSEOEntryCustomMetaTags =
@@ -316,11 +315,6 @@ public class OpenGraphTopHeadDynamicInclude extends BaseDynamicInclude {
 		catch (Exception exception) {
 			throw new IOException(exception);
 		}
-	}
-
-	@Override
-	public void register(DynamicIncludeRegistry dynamicIncludeRegistry) {
-		dynamicIncludeRegistry.register("/html/common/themes/top_head.jsp#pre");
 	}
 
 	@Activate

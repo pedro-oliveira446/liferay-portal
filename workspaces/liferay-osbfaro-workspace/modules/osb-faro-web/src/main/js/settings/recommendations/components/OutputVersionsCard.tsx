@@ -1,17 +1,21 @@
 import Card from 'shared/components/Card';
-import Label from 'shared/components/Label';
+import ClayLabel, {LabelDisplayType} from '@clayui/label';
+import DataValue from 'shared/components/DataValue';
 import moment from 'moment';
 import React from 'react';
 import RecommendationJobRunsQuery from '../queries/RecommendationJobRunsQuery';
 import Table from 'shared/components/table';
-import {applyTimeZone} from 'shared/util/date';
+import {
+	applyTimeZone,
+	formatRelativeTime,
+	formatTodayOrDate,
+} from 'shared/util/date';
 import {compose} from 'redux';
 import {
 	createOrderIOMap,
 	getSortFromOrderIOMap,
 	ID,
 } from 'shared/util/pagination';
-import {getCustomDateFormat} from 'shared/util/date';
 import {getFormattedTitle} from 'shared/components/NoResultsDisplay';
 import {getMapResultToProps} from 'shared/hoc/mappers/metrics';
 import {graphql} from '@apollo/client/react/hoc';
@@ -28,7 +32,6 @@ import {
 import {OrderedMap} from 'immutable';
 import {OrderParams} from 'shared/util/records';
 import {sub} from 'shared/util/lang';
-import {toThousands} from 'shared/util/numbers';
 import {withEmpty} from 'cerebro-shared/hocs/utils';
 import {
 	withError,
@@ -39,14 +42,10 @@ import {
 
 const getContextItemCount =
 	(contextItemKey: string) =>
-	(context: {key: string; value: any}[]): string => {
+	(context: {key: string; value: any}[]): React.ReactNode => {
 		const contextItem = context.find(({key}) => key === contextItemKey);
 
-		if (contextItem) {
-			return toThousands(Number(contextItem.value));
-		}
-
-		return '0';
+		return <DataValue type="count" value={contextItem?.value} />;
 	};
 
 interface IOutputVersionsCardProps {
@@ -121,7 +120,7 @@ const OutputVersionsCard: React.FC<IOutputVersionsCardProps> = ({
 
 				{!!nextRunDate && (
 					<b>{`(${sub(Liferay.Language.get('next-x'), [
-						moment(nextRunDate).fromNow(),
+						formatRelativeTime(moment(nextRunDate)),
 					])})`}</b>
 				)}
 			</div>
@@ -133,23 +132,8 @@ const OutputVersionsCard: React.FC<IOutputVersionsCardProps> = ({
 					{
 						accessor: 'completedDate',
 						className: 'table-cell-expand',
-						dataFormatter: (val: string) => {
-							const dateFormat = getCustomDateFormat();
-
-							return applyTimeZone(val, timeZoneId).calendar(
-								null,
-								{
-									lastDay: dateFormat,
-									lastWeek: dateFormat,
-									nextDay: dateFormat,
-									nextWeek: dateFormat,
-									sameDay: `[${Liferay.Language.get(
-										'today'
-									)}]`,
-									sameElse: dateFormat,
-								}
-							);
-						},
+						dataFormatter: (val: string) =>
+							formatTodayOrDate(applyTimeZone(val, timeZoneId)),
 						label: Liferay.Language.get('training-date'),
 						sortable: false,
 						title: true,
@@ -180,16 +164,18 @@ const OutputVersionsCard: React.FC<IOutputVersionsCardProps> = ({
 							data: {status: JobRunStatuses};
 						}) => (
 							<td className={className}>
-								<Label
+								<ClayLabel
 									className="status"
-									display={
-										JOB_RUN_STATUSES_DISPLAY_MAP[status]
+									displayType={
+										JOB_RUN_STATUSES_DISPLAY_MAP[
+											status
+										] as LabelDisplayType
 									}
+									inverse
 									size="lg"
-									uppercase
 								>
 									{JOB_RUN_STATUSES_LABEL_MAP[status]}
-								</Label>
+								</ClayLabel>
 							</td>
 						),
 						label: Liferay.Language.get('status'),

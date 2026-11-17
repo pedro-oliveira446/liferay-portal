@@ -8,9 +8,15 @@ import {
 	ObjectDefinitionAPI,
 	ObjectFolderAPI,
 	ObjectRelationshipAPI,
-} from '@liferay/object-admin-rest-client-js';
-import {BrowserContext, Page} from '@playwright/test';
+} from '@liferay/object-admin-rest-client-js/v1_0';
+import {Page} from '@playwright/test';
 
+import {
+	clearAuthToken,
+	getCSRFTokenHeader,
+	getHeader,
+	readAuthToken,
+} from '../../playwright-core/src/authToken';
 import {liferayConfig} from '../liferay.config';
 import {AnalyticsSettingsRestApiHelper} from './AnalyticsSettingsRestApiHelper';
 import {ApiBuilderHelper} from './ApiBuilderHelper';
@@ -43,6 +49,7 @@ import {HeadlessDeliveryApiHelper} from './HeadlessDeliveryApiHelper';
 import {HeadlessDigitalSalesRoomApiHelper} from './HeadlessDigitalSalesRoomApiHelper';
 import {HeadlessPortalInstanceApiHelper} from './HeadlessPortalInstanceApiHelper';
 import {LanguageApiHelper} from './LanguageApiHelper';
+import {LaunchApiHelper} from './LaunchApiHelper';
 import {ListTypeAdminApiHelper} from './ListTypeAdminApiHelper';
 import {NotificationApiHelper} from './NotificationApiHelper';
 import {ObjectActionApiHelper} from './ObjectActionApiHelper';
@@ -56,10 +63,12 @@ import {JSONWebServicesAnnouncementsEntryApiHelper} from './json-web-services/JS
 import {JSONWebServicesAssetDisplayPageEntryApiHelper} from './json-web-services/JSONWebServicesAssetDisplayPageEntryApiHelper';
 import {JSONWebServicesAssetListEntryApiHelper} from './json-web-services/JSONWebServicesAssetListEntryApiHelper';
 import {JSONWebServicesAudiencesEntryApiHelper} from './json-web-services/JSONWebServicesAudiencesEntryApiHelper';
+import {JSONWebServicesBlogsApiHelper} from './json-web-services/JSONWebServicesBlogsApiHelper';
 import {JSONWebServicesCalendarApiHelper} from './json-web-services/JSONWebServicesCalendarApiHelper';
 import {JSONWebServicesCalendarResourceApiHelper} from './json-web-services/JSONWebServicesCalendarResourceApiHelper';
 import {JSONWebServicesClassNameApiHelper} from './json-web-services/JSONWebServicesClassNameApiHelper';
 import {JSONWebServicesClientExtensionApiHelper} from './json-web-services/JSONWebServicesClientExtensionApiHelper';
+import {JSONWebServicesCommercePaymentMethodGroupRelApiHelper} from './json-web-services/JSONWebServicesCommercePaymentMethodGroupRelApiHelper';
 import {JSONWebServicesCompanyApiHelper} from './json-web-services/JSONWebServicesCompanyApiHelper';
 import {JSONWebServicesDDMApiHelper} from './json-web-services/JSONWebServicesDDMApiHelper';
 import {JSONWebServicesDepotApiHelper} from './json-web-services/JSONWebServicesDepotApiHelper';
@@ -69,6 +78,7 @@ import {JSONWebServicesFragmentCollectionApiHelper} from './json-web-services/JS
 import {JSONWebServicesFragmentEntryApiHelper} from './json-web-services/JSONWebServicesFragmentEntryApiHelper';
 import {JSONWebServicesGroupApiHelper} from './json-web-services/JSONWebServicesGroupApiHelper';
 import {JSONWebServicesJournalApiHelper} from './json-web-services/JSONWebServicesJournalApiHelper';
+import {JSONWebServicesKnowledgeBaseApiHelper} from './json-web-services/JSONWebServicesKnowledgeBaseApiHelper';
 import {JSONWebServicesLayoutApiHelper} from './json-web-services/JSONWebServicesLayoutApiHelper';
 import {JSONWebServicesLayoutPageTemplateCollectionApiHelper} from './json-web-services/JSONWebServicesLayoutPageTemplateCollection';
 import {JSONWebServicesLayoutPageTemplateEntryApiHelper} from './json-web-services/JSONWebServicesLayoutPageTemplateEntry';
@@ -77,6 +87,7 @@ import {JSONWebServicesLayoutSetPrototypeApiHelper} from './json-web-services/JS
 import {JSONWebServicesMBApiHelper} from './json-web-services/JSONWebServicesMBApiHelper';
 import {JSONWebServicesOSBAsahApiHelper} from './json-web-services/JSONWebServicesOSBAsahApiHelper';
 import {JSONWebServicesOSBFaroApiHelper} from './json-web-services/JSONWebServicesOSBFaroApiHelper';
+import {JSONWebServicesOrganizationApiHelper} from './json-web-services/JSONWebServicesOrganizationApiHelper';
 import {JSONWebServicesPushNotificationsDeviceApiHelper} from './json-web-services/JSONWebServicesPushNotificationsDeviceApiHelper';
 import {JSONWebServicesResourcePermissionApiHelper} from './json-web-services/JSONWebServicesResourcePermissionApiHelper';
 import {JSONWebServicesRoleApiHelper} from './json-web-services/JSONWebServicesRoleApiHelper';
@@ -86,8 +97,7 @@ import {JSONWebServicesStagingApiHelper} from './json-web-services/JSONWebServic
 import {JSONWebServicesTeamApiHelper} from './json-web-services/JSONWebServicesTeamApiHelper';
 import {JSONWebServicesUserApiHelper} from './json-web-services/JSONWebServicesUserApiHelper';
 import {JSONWebServicesUserGroupApiHelper} from './json-web-services/JSONWebServicesUserGroupApiHelper';
-
-type ContentType = 'application/json' | 'application/x-www-form-urlencoded';
+import {JSONWebServicesWorkflowDefinitionLinkApiHelper} from './json-web-services/JSONWebServicesWorkflowDefinitionLinkApiHelper';
 
 type TDataApiHelpersData = {
 	applicationName?: string;
@@ -106,41 +116,7 @@ interface RequestOptions<T> {
 	multipart?: {[key: string]: any};
 }
 
-const authTokens = new WeakMap<BrowserContext, string>();
-
-export function clearAuthToken(page: Page) {
-	authTokens.delete(page.context());
-}
-
-export async function readAuthToken(page: Page) {
-	const authToken = await page.evaluate(() => Liferay.authToken);
-
-	authTokens.set(page.context(), authToken);
-
-	return authToken;
-}
-
-async function getCSRFTokenHeader(page: Page) {
-	let authToken = authTokens.get(page.context());
-
-	if (authToken === undefined) {
-		authToken = await readAuthToken(page);
-	}
-
-	return {
-		'x-csrf-token': authToken,
-	};
-}
-
-export async function getHeader(
-	page: Page,
-	contentType: ContentType = 'application/json'
-) {
-	return {
-		'Content-Type': contentType,
-		...(await getCSRFTokenHeader(page)),
-	};
-}
+export {clearAuthToken, getHeader, readAuthToken};
 
 export class ApiHelpers {
 	readonly analyticsSettingsRest: AnalyticsSettingsRestApiHelper;
@@ -178,10 +154,12 @@ export class ApiHelpers {
 	readonly jsonWebServicesAssetDisplayPageEntry: JSONWebServicesAssetDisplayPageEntryApiHelper;
 	readonly jsonWebServicesAssetListEntry: JSONWebServicesAssetListEntryApiHelper;
 	readonly jsonWebServicesAudiencesEntry: JSONWebServicesAudiencesEntryApiHelper;
+	readonly jsonWebServicesBlogs: JSONWebServicesBlogsApiHelper;
 	readonly jsonWebServicesCalendar: JSONWebServicesCalendarApiHelper;
 	readonly jsonWebServicesCalendarResource: JSONWebServicesCalendarResourceApiHelper;
 	readonly jsonWebServicesClassName: JSONWebServicesClassNameApiHelper;
 	readonly jsonWebServicesClientExtension: JSONWebServicesClientExtensionApiHelper;
+	readonly jsonWebServicesCommercePaymentMethodGroupRel: JSONWebServicesCommercePaymentMethodGroupRelApiHelper;
 	readonly jsonWebServicesCompany: JSONWebServicesCompanyApiHelper;
 	readonly jsonWebServicesDDM: JSONWebServicesDDMApiHelper;
 	readonly jsonWebServicesDepot: JSONWebServicesDepotApiHelper;
@@ -191,12 +169,14 @@ export class ApiHelpers {
 	readonly jsonWebServicesFragmentCollection: JSONWebServicesFragmentCollectionApiHelper;
 	readonly jsonWebServicesGroup: JSONWebServicesGroupApiHelper;
 	readonly jsonWebServicesJournal: JSONWebServicesJournalApiHelper;
+	readonly jsonWebServicesKnowledgeBase: JSONWebServicesKnowledgeBaseApiHelper;
 	readonly jsonWebServicesLayout: JSONWebServicesLayoutApiHelper;
 	readonly jsonWebServicesLayoutPageTemplateEntry: JSONWebServicesLayoutPageTemplateEntryApiHelper;
 	readonly jsonWebServicesLayoutPageTemplateCollection: JSONWebServicesLayoutPageTemplateCollectionApiHelper;
 	readonly jsonWebServicesLayoutSet: JSONWebServicesLayoutSetApiHelper;
 	readonly jsonWebServicesLayoutSetPrototype: JSONWebServicesLayoutSetPrototypeApiHelper;
 	readonly jsonWebServicesMBApiHelper: JSONWebServicesMBApiHelper;
+	readonly jsonWebServicesOrganization: JSONWebServicesOrganizationApiHelper;
 	readonly jsonWebServicesOSBAsah: JSONWebServicesOSBAsahApiHelper;
 	readonly jsonWebServicesOSBFaro: JSONWebServicesOSBFaroApiHelper;
 	readonly jsonWebServicesPushNotificationsDevice: JSONWebServicesPushNotificationsDeviceApiHelper;
@@ -208,7 +188,9 @@ export class ApiHelpers {
 	readonly jsonWebServicesTeam: JSONWebServicesTeamApiHelper;
 	readonly jsonWebServicesUser: JSONWebServicesUserApiHelper;
 	readonly jsonWebServicesUserGroup: JSONWebServicesUserGroupApiHelper;
+	readonly jsonWebServicesWorkflowDefinitionLink: JSONWebServicesWorkflowDefinitionLinkApiHelper;
 	readonly language: LanguageApiHelper;
+	readonly launch: LaunchApiHelper;
 	readonly listTypeAdmin: ListTypeAdminApiHelper;
 	readonly notification: NotificationApiHelper;
 	readonly objectAction: ObjectActionApiHelper;
@@ -279,6 +261,7 @@ export class ApiHelpers {
 			new JSONWebServicesAssetListEntryApiHelper(this);
 		this.jsonWebServicesAudiencesEntry =
 			new JSONWebServicesAudiencesEntryApiHelper(this);
+		this.jsonWebServicesBlogs = new JSONWebServicesBlogsApiHelper(this);
 		this.jsonWebServicesCalendar = new JSONWebServicesCalendarApiHelper(
 			this
 		);
@@ -289,6 +272,8 @@ export class ApiHelpers {
 		);
 		this.jsonWebServicesClientExtension =
 			new JSONWebServicesClientExtensionApiHelper(this);
+		this.jsonWebServicesCommercePaymentMethodGroupRel =
+			new JSONWebServicesCommercePaymentMethodGroupRelApiHelper(this);
 		this.jsonWebServicesCompany = new JSONWebServicesCompanyApiHelper(this);
 		this.jsonWebServicesDDM = new JSONWebServicesDDMApiHelper(this);
 		this.jsonWebServicesDepot = new JSONWebServicesDepotApiHelper(this);
@@ -302,6 +287,8 @@ export class ApiHelpers {
 			new JSONWebServicesFragmentCollectionApiHelper(this);
 		this.jsonWebServicesGroup = new JSONWebServicesGroupApiHelper(this);
 		this.jsonWebServicesJournal = new JSONWebServicesJournalApiHelper(this);
+		this.jsonWebServicesKnowledgeBase =
+			new JSONWebServicesKnowledgeBaseApiHelper(this);
 		this.jsonWebServicesLayout = new JSONWebServicesLayoutApiHelper(this);
 		this.jsonWebServicesLayoutPageTemplateEntry =
 			new JSONWebServicesLayoutPageTemplateEntryApiHelper(this);
@@ -313,6 +300,8 @@ export class ApiHelpers {
 		this.jsonWebServicesLayoutSetPrototype =
 			new JSONWebServicesLayoutSetPrototypeApiHelper(this);
 		this.jsonWebServicesMBApiHelper = new JSONWebServicesMBApiHelper(this);
+		this.jsonWebServicesOrganization =
+			new JSONWebServicesOrganizationApiHelper(this);
 		this.jsonWebServicesOSBFaro = new JSONWebServicesOSBFaroApiHelper(this);
 		this.jsonWebServicesOSBAsah = new JSONWebServicesOSBAsahApiHelper(this);
 		this.jsonWebServicesPushNotificationsDevice =
@@ -330,7 +319,10 @@ export class ApiHelpers {
 		this.jsonWebServicesUserGroup = new JSONWebServicesUserGroupApiHelper(
 			this
 		);
+		this.jsonWebServicesWorkflowDefinitionLink =
+			new JSONWebServicesWorkflowDefinitionLinkApiHelper(this);
 		this.language = new LanguageApiHelper(this);
+		this.launch = new LaunchApiHelper(this);
 		this.listTypeAdmin = new ListTypeAdminApiHelper(this);
 		this.notification = new NotificationApiHelper(this);
 		this.objectAction = new ObjectActionApiHelper(this);
@@ -681,6 +673,9 @@ export class DataApiHelpers extends ApiHelpers {
 						item.id
 					);
 				}
+				else if (item.type === 'objectEntryFolder') {
+					await this.objectFolder.deleteObjectEntryFolder(item.id);
+				}
 				else if (item.type === 'objectFolder') {
 					const objectFolderRESTClient =
 						await this.buildRestClient(ObjectFolderAPI);
@@ -817,6 +812,11 @@ export class DataApiHelpers extends ApiHelpers {
 				}
 				else if (item.type === 'sxpElement') {
 					await this.searchExperiences.deleteSXPElement(item.id);
+				}
+				else if (item.type === 'taxonomyCategory') {
+					await this.headlessAdminTaxonomy.deleteTaxonomyCategory(
+						item.id
+					);
 				}
 				else if (item.type === 'taxonomyVocabulary') {
 					await this.headlessAdminTaxonomy.deleteTaxonomyVocabulary(

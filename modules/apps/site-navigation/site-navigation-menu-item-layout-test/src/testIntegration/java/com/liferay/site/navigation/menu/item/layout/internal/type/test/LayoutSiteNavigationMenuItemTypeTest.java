@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -126,10 +127,13 @@ public class LayoutSiteNavigationMenuItemTypeTest {
 			).buildString(),
 			false, new HashMap<>(), _serviceContext);
 
+		List<SiteNavigationMenuItem> siteNavigationMenuItems =
+			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
+				_siteNavigationMenu.getSiteNavigationMenuId());
+
 		Assert.assertEquals(
-			0,
-			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItemsCount(
-				_siteNavigationMenu.getSiteNavigationMenuId()));
+			siteNavigationMenuItems.toString(), 0,
+			siteNavigationMenuItems.size());
 	}
 
 	@Test
@@ -157,15 +161,21 @@ public class LayoutSiteNavigationMenuItemTypeTest {
 			).buildString(),
 			false, new HashMap<>(), _serviceContext);
 
-		Assert.assertEquals(
-			1,
-			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItemsCount(
-				autoSiteNavigationMenu.getSiteNavigationMenuId()));
+		List<SiteNavigationMenuItem> autoSiteNavigationMenuItems =
+			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
+				autoSiteNavigationMenu.getSiteNavigationMenuId());
 
 		Assert.assertEquals(
-			1,
-			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItemsCount(
-				_siteNavigationMenu.getSiteNavigationMenuId()));
+			autoSiteNavigationMenuItems.toString(), 1,
+			autoSiteNavigationMenuItems.size());
+
+		List<SiteNavigationMenuItem> siteNavigationMenuItems =
+			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
+				_siteNavigationMenu.getSiteNavigationMenuId());
+
+		Assert.assertEquals(
+			siteNavigationMenuItems.toString(), 1,
+			siteNavigationMenuItems.size());
 	}
 
 	@Test
@@ -184,10 +194,18 @@ public class LayoutSiteNavigationMenuItemTypeTest {
 			).buildString(),
 			false, new HashMap<>(), _serviceContext);
 
+		List<SiteNavigationMenuItem> siteNavigationMenuItems =
+			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
+				_siteNavigationMenu.getSiteNavigationMenuId());
+
 		Assert.assertEquals(
-			1,
-			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItemsCount(
-				_siteNavigationMenu.getSiteNavigationMenuId()));
+			siteNavigationMenuItems.toString(), 1,
+			siteNavigationMenuItems.size());
+
+		SiteNavigationMenuItem siteNavigationMenuItem =
+			siteNavigationMenuItems.get(0);
+
+		Assert.assertEquals("welcome", siteNavigationMenuItem.getName());
 	}
 
 	@Test
@@ -320,6 +338,39 @@ public class LayoutSiteNavigationMenuItemTypeTest {
 			siteNavigationMenuItem.getName(), updatedLayoutName);
 	}
 
+	@Test
+	public void testHasPermission() throws Exception {
+		SiteNavigationMenuItemType siteNavigationMenuItemType =
+			_siteNavigationMenuItemTypeRegistry.getSiteNavigationMenuItemType(
+				SiteNavigationMenuItemTypeConstants.LAYOUT);
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_group);
+
+		SiteNavigationMenuItem siteNavigationMenuItem =
+			_siteNavigationMenuItemLocalService.addSiteNavigationMenuItem(
+				null, TestPropsValues.getUserId(), _group.getGroupId(),
+				_siteNavigationMenu.getSiteNavigationMenuId(), 0,
+				SiteNavigationMenuItemTypeConstants.LAYOUT,
+				UnicodePropertiesBuilder.create(
+					true
+				).put(
+					"externalReferenceCode", layout.getExternalReferenceCode()
+				).buildString(),
+				_serviceContext);
+
+		Assert.assertTrue(
+			siteNavigationMenuItemType.hasPermission(
+				PermissionThreadLocal.getPermissionChecker(),
+				siteNavigationMenuItem));
+
+		_layoutLocalService.deleteLayout(layout);
+
+		Assert.assertFalse(
+			siteNavigationMenuItemType.hasPermission(
+				PermissionThreadLocal.getPermissionChecker(),
+				siteNavigationMenuItem));
+	}
+
 	private void _assertGetLayout(Layout layout) throws Exception {
 		SiteNavigationMenuItemType siteNavigationMenuItemType =
 			_siteNavigationMenuItemTypeRegistry.getSiteNavigationMenuItemType(
@@ -350,7 +401,7 @@ public class LayoutSiteNavigationMenuItemTypeTest {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				"com.liferay.site.navigation.menu.item.layout.internal.type." +
 					"LayoutSiteNavigationMenuItemType",
-				LoggerTestUtil.WARN)) {
+				LoggerTestUtil.DEBUG)) {
 
 			Assert.assertEquals(
 				layout,

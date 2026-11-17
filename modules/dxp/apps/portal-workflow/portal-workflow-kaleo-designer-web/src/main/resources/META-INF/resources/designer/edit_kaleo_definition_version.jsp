@@ -25,9 +25,9 @@ KaleoDefinitionVersion kaleoDefinitionVersion = (KaleoDefinitionVersion)request.
 
 KaleoDefinition kaleoDefinition = kaleoDesignerDisplayContext.getKaleoDefinition(kaleoDefinitionVersion);
 
-String name = BeanParamUtil.getString(kaleoDefinitionVersion, request, "name");
-String draftVersion = BeanParamUtil.getString(kaleoDefinitionVersion, request, "version");
-String content = BeanParamUtil.getString(kaleoDefinitionVersion, request, "contentAsXML");
+String name = BeanParamUtil.getString(kaleoDefinitionVersion, request, "name", KaleoDefinitionVersion::getName);
+String draftVersion = BeanParamUtil.getString(kaleoDefinitionVersion, request, "version", KaleoDefinitionVersion::getVersion);
+String content = BeanParamUtil.getString(kaleoDefinitionVersion, request, "contentAsXML", KaleoDefinitionVersion::getContentAsXML);
 
 String latestDraftVersion = StringPool.BLANK;
 int version = 0;
@@ -230,7 +230,7 @@ String randomNamespace = StringUtil.randomId() + StringPool.UNDERLINE;
 													</li>
 													<li class="nav-item">
 														<a class="nav-link" href="javascript:void(0);">
-															<liferay-ui:message key="source" />
+															<liferay-ui:message key="source[code]" />
 														</a>
 													</li>
 												</ul>

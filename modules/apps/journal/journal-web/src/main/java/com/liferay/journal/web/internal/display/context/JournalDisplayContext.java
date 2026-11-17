@@ -191,12 +191,14 @@ public class JournalDisplayContext {
 			new String[0]);
 
 		for (DDMStructure ddmStructure : getDDMStructures()) {
-			if (ArrayUtil.contains(
+			if (!ArrayUtil.contains(
 					addMenuFavItems,
 					String.valueOf(ddmStructure.getStructureId()))) {
 
-				addMenuFavItemsList.add(ddmStructure.getStructureId());
+				continue;
 			}
+
+			addMenuFavItemsList.add(ddmStructure.getStructureId());
 		}
 
 		_addMenuFavItems = ArrayUtil.toLongArray(addMenuFavItemsList);
@@ -642,6 +644,7 @@ public class JournalDisplayContext {
 
 		_folderId = BeanParamUtil.getLong(
 			getFolder(), _httpServletRequest, "folderId",
+			JournalFolder::getFolderId,
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		return _folderId;

@@ -193,67 +193,61 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long CREATEDATE_COLUMN_BITMASK = 4L;
+	public static final long EMAILADDRESS_COLUMN_BITMASK = 4L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long EMAILADDRESS_COLUMN_BITMASK = 8L;
+	public static final long EXTERNALREFERENCECODE_COLUMN_BITMASK = 8L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long EXTERNALREFERENCECODE_COLUMN_BITMASK = 16L;
+	public static final long FACEBOOKID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long FACEBOOKID_COLUMN_BITMASK = 32L;
+	public static final long MODIFIEDDATE_COLUMN_BITMASK = 32L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long MODIFIEDDATE_COLUMN_BITMASK = 64L;
+	public static final long PORTRAITID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long PORTRAITID_COLUMN_BITMASK = 128L;
+	public static final long SCREENNAME_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long SCREENNAME_COLUMN_BITMASK = 256L;
+	public static final long STATUS_COLUMN_BITMASK = 256L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long STATUS_COLUMN_BITMASK = 512L;
+	public static final long TYPE_COLUMN_BITMASK = 512L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long TYPE_COLUMN_BITMASK = 1024L;
+	public static final long USERID_COLUMN_BITMASK = 1024L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long USERID_COLUMN_BITMASK = 2048L;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
-	 */
-	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 4096L;
+	public static final long UUID_COLUMN_BITMASK = 2048L;
 
 	public static final String MAPPING_TABLE_USERS_GROUPS_NAME = "Users_Groups";
 
@@ -778,15 +772,6 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 		}
 
 		_createDate = createDate;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public Date getOriginalCreateDate() {
-		return getColumnOriginalValue("createDate");
 	}
 
 	@JSON
@@ -1775,13 +1760,24 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 			return;
 		}
 
-		UserModelImpl sourceModelImpl = (UserModelImpl)source;
+		try {
+			_groupIdSetterMethodHandle.invokeExact(
+				(UserImpl)this,
+				(long)_groupIdGetterMethodHandle.invokeExact((UserImpl)source));
 
-		setGroupId(sourceModelImpl.getGroupId());
+			_layoutsUpdatedSetterMethodHandle.invokeExact(
+				(UserImpl)this,
+				(boolean)_layoutsUpdatedGetterMethodHandle.invokeExact(
+					(UserImpl)source));
 
-		setLayoutsUpdated(sourceModelImpl.isLayoutsUpdated());
-
-		setUserGroupIds(sourceModelImpl.getUserGroupIds());
+			_userGroupIdsSetterMethodHandle.invokeExact(
+				(UserImpl)this,
+				(long[])_userGroupIdsGetterMethodHandle.invokeExact(
+					(UserImpl)source));
+		}
+		catch (Throwable throwable) {
+			ReflectionUtil.throwException(throwable);
+		}
 	}
 
 	@Override
@@ -2107,15 +2103,16 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 		userCacheModel.status = getStatus();
 
 		try {
-			userCacheModel.groupId = (long)_groupIdMethodHandle.invokeExact(
-				(UserImpl)this);
+			userCacheModel.groupId =
+				(long)_groupIdGetterMethodHandle.invokeExact((UserImpl)this);
 
 			userCacheModel.layoutsUpdated =
-				(boolean)_layoutsUpdatedMethodHandle.invokeExact(
+				(boolean)_layoutsUpdatedGetterMethodHandle.invokeExact(
 					(UserImpl)this);
 
 			userCacheModel.userGroupIds =
-				(long[])_userGroupIdsMethodHandle.invokeExact((UserImpl)this);
+				(long[])_userGroupIdsGetterMethodHandle.invokeExact(
+					(UserImpl)this);
 		}
 		catch (Throwable throwable) {
 			ReflectionUtil.throwException(throwable);
@@ -2436,7 +2433,8 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 			}
 		};
 
-	private static final MethodHandle _groupIdMethodHandle;
+	private static final MethodHandle _groupIdGetterMethodHandle;
+	private static final MethodHandle _groupIdSetterMethodHandle;
 
 	protected static final BiConsumer<User, Boolean>
 		layoutsUpdatedUpdateEntityCacheBiConsumer = (user, layoutsUpdated) -> {
@@ -2450,7 +2448,8 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 			}
 		};
 
-	private static final MethodHandle _layoutsUpdatedMethodHandle;
+	private static final MethodHandle _layoutsUpdatedGetterMethodHandle;
+	private static final MethodHandle _layoutsUpdatedSetterMethodHandle;
 
 	protected static final BiConsumer<User, long[]>
 		userGroupIdsUpdateEntityCacheBiConsumer = (user, userGroupIds) -> {
@@ -2464,19 +2463,26 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 			}
 		};
 
-	private static final MethodHandle _userGroupIdsMethodHandle;
+	private static final MethodHandle _userGroupIdsGetterMethodHandle;
+	private static final MethodHandle _userGroupIdsSetterMethodHandle;
 
 	static {
 		MethodHandles.Lookup lookup = ReflectionUtil.getImplLookup();
 
 		try {
-			_groupIdMethodHandle = lookup.findGetter(
+			_groupIdGetterMethodHandle = lookup.findGetter(
+				UserImpl.class, "_groupId", long.class);
+			_groupIdSetterMethodHandle = lookup.findSetter(
 				UserImpl.class, "_groupId", long.class);
 
-			_layoutsUpdatedMethodHandle = lookup.findGetter(
+			_layoutsUpdatedGetterMethodHandle = lookup.findGetter(
+				UserImpl.class, "_layoutsUpdated", boolean.class);
+			_layoutsUpdatedSetterMethodHandle = lookup.findSetter(
 				UserImpl.class, "_layoutsUpdated", boolean.class);
 
-			_userGroupIdsMethodHandle = lookup.findGetter(
+			_userGroupIdsGetterMethodHandle = lookup.findGetter(
+				UserImpl.class, "_userGroupIds", long[].class);
+			_userGroupIdsSetterMethodHandle = lookup.findSetter(
 				UserImpl.class, "_userGroupIds", long[].class);
 		}
 		catch (ReflectiveOperationException reflectiveOperationException) {
@@ -2487,4 +2493,4 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 	private User _escapedModel;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:678884111
+// LIFERAY-SERVICE-BUILDER-HASH:-571214198

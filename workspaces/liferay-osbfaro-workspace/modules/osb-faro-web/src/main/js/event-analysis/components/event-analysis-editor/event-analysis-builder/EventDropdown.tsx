@@ -7,14 +7,13 @@ import EVENT_DEFINITIONS_QUERY, {
 	EventDefinitionsData,
 	EventDefinitionsVariables,
 } from 'event-analysis/queries/EventDefinitionsQuery';
+import EditAttributeEventModal from 'shared/components/modals/EditAttributeEventModal';
 import React, {useState} from 'react';
 import {Align} from '@clayui/drop-down';
 import {Attribute, Event, EventTypes} from 'event-analysis/utils/types';
-import {close, modalTypes, open} from 'shared/actions/modals';
-import {connect} from 'react-redux';
 import {DISPLAY_NAME} from 'shared/util/pagination';
-import {Modal} from 'shared/types';
 import {SafeResults} from 'shared/hoc/util';
+import {useModal} from '@clayui/modal';
 import {useQuery} from '@apollo/client';
 
 const {
@@ -23,21 +22,19 @@ const {
 
 interface IAnalysisDropdownProps {
 	alignmentPosition?: (typeof Align)[keyof typeof Align];
-	close: Modal.close;
-	eventId?: string;
 	onEventChange: (event: Event) => void;
-	open: Modal.open;
 	trigger: React.ReactElement;
 }
 
 const AnalysisDropdown: React.FC<IAnalysisDropdownProps> = ({
 	alignmentPosition = Align.RightTop,
-	close,
-	eventId,
 	onEventChange,
-	open,
 	trigger,
 }) => {
+	const editModal = useModal();
+
+	const [editingId, setEditingId] = useState<string>();
+
 	const [query, setQuery] = useState('');
 	const [eventType, setEventType] = useState<EventTypes>(EventTypes.All);
 
@@ -60,83 +57,93 @@ const AnalysisDropdown: React.FC<IAnalysisDropdownProps> = ({
 	);
 
 	return (
-		<BaseDropdown alignmentPosition={alignmentPosition} trigger={trigger}>
-			{({setActive}) => (
-				<>
-					<BaseDropdown.Header
-						activeTabId={eventType}
-						tabs={[
-							{
-								onClick: () => setEventType(EventTypes.All),
-								tabId: EventTypes.All,
-								title: Liferay.Language.get('all'),
-							},
-							{
-								onClick: () => setEventType(EventTypes.Default),
-								tabId: EventTypes.Default,
-								title: Liferay.Language.get('default'),
-							},
-							{
-								onClick: () => setEventType(EventTypes.Custom),
-								tabId: EventTypes.Custom,
-								title: Liferay.Language.get('custom'),
-							},
-						]}
-						title={Liferay.Language.get('events')}
-					/>
+		<>
+			<BaseDropdown
+				alignmentPosition={alignmentPosition}
+				trigger={trigger}
+			>
+				{({setActive}) => (
+					<>
+						<BaseDropdown.Header
+							activeTabId={eventType}
+							tabs={[
+								{
+									onClick: () => setEventType(EventTypes.All),
+									tabId: EventTypes.All,
+									title: Liferay.Language.get('all'),
+								},
+								{
+									onClick: () =>
+										setEventType(EventTypes.Default),
+									tabId: EventTypes.Default,
+									title: Liferay.Language.get('default'),
+								},
+								{
+									onClick: () =>
+										setEventType(EventTypes.Custom),
+									tabId: EventTypes.Custom,
+									title: Liferay.Language.get('custom'),
+								},
+							]}
+							title={Liferay.Language.get('events')}
+						/>
 
-					<SafeResults {...result} page={false} pageDisplay={false}>
-						{({
-							eventDefinitions: {eventDefinitions},
-						}: {
-							eventDefinitions: {eventDefinitions: Event[]};
-						}) => (
-							<BaseDropdown.SearchableList
-								activeId={eventId}
-								items={eventDefinitions}
-								onEditClick={(item?: Attribute | Event) => {
-									if (!item) {
-										return;
-									}
-
-									open(
-										modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
-										{
-											id: item.id,
-											mutation: UPDATE_EVENT_DEFINITION,
-											onClose: (save: boolean) => {
-												if (save) {
-													result.refetch();
-												}
-
-												close();
-											},
-											query: EVENT_DEFINITION_QUERY,
+						<SafeResults
+							{...result}
+							page={false}
+							pageDisplay={false}
+						>
+							{({
+								eventDefinitions: {eventDefinitions},
+							}: {
+								eventDefinitions: {eventDefinitions: Event[]};
+							}) => (
+								<BaseDropdown.SearchableList
+									items={eventDefinitions}
+									onEditClick={(item?: Attribute | Event) => {
+										if (!item) {
+											return;
 										}
-									);
 
-									setActive(false);
-								}}
-								onItemClick={(item: Attribute | Event) => {
-									const event = item as Event;
+										setEditingId(item.id);
 
-									if (event.id !== eventId) {
-										onEventChange(event);
+										editModal.onOpenChange(true);
+
+										setActive(false);
+									}}
+									onItemClick={(item: Attribute | Event) => {
+										onEventChange(item as Event);
 
 										setActive(false);
 										setEventType(EventTypes.All);
 										setQuery('');
-									}
-								}}
-								onQueryChange={setQuery}
-								query={query}
-							/>
-						)}
-					</SafeResults>
-				</>
+									}}
+									onQueryChange={setQuery}
+									query={query}
+								/>
+							)}
+						</SafeResults>
+					</>
+				)}
+			</BaseDropdown>
+
+			{editModal.open && editingId && (
+				<EditAttributeEventModal
+					id={editingId}
+					mutation={UPDATE_EVENT_DEFINITION}
+					observer={editModal.observer}
+					onClose={(save: boolean) => {
+						if (save) {
+							result.refetch();
+						}
+
+						editModal.onOpenChange(false);
+					}}
+					query={EVENT_DEFINITION_QUERY}
+				/>
 			)}
-		</BaseDropdown>
+		</>
 	);
 };
 
-export default connect(null, {close, open})(AnalysisDropdown);
+export default AnalysisDropdown;

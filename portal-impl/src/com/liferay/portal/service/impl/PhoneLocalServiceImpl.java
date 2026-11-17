@@ -95,11 +95,6 @@ public class PhoneLocalServiceImpl extends PhoneLocalServiceBaseImpl {
 	}
 
 	@Override
-	public List<Phone> getPhones() {
-		return phonePersistence.findAll();
-	}
-
-	@Override
 	public List<Phone> getPhones(
 		long companyId, String className, long classPK) {
 
@@ -139,11 +134,13 @@ public class PhoneLocalServiceImpl extends PhoneLocalServiceBaseImpl {
 				companyId, classNameId, classPK, primary);
 
 			for (Phone phone : phones) {
-				if ((phoneId <= 0) || (phone.getPhoneId() != phoneId)) {
-					phone.setPrimary(false);
-
-					phonePersistence.update(phone);
+				if ((phoneId > 0) && (phone.getPhoneId() == phoneId)) {
+					continue;
 				}
+
+				phone.setPrimary(false);
+
+				phonePersistence.update(phone);
 			}
 		}
 	}

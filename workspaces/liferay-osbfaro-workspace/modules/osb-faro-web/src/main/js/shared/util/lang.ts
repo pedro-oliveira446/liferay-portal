@@ -7,6 +7,7 @@ import {
 	EntityTypes,
 	UserRoleNames,
 } from 'shared/util/constants';
+import {getLocale} from 'shared/util/locale';
 
 const SPLIT_REGEX = /({\d+})/g;
 
@@ -60,7 +61,11 @@ export const getPluralMessage = (
 ) => {
 	const message = count === 1 ? singular : plural;
 
-	return sub(message, subArray || [count.toLocaleString()], toString);
+	return sub(
+		message,
+		subArray || [count.toLocaleString(getLocale())],
+		toString
+	);
 };
 
 export const ACQUISITION_LABEL_MAP = {
@@ -88,24 +93,6 @@ export const COMPOSITION_LABEL_MAP = {
 	[CompositionTypes.SegmentInterests]: Liferay.Language.get('interests'),
 	[CompositionTypes.SiteInterests]: Liferay.Language.get('interests'),
 	[CompositionTypes.SearchTerms]: Liferay.Language.get('search-terms'),
-};
-
-export const DETAILS_LABEL_MAP = {
-	accountDate: Liferay.Language.get('account-date'),
-	accountNumber: Liferay.Language.get('account-number'),
-	accountType: Liferay.Language.get('account-type'),
-	annualRevenue: Liferay.Language.get('annual-revenue'),
-	billingAddress: Liferay.Language.get('billing-address'),
-	description: Liferay.Language.get('description'),
-	fax: Liferay.Language.get('fax-number'),
-	industry: Liferay.Language.get('industry'),
-	name: Liferay.Language.get('name'),
-	numberOfEmployees: Liferay.Language.get('employees'),
-	ownership: Liferay.Language.get('ownership'),
-	phone: Liferay.Language.get('phone-number'),
-	shippingAddress: Liferay.Language.get('shipping-address'),
-	website: Liferay.Language.get('website'),
-	yearStarted: Liferay.Language.get('year-started'),
 };
 
 const ENTITY_LANG_MAP = {

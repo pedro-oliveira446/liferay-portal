@@ -278,23 +278,6 @@ public class DDMStructurePersistenceTest {
 	}
 
 	@Test
-	public void testCountByStructureKey() throws Exception {
-		_persistence.countByStructureKey("");
-
-		_persistence.countByStructureKey("null");
-
-		_persistence.countByStructureKey((String)null);
-	}
-
-	@Test
-	public void testCountByG_P() throws Exception {
-		_persistence.countByG_P(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
-
-		_persistence.countByG_P(0L, 0L);
-	}
-
-	@Test
 	public void testCountByG_C() throws Exception {
 		_persistence.countByG_C(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
@@ -335,33 +318,6 @@ public class DDMStructurePersistenceTest {
 		_persistence.countByG_C_S(0L, 0L, "null");
 
 		_persistence.countByG_C_S(0L, 0L, (String)null);
-	}
-
-	@Test
-	public void testCountByG_N_D() throws Exception {
-		_persistence.countByG_N_D(RandomTestUtil.nextLong(), "", "");
-
-		_persistence.countByG_N_D(0L, "null", "null");
-
-		_persistence.countByG_N_D(0L, (String)null, (String)null);
-	}
-
-	@Test
-	public void testCountByG_C_N_D() throws Exception {
-		_persistence.countByG_C_N_D(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(), "", "");
-
-		_persistence.countByG_C_N_D(0L, 0L, "null", "null");
-
-		_persistence.countByG_C_N_D(0L, 0L, (String)null, (String)null);
-	}
-
-	@Test
-	public void testCountByG_C_N_DArrayable() throws Exception {
-		_persistence.countByG_C_N_D(
-			new long[] {RandomTestUtil.nextLong(), 0L},
-			RandomTestUtil.nextLong(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString());
 	}
 
 	@Test
@@ -418,8 +374,8 @@ public class DDMStructurePersistenceTest {
 			true, "companyId", true, "userId", true, "userName", true,
 			"versionUserId", true, "versionUserName", true, "createDate", true,
 			"modifiedDate", true, "parentStructureId", true, "classNameId",
-			true, "structureKey", true, "version", true, "name", true,
-			"storageType", true, "type", true, "lastPublishDate", true);
+			true, "structureKey", true, "version", true, "storageType", true,
+			"type", true, "lastPublishDate", true);
 	}
 
 	@Test
@@ -787,4 +743,4 @@ public class DDMStructurePersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1477941809
+// LIFERAY-SERVICE-BUILDER-HASH:-1108638229

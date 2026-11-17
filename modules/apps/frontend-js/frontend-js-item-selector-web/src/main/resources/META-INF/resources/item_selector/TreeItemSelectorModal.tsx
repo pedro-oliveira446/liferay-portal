@@ -13,7 +13,7 @@ import ClayModal from '@clayui/modal';
 import {SearchResultsMessage} from '@liferay/layout-js-components-web';
 import {openToast} from 'frontend-js-components-web';
 import {navigate, sub} from 'frontend-js-web';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 import useTaxonomyCategoryTreeNodes, {
 	ITaxonomyCategory,
@@ -213,6 +213,8 @@ function TreeItemSelectorModal({
 
 	const itemsById = useMemo(() => flattenById(nodes), [nodes]);
 
+	const skipSelectionChangeRef = useRef(false);
+
 	const parentById = useMemo(() => buildParentMap(nodes), [nodes]);
 
 	useEffect(() => {
@@ -294,6 +296,12 @@ function TreeItemSelectorModal({
 	};
 
 	const handleSelectionChange = (keys: Set<React.Key>) => {
+		if (skipSelectionChangeRef.current) {
+			skipSelectionChangeRef.current = false;
+
+			return;
+		}
+
 		setSelectedKeys(keys);
 
 		if (!multiSelect) {
@@ -330,11 +338,41 @@ function TreeItemSelectorModal({
 		});
 	};
 
+	const handleCheckboxChange = (
+		event: React.ChangeEvent<HTMLInputElement>,
+		selection: Parameters<typeof toggleWithShift>[0],
+		id: React.Key
+	) => {
+		const {shiftKey} = event.nativeEvent as MouseEvent;
+
+		toggleWithShift(selection, id, shiftKey);
+
+		skipSelectionChangeRef.current = shiftKey;
+	};
+
+	const handleShiftKeyDown = (
+		event: React.KeyboardEvent,
+		selection: Parameters<typeof toggleWithShift>[0],
+		id: React.Key
+	) => {
+		if (
+			multiSelect &&
+			event.shiftKey &&
+			(event.key === ' ' || event.key === 'Enter')
+		) {
+			event.preventDefault();
+
+			toggleWithShift(selection, id, true);
+		}
+	};
+
 	if (!open) {
 		return <></>;
 	}
 
 	const resolvedTitle = title ?? Liferay.Language.get('select-category');
+
+	const hasError = !loading && !!error;
 
 	const isEmpty = !loading && !error && !nodes.length;
 
@@ -408,16 +446,34 @@ function TreeItemSelectorModal({
 				)}
 
 				<div className="d-flex flex-column flex-grow-1 px-3 py-3">
-					{(loading || isEmpty || hasFilterMisses) && (
+					{(loading || hasError || isEmpty || hasFilterMisses) && (
 						<div className="align-items-center d-flex flex-column flex-grow-1 justify-content-center">
 							{loading && <ClayLoadingIndicator />}
+
+							{hasError && (
+								<ClayEmptyState
+									description={Liferay.Language.get(
+										'an-unexpected-error-occurred'
+									)}
+									imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/empty_state.svg`}
+									title={Liferay.Language.get(
+										'unable-to-load-content'
+									)}
+								/>
+							)}
 
 							{isEmpty && (
 								<ClayEmptyState
 									description={Liferay.Language.get(
 										'no-categories-were-found'
 									)}
-									imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/empty_state.svg`}
+									image={
+										<ClayIcon
+											className="c-empty-state-icon c-empty-state-icon-empty-state"
+											illustration
+											symbol="empty-state"
+										/>
+									}
 									title={Liferay.Language.get(
 										'no-results-found'
 									)}
@@ -429,7 +485,13 @@ function TreeItemSelectorModal({
 									description={Liferay.Language.get(
 										'try-again-with-a-different-search'
 									)}
-									imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/search_state.svg`}
+									image={
+										<ClayIcon
+											className="c-empty-state-icon c-empty-state-icon-search-state"
+											illustration
+											symbol="search-state"
+										/>
+									}
 									small
 									title={Liferay.Language.get(
 										'no-results-found'
@@ -479,17 +541,25 @@ function TreeItemSelectorModal({
 						>
 							{(item: ITaxonomyCategoryTreeNode, selection) => (
 								<ClayTreeView.Item>
-									<ClayTreeView.ItemStack>
+									<ClayTreeView.ItemStack
+										onKeyDown={(
+											event: React.KeyboardEvent
+										) =>
+											handleShiftKeyDown(
+												event,
+												selection,
+												item.id
+											)
+										}
+									>
 										{multiSelect && (
 											<ClayCheckbox
 												checked={selection.has(item.id)}
 												onChange={(event) =>
-													toggleWithShift(
+													handleCheckboxChange(
+														event,
 														selection,
-														item.id,
-														(
-															event.nativeEvent as MouseEvent
-														).shiftKey
+														item.id
 													)
 												}
 												onClick={(event) =>
@@ -511,19 +581,27 @@ function TreeItemSelectorModal({
 											{(
 												child: ITaxonomyCategoryTreeNode
 											) => (
-												<ClayTreeView.Item>
+												<ClayTreeView.Item
+													onKeyDown={(
+														event: React.KeyboardEvent
+													) =>
+														handleShiftKeyDown(
+															event,
+															selection,
+															child.id
+														)
+													}
+												>
 													{multiSelect && (
 														<ClayCheckbox
 															checked={selection.has(
 																child.id
 															)}
 															onChange={(event) =>
-																toggleWithShift(
+																handleCheckboxChange(
+																	event,
 																	selection,
-																	child.id,
-																	(
-																		event.nativeEvent as MouseEvent
-																	).shiftKey
+																	child.id
 																)
 															}
 															onClick={(event) =>

@@ -190,6 +190,8 @@ type TProductVirtualSettings = {
 	termsOfUseContent?: {
 		[key: string]: string;
 	};
+	termsOfUseJournalArticleId?: number;
+	termsOfUseRequired?: boolean;
 	url?: string;
 	useSample?: boolean;
 };
@@ -382,6 +384,12 @@ export class HeadlessCommerceAdminCatalogApiHelper {
 	async getProduct(productId: number) {
 		return this.apiHelpers.get(
 			`${this.apiHelpers.baseUrl}${this.basePath}/products/${productId}?nestedFields=skus`
+		);
+	}
+
+	async getProductRelatedProducts(productId: number) {
+		return this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}${this.basePath}/products/${productId}/relatedProducts`
 		);
 	}
 

@@ -23,6 +23,10 @@ import com.liferay.commerce.internal.upgrade.v14_0_0.ObjectDefinitionUpgradeProc
 import com.liferay.commerce.internal.upgrade.v15_0_3.OrderAdministratorRoleUpgradeProcess;
 import com.liferay.commerce.internal.upgrade.v15_1_0.util.CommerceOrderAttachmentTable;
 import com.liferay.commerce.internal.upgrade.v15_1_4.CommerceAvailabilityEstimateExternalReferenceCodeUpgradeProcess;
+import com.liferay.commerce.internal.upgrade.v15_1_5.CommerceOrderAttachmentUpgradeProcess;
+import com.liferay.commerce.internal.upgrade.v15_1_6.CPConfigurationEntryUpgradeProcess;
+import com.liferay.commerce.internal.upgrade.v15_1_7.CommerceReturnRoleUpgradeProcess;
+import com.liferay.commerce.internal.upgrade.v15_1_8.CommerceStatusExternalReferenceCodeUpgradeProcess;
 import com.liferay.commerce.internal.upgrade.v1_2_0.CommerceSubscriptionUpgradeProcess;
 import com.liferay.commerce.internal.upgrade.v2_0_0.CommercePaymentMethodUpgradeProcess;
 import com.liferay.commerce.internal.upgrade.v2_1_0.CPDAvailabilityEstimateUpgradeProcess;
@@ -55,6 +59,7 @@ import com.liferay.commerce.model.impl.CommerceOrderModelImpl;
 import com.liferay.commerce.model.impl.CommerceShipmentItemModelImpl;
 import com.liferay.commerce.model.impl.CommerceShippingMethodModelImpl;
 import com.liferay.commerce.product.service.CPConfigurationEntryLocalService;
+import com.liferay.commerce.product.service.CPConfigurationEntrySettingLocalService;
 import com.liferay.commerce.product.service.CPConfigurationListLocalService;
 import com.liferay.commerce.product.service.CPDefinitionLocalService;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
@@ -197,7 +202,7 @@ public class CommerceServiceUpgradeStepRegistrator
 				"CommerceOrderItem", "bookedQuantityId LONG"),
 			UpgradeProcessFactory.alterColumnName(
 				"CommerceShipmentItem", "commerceWarehouseId",
-				"commerceInventoryWarehouseId LONG"));
+				"commerceInventoryWarehouseId"));
 
 		registry.register(
 			"4.0.0", "4.0.1",
@@ -324,12 +329,12 @@ public class CommerceServiceUpgradeStepRegistrator
 		registry.register(
 			"4.10.0", "5.0.0",
 			UpgradeProcessFactory.alterColumnName(
-				"CommerceAddress", "commerceCountryId", "countryId LONG"),
+				"CommerceAddress", "commerceCountryId", "countryId"),
 			UpgradeProcessFactory.alterColumnName(
-				"CommerceAddress", "commerceRegionId", "regionId LONG"),
+				"CommerceAddress", "commerceRegionId", "regionId"),
 			UpgradeProcessFactory.alterColumnName(
 				"CommerceAddressRestriction", "commerceCountryId",
-				"countryId LONG"));
+				"countryId"));
 
 		registry.register(
 			"5.0.0", "5.0.1",
@@ -706,7 +711,7 @@ public class CommerceServiceUpgradeStepRegistrator
 			"10.2.0", "11.0.0",
 			UpgradeProcessFactory.alterColumnName(
 				CommerceOrderItemModelImpl.TABLE_NAME, "bookedQuantityId",
-				"CIBookedQuantityId LONG"));
+				"CIBookedQuantityId"));
 
 		registry.register(
 			"11.0.0", "11.1.0",
@@ -788,7 +793,7 @@ public class CommerceServiceUpgradeStepRegistrator
 			"11.5.3", "12.0.0",
 			UpgradeProcessFactory.alterColumnName(
 				CommerceOrderItemModelImpl.TABLE_NAME, "deliveryGroup",
-				"deliveryGroupName VARCHAR(75) null"));
+				"deliveryGroupName"));
 
 		registry.register(
 			"12.0.0", "13.0.0",
@@ -907,7 +912,7 @@ public class CommerceServiceUpgradeStepRegistrator
 			"15.1.1", "15.1.2",
 			UpgradeProcessFactory.alterColumnName(
 				"CommerceSubscriptionEntry", "CPInstanceUUID",
-				"CPInstanceUuid VARCHAR(75)"));
+				"CPInstanceUuid"));
 
 		registry.register(
 			"15.1.2", "15.1.3",
@@ -919,6 +924,30 @@ public class CommerceServiceUpgradeStepRegistrator
 		registry.register(
 			"15.1.3", "15.1.4",
 			new CommerceAvailabilityEstimateExternalReferenceCodeUpgradeProcess());
+
+		registry.register(
+			"15.1.4", "15.1.5",
+			new CommerceOrderAttachmentUpgradeProcess(
+				_classNameLocalService, _resourceLocalService));
+
+		registry.register(
+			"15.1.5", "15.1.6",
+			new CPConfigurationEntryUpgradeProcess(
+				_classNameLocalService, _cpConfigurationEntryLocalService,
+				_cpConfigurationEntrySettingLocalService,
+				_cpConfigurationListLocalService, _cpInstanceLocalService,
+				_ctCollectionLocalService, _userLocalService));
+
+		registry.register(
+			"15.1.6", "15.1.7",
+			new CommerceReturnRoleUpgradeProcess(
+				_companyLocalService, _objectDefinitionLocalService,
+				_resourceActionLocalService, _resourcePermissionLocalService,
+				_roleLocalService));
+
+		registry.register(
+			"15.1.7", "15.1.8",
+			new CommerceStatusExternalReferenceCodeUpgradeProcess());
 
 		if (_log.isInfoEnabled()) {
 			_log.info("Commerce upgrade step registrator finished");
@@ -980,6 +1009,10 @@ public class CommerceServiceUpgradeStepRegistrator
 
 	@Reference
 	private CPConfigurationEntryLocalService _cpConfigurationEntryLocalService;
+
+	@Reference
+	private CPConfigurationEntrySettingLocalService
+		_cpConfigurationEntrySettingLocalService;
 
 	@Reference
 	private CPConfigurationListLocalService _cpConfigurationListLocalService;

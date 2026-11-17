@@ -33,6 +33,7 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
@@ -43,7 +44,6 @@ import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryService;
 import com.liferay.document.library.kernel.service.DLFolderService;
 import com.liferay.document.library.test.util.DLTestUtil;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.exportimport.report.constants.ExportImportReportEntryConstants;
 import com.liferay.exportimport.report.exception.NoSuchExportImportReportEntryException;
@@ -441,6 +441,23 @@ public class DefaultObjectEntryManagerImplTest
 
 	@AfterClass
 	public static void tearDownClass() throws Exception {
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			objectDefinitionLocalService,
+			new String[] {
+				_companyObjectDefinitionA.getName(),
+				_companyObjectDefinitionB.getName(),
+				_companyObjectDefinitionAA.getName()
+			},
+			_objectEntryLocalService, _objectRelationshipLocalService);
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			objectDefinitionLocalService,
+			new String[] {
+				_siteObjectDefinitionA.getName(),
+				_siteObjectDefinitionB.getName(),
+				_siteObjectDefinitionAA.getName()
+			},
+			_objectEntryLocalService, _objectRelationshipLocalService);
+
 		GroupLocalServiceUtil.deleteGroup(_group);
 
 		PermissionThreadLocal.setPermissionChecker(_originalPermissionChecker);
@@ -1230,6 +1247,31 @@ public class DefaultObjectEntryManagerImplTest
 				_objectDefinition3.getResourceName(), StringPool.SPACE),
 			() -> _addObjectEntry(accountEntry1));
 
+		_assignOrganizationRole(
+			organization1,
+			_roleLocalService.getRole(
+				companyId, RoleConstants.ORGANIZATION_ADMINISTRATOR),
+			_user);
+
+		AssertUtils.assertFailure(
+			PrincipalException.MustHavePermission.class,
+			StringBundler.concat(
+				"User ", _user.getUserId(),
+				" must have ADD_OBJECT_ENTRY permission for ",
+				_objectDefinition3.getResourceName(), StringPool.SPACE),
+			() -> _addObjectEntry(accountEntry1));
+
+		Role organizationUserRole = _roleLocalService.getRole(
+			companyId, RoleConstants.ORGANIZATION_USER);
+
+		_addResourcePermission(
+			ObjectActionKeys.ADD_OBJECT_ENTRY, organizationUserRole);
+
+		Assert.assertNotNull(_addObjectEntry(accountEntry1));
+
+		_removeResourcePermission(
+			ObjectActionKeys.ADD_OBJECT_ENTRY, organizationUserRole);
+
 		_addResourcePermission(
 			ObjectActionKeys.ADD_OBJECT_ENTRY, _accountManagerRole);
 
@@ -1961,9 +2003,11 @@ public class DefaultObjectEntryManagerImplTest
 
 		Map<String, Object> properties = objectEntry.getProperties();
 
-		Assert.assertNull(
+		Assert.assertEquals(
+			Collections.emptyMap(),
 			properties.get("localizedBooleanObjectFieldName_i18n"));
-		Assert.assertNull(
+		Assert.assertEquals(
+			Collections.emptyMap(),
 			properties.get("localizedPicklistObjectFieldName_i18n"));
 
 		Map<String, Object> localizedObjectFieldI18nValues =
@@ -2390,6 +2434,9 @@ public class DefaultObjectEntryManagerImplTest
 			null, "COUNT", _objectDefinition1.getObjectDefinitionId(),
 			"countAggregationObjectFieldName2", objectRelationship.getName());
 
+		_objectDefinition1 = objectDefinitionLocalService.getObjectDefinition(
+			_objectDefinition1.getObjectDefinitionId());
+
 		ObjectEntry parentObjectEntry2 =
 			_defaultObjectEntryManager.addObjectEntry(
 				_simpleDTOConverterContext, _objectDefinition1,
@@ -2531,7 +2578,7 @@ public class DefaultObjectEntryManagerImplTest
 				new ObjectEntry() {
 					{
 						properties = HashMapBuilder.<String, Object>put(
-							"dateTimeUTCObjectFieldName", localDateTime
+							"dateTimeUTCObjectFieldName", localDateTimeString
 						).build();
 					}
 				},
@@ -7279,7 +7326,7 @@ public class DefaultObjectEntryManagerImplTest
 			new ObjectEntry() {
 				{
 					properties = HashMapBuilder.<String, Object>put(
-						"r_oneToManyRelationshipName_accountEntryId",
+						"r_oneToManyRelationshipName1_accountEntryId",
 						accountEntry.getAccountEntryId()
 					).build();
 				}
@@ -7347,7 +7394,7 @@ public class DefaultObjectEntryManagerImplTest
 			new ObjectEntry() {
 				{
 					properties = HashMapBuilder.<String, Object>put(
-						"r_oneToManyRelationshipName_accountEntryId",
+						"r_oneToManyRelationshipName1_accountEntryId",
 						accountEntry.getAccountEntryId()
 					).build();
 				}
@@ -7420,7 +7467,7 @@ public class DefaultObjectEntryManagerImplTest
 			new ObjectEntry() {
 				{
 					properties = HashMapBuilder.<String, Object>put(
-						"r_oneToManyRelationshipName_accountEntryId",
+						"r_oneToManyRelationshipName1_accountEntryId",
 						accountEntry.getAccountEntryId()
 					).build();
 				}
@@ -9306,6 +9353,13 @@ public class DefaultObjectEntryManagerImplTest
 			() -> _defaultObjectEntryManager.subscribeObjectEntry(
 				objectEntryAA.getExternalReferenceCode(), objectDefinitionAA,
 				objectEntryAA.getScopeKey()));
+
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			objectDefinitionLocalService,
+			new String[] {
+				objectDefinitionA.getName(), objectDefinitionAA.getName()
+			},
+			_objectEntryLocalService, _objectRelationshipLocalService);
 	}
 
 	@Test
@@ -10004,6 +10058,26 @@ public class DefaultObjectEntryManagerImplTest
 		_assignOrganizationRole(organization1, _accountManagerRole, _user);
 
 		_assertObjectEntriesSize1(1);
+
+		AssertUtils.assertFailure(
+			PrincipalException.MustHavePermission.class,
+			StringBundler.concat(
+				"User ", _user.getUserId(), " must have UPDATE permission for ",
+				_objectDefinition3.getClassName(), StringPool.SPACE,
+				objectEntry1.getId()),
+			() -> _defaultObjectEntryManager.updateObjectEntry(
+				_simpleDTOConverterContext, _objectDefinition3,
+				objectEntry1.getId(), objectEntry1));
+
+		Role organizationRole = RoleTestUtil.addRole(
+			RoleConstants.TYPE_ORGANIZATION);
+
+		_resourcePermissionLocalService.addResourcePermission(
+			companyId, Organization.class.getName(),
+			ResourceConstants.SCOPE_GROUP_TEMPLATE, "0",
+			organizationRole.getRoleId(), ActionKeys.MANAGE_SUBORGANIZATIONS);
+
+		_assignOrganizationRole(organization1, organizationRole, _user);
 
 		AssertUtils.assertFailure(
 			PrincipalException.MustHavePermission.class,
@@ -12100,13 +12174,13 @@ public class DefaultObjectEntryManagerImplTest
 	}
 
 	private void _testAddObjectEntryWithDefaultLanguageId(
-			ObjectDefinition objectDefinition)
+			ObjectDefinition publishedObjectDefinition)
 		throws Exception {
 
 		String scopeKey;
 
 		if (StringUtil.equals(
-				objectDefinition.getScope(),
+				publishedObjectDefinition.getScope(),
 				ObjectDefinitionConstants.SCOPE_COMPANY)) {
 
 			scopeKey = ObjectDefinitionConstants.SCOPE_COMPANY;
@@ -12123,7 +12197,7 @@ public class DefaultObjectEntryManagerImplTest
 			ObjectEntryDefaultLanguageIdException.class,
 			"Language ID " + invalidLanguageId + " is not available",
 			() -> _defaultObjectEntryManager.addObjectEntry(
-				_simpleDTOConverterContext, objectDefinition,
+				_simpleDTOConverterContext, publishedObjectDefinition,
 				new ObjectEntry() {
 					{
 						defaultLanguageId = invalidLanguageId;
@@ -12141,12 +12215,16 @@ public class DefaultObjectEntryManagerImplTest
 			).name(
 				"requiredLocalizedLongInteger"
 			).objectDefinitionId(
-				objectDefinition.getObjectDefinitionId()
+				publishedObjectDefinition.getObjectDefinitionId()
 			).required(
 				true
 			).userId(
 				TestPropsValues.getUserId()
 			).build());
+
+		ObjectDefinition objectDefinition =
+			objectDefinitionLocalService.getObjectDefinition(
+				publishedObjectDefinition.getObjectDefinitionId());
 
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.RequiredLanguageId.class,
@@ -13984,6 +14062,9 @@ public class DefaultObjectEntryManagerImplTest
 	private static DefaultObjectEntryManager _defaultObjectEntryManager;
 	private static Group _group;
 
+	@Inject
+	private static ObjectEntryLocalService _objectEntryLocalService;
+
 	@Inject(
 		filter = "object.entry.manager.storage.type=" + ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT
 	)
@@ -14117,9 +14198,6 @@ public class DefaultObjectEntryManagerImplTest
 
 	@Inject
 	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
-
-	@Inject
-	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Inject
 	private ObjectEntryVersionLocalService _objectEntryVersionLocalService;

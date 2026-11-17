@@ -8,17 +8,25 @@ import ClayLabel from '@clayui/label';
 import ClayList from '@clayui/list';
 import React from 'react';
 
+import FeedbackActionsRow from '../../ReportFeedback/FeedbackActionsRow';
+
 import '../chat.scss';
 import parseContentDraftsMessage from '../utils/parseContentDraftsMessage';
 import renderAIAssistantMessageMarkdown from '../utils/renderAIAssistantMessageMarkdown';
 import AIAssistantMessageBalloonIcon from './AIAssistantMessageBalloonIcon';
 
 interface ContentsMessageBalloonProps {
+	feedbackGiven?: boolean;
 	message: string;
+	onReport?: () => void;
+	onThumbsUp?: () => void;
 }
 
 const ContentsMessageBalloon: React.FC<ContentsMessageBalloonProps> = ({
+	feedbackGiven,
 	message,
+	onReport,
+	onThumbsUp,
 }) => {
 	const {drafts, text} = parseContentDraftsMessage(message);
 
@@ -43,7 +51,7 @@ const ContentsMessageBalloon: React.FC<ContentsMessageBalloonProps> = ({
 							<span className="ai-assistant-chat__content-generation-balloon-icon">
 								<ClayIcon
 									spritemap={Liferay.Icons.spritemap}
-									symbol="blogs"
+									symbol={draft.symbol}
 								/>
 							</span>
 						</ClayList.ItemField>
@@ -62,6 +70,15 @@ const ContentsMessageBalloon: React.FC<ContentsMessageBalloonProps> = ({
 					</ClayList.Item>
 				))}
 			</ClayList>
+
+			{onReport && (
+				<FeedbackActionsRow
+					className="mb-1 ml-2"
+					feedbackGiven={feedbackGiven}
+					onReport={onReport}
+					onThumbsUp={onThumbsUp}
+				/>
+			)}
 		</div>
 	);
 };

@@ -7,6 +7,7 @@ import EmbeddedAlertList from 'shared/components/EmbeddedAlertList';
 import ErrorPage from 'shared/pages/ErrorPage';
 import getCN from 'classnames';
 import Loading from 'shared/components/Loading';
+import ManageSegmentNotificationsModal from 'shared/components/modals/ManageSegmentNotificationsModal';
 import React, {
 	lazy,
 	Suspense,
@@ -20,13 +21,20 @@ import {CSVType} from 'shared/components/download-report/utils';
 import {DownloadStaticCSVReport} from 'shared/components/download-report/DownloadStaticCSVReport';
 import {getMatchedRoute, Routes, SEGMENTS, toRoute} from 'shared/util/router';
 import {getSegmentAlerts} from 'segment/utils/alerts';
-import {Route, Routes as RouterRoutes, useParams} from 'react-router-dom';
+import {
+	Route,
+	Routes as RouterRoutes,
+	useNavigate,
+	useParams
+} from 'react-router-dom';
 import {Segment} from 'shared/util/records';
 import {
 	SegmentCategories,
 	SegmentStates,
 	SegmentTypes
 } from 'shared/util/constants';
+import {useDeleteSegments} from 'segment/hooks/useDeleteSegments';
+import {useModal} from '@clayui/modal';
 import {useRequest} from 'shared/hooks/useRequest';
 
 const AccountProfile = lazy(() =>
@@ -85,6 +93,11 @@ export const SegmentProfileRoutes = () => {
 	const {selectedChannel} = useContext(ChannelContext);
 
 	const {channelId, groupId, id} = useParams();
+
+	const navigate = useNavigate();
+
+	const {deleteSegments, deleteSegmentsModal} = useDeleteSegments(groupId);
+	const notificationsModal = useModal();
 
 	const {data, error, loading} = useRequest({
 		dataSourceFn: API.individualSegment.fetch,
@@ -150,6 +163,21 @@ export const SegmentProfileRoutes = () => {
 
 	const isBatch = segmentDetails.segmentType === SegmentTypes.Batch;
 
+	const handleDeleteSegment = () => {
+		deleteSegments({
+			ids: [id],
+			name: segmentDetails.name,
+			onSuccess: () =>
+				navigate(
+					toRoute(Routes.CONTACTS_LIST_ENTITY, {
+						channelId,
+						groupId,
+						type: SEGMENTS
+					})
+				)
+		});
+	};
+
 	return (
 		<BasePage
 			className={getCN(
@@ -183,25 +211,84 @@ export const SegmentProfileRoutes = () => {
 						topLabel={
 							SEGMENTS_LANGUAGE_MAP[segmentDetails.segmentType]
 						}
-					/>
-
-					<BasePage.Header.Section>
-						<BasePage.Header.PageActions
+					>
+						<BasePage.Header.PageActionsToolbar
 							actions={[
 								{
-									button: true,
-									displayType: 'secondary',
-									href: toRoute(Routes.CONTACTS_SEGMENT_EDIT, {
-										channelId,
-										groupId,
-										id,
-										type: SEGMENTS
-									}),
-									label: Liferay.Language.get('edit-segment')
+									href: toRoute(
+										Routes.CONTACTS_SEGMENT_EDIT,
+										{channelId, groupId, id, type: SEGMENTS}
+									),
+									icon: {symbol: 'pencil'},
+									label: Liferay.Language.get(
+										'edit-segment'
+									)
+								},
+								...(isBatch &&
+								getMatchedRoute(NAV_ITEMS) ===
+									Routes.CONTACTS_SEGMENT
+									? [
+											{
+												icon: {symbol: 'download'},
+												label: Liferay.Language.get(
+													'download-pdf'
+												),
+												renderItem: (item) => (
+													<DownloadPDFReport
+														disabled={false}
+														showDateRange={false}
+														subtitle={
+															selectedChannel?.name
+														}
+														title={title}
+													>
+														{item}
+													</DownloadPDFReport>
+												)
+											}
+										]
+									: []),
+								...(isBatch &&
+								getMatchedRoute(NAV_ITEMS) ===
+									Routes.CONTACTS_SEGMENT_MEMBERSHIP
+									? [
+											{
+												icon: {symbol: 'download'},
+												label: Liferay.Language.get(
+													'download-csv'
+												),
+												renderItem: (item) => (
+													<DownloadStaticCSVReport
+														disabled={checkDisabled()}
+														segmentId={segment.id}
+														type={CSVType.Membership}
+														typeLang={Liferay.Language.get(
+															'segment-membership'
+														)}
+													>
+														{item}
+													</DownloadStaticCSVReport>
+												)
+											}
+										]
+									: []),
+								{
+									icon: {symbol: 'bell-on'},
+									label: Liferay.Language.get(
+										'manage-notifications'
+									),
+									onClick: () =>
+										notificationsModal.onOpenChange(true)
+								},
+								{
+									className: 'text-danger',
+									icon: {symbol: 'trash'},
+									label: Liferay.Language.get('delete'),
+									onClick: handleDeleteSegment
 								}
 							]}
 						/>
-					</BasePage.Header.Section>
+					</BasePage.Header.TitleSection>
 				</BasePage.Row>
 
 				{isBatch && (
@@ -211,37 +298,6 @@ export const SegmentProfileRoutes = () => {
 					/>
 				)}
 			</BasePage.Header>
-
-			{isBatch &&
-				getMatchedRoute(NAV_ITEMS) === Routes.CONTACTS_SEGMENT && (
-					<BasePage.SubHeader>
-						<div className='d-flex justify-content-end w-100'>
-							<DownloadPDFReport
-								disabled={false}
-								showDateRange={false}
-								subtitle={selectedChannel?.name}
-								title={title}
-							/>
-						</div>
-					</BasePage.SubHeader>
-				)}
-
-			{isBatch &&
-				getMatchedRoute(NAV_ITEMS) ===
-					Routes.CONTACTS_SEGMENT_MEMBERSHIP && (
-					<BasePage.SubHeader>
-						<div className='d-flex justify-content-end w-100'>
-							<DownloadStaticCSVReport
-								disabled={checkDisabled()}
-								segmentId={segment.id}
-								type={CSVType.Membership}
-								typeLang={Liferay.Language.get(
-									'segment-membership'
-								)}
-							/>
-						</div>
-					</BasePage.SubHeader>
-				)}
 
 			<EmbeddedAlertList alerts={getSegmentAlerts(segment)} />
 
@@ -307,6 +363,17 @@ export const SegmentProfileRoutes = () => {
 					<Loading />
 				)}
 			</BasePage.Body>
+
+			{deleteSegmentsModal}
+
+			{notificationsModal.open && (
+				<ManageSegmentNotificationsModal
+					groupId={groupId}
+					observer={notificationsModal.observer}
+					onClose={() => notificationsModal.onOpenChange(false)}
+					segmentId={id}
+				/>
+			)}
 		</BasePage>
 	);
 };

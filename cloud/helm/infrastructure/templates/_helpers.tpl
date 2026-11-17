@@ -11,12 +11,35 @@ readOnlyRootFilesystem: false
 {{- printf "%s-es-elastic-user" (include "elasticsearch.name" .) -}}
 {{- end -}}
 
+{{- define "elasticsearch.labels" -}}
+component: search
+environmentId: {{ .Values.environmentId | quote }}
+projectId: {{ .Values.projectId | quote }}
+{{- end -}}
+
 {{- define "elasticsearch.name" -}}
 {{- printf "%s-es" .Release.Name -}}
 {{- end -}}
 
 {{- define "elasticsearch.namespace" -}}
 {{- printf "%s-elasticsearch" .Release.Namespace -}}
+{{- end -}}
+
+{{- define "elasticsearch.podSecurityContext" -}}
+fsGroup: 1000
+runAsGroup: 1000
+runAsNonRoot: true
+runAsUser: 1000
+seccompProfile:
+    type: RuntimeDefault
+{{- end -}}
+
+{{- define "liferay.validateCIDR" -}}
+{{- $ipv4 := "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])$" -}}
+{{- $ipv6 := "^[0-9A-Fa-f:]*:[0-9A-Fa-f:]*/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$" -}}
+{{- if not (or (regexMatch $ipv4 (toString .)) (regexMatch $ipv6 (toString .))) -}}
+{{- fail (printf "The value %q contains an invalid CIDR: %s" "gateway.accessControl.allowedCIDRs" (toString .)) -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "liferay.validateDNS1123Name" -}}
@@ -27,6 +50,9 @@ readOnlyRootFilesystem: false
 
 {{- define "liferay.validateEndpoint" -}}
 {{- $externalSecretKeys := dig "tls" "externalSecretKeys" (list) .endpoint -}}
+{{- if not (has (int .endpoint.port) (list 80 443)) -}}
+{{- fail (printf "The %s endpoint uses port %v, but gateways only listen on ports 80 and 443" .name .endpoint.port) -}}
+{{- end -}}
 {{- if and (eq (int .endpoint.port) 80) (not .endpoint.hostname) (ne .name "http") -}}
 {{- fail (printf "The %s endpoint uses port 80 without a hostname, which collides with the implicit http listener" .name) -}}
 {{- end -}}
@@ -54,8 +80,11 @@ readOnlyRootFilesystem: false
 {{- printf "%s-search-secret-reader" .Release.Name -}}
 {{- end -}}
 
-{{- define "search.validateEngine" -}}
-{{- if not (has .Values.search.engine (list "elasticsearch" "opensearch")) -}}
-{{- fail (printf "Unsupported search engine: %s" .Values.search.engine) -}}
+{{- define "search.engine" -}}
+{{- $supportedEngines := .Values.search.supportedEngines -}}
+{{- $engine := .Values.search.engine | default (has "opensearch" $supportedEngines | ternary "opensearch" (first $supportedEngines)) -}}
+{{- if not (has $engine $supportedEngines) -}}
+{{- fail (printf "Search engine %s is not available on this cloud, which supports: %s" $engine (join ", " $supportedEngines)) -}}
 {{- end -}}
+{{- $engine -}}
 {{- end -}}

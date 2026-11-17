@@ -3,16 +3,26 @@ import AccountsDataSet from 'shared/components/accounts-data-set/AccountsDataSet
 import BasePage from 'shared/components/base-page';
 import CriteriaCard from 'segment/components/criteria-card';
 import EmbeddedAlertList from 'shared/components/EmbeddedAlertList';
+import Loading from 'shared/components/Loading';
+import ManageSegmentNotificationsModal from 'shared/components/modals/ManageSegmentNotificationsModal';
 import React from 'react';
 import {CSVType} from 'shared/components/download-report/utils';
 import {DownloadStaticCSVReport} from 'shared/components/download-report/DownloadStaticCSVReport';
 import {ReferencedObjectsProvider} from 'segment/segment-editor/dynamic/context/referencedObjects';
-import {Routes, SEGMENTS, toRoute} from 'shared/util/router';
+import {Routes, SEGMENTS, setUriQueryValues, toRoute} from 'shared/util/router';
 import {SectionHeader} from 'shared/components/SectionHeader';
 import {getSegmentAlerts} from 'segment/utils/alerts';
 import {Segment} from 'shared/util/records';
-import {SegmentStates, SegmentTypes} from 'shared/util/constants';
+import {
+	SegmentCategories,
+	SegmentStates,
+	SegmentTypes,
+} from 'shared/util/constants';
 import {useChannelContext} from 'shared/context/channel';
+import {useDeleteSegments} from 'segment/hooks/useDeleteSegments';
+import {useLifecycleDetails} from 'lifecycle/hooks/useLifecycleDetails';
+import {useModal} from '@clayui/modal';
+import {useNavigate} from 'react-router-dom';
 import {useTimeZone} from 'shared/hooks/useTimeZone';
 
 interface IAccountProfileProps {
@@ -28,6 +38,16 @@ const AccountProfile: React.FC<IAccountProfileProps> = ({
 }) => {
 	const {selectedChannel} = useChannelContext();
 	const {timeZoneId} = useTimeZone();
+
+	const navigate = useNavigate();
+
+	const {deleteSegments, deleteSegmentsModal} = useDeleteSegments(groupId);
+	const notificationsModal = useModal();
+
+	const {lifecycles, loading: lifecyclesLoading} = useLifecycleDetails({
+		channelId,
+		groupId,
+	});
 
 	const {name} = segment;
 
@@ -58,13 +78,10 @@ const AccountProfile: React.FC<IAccountProfileProps> = ({
 						)}: ${segment.externalReferenceCode}`}
 						title={name}
 						topLabel={Liferay.Language.get('account-batch-segment')}
-					/>
-
-					<BasePage.Header.Section>
-						<BasePage.Header.PageActions
+					>
+						<BasePage.Header.PageActionsToolbar
 							actions={[
 								{
-									disabled: false,
 									href: toRoute(
 										Routes.CONTACTS_SEGMENT_EDIT,
 										{
@@ -74,24 +91,59 @@ const AccountProfile: React.FC<IAccountProfileProps> = ({
 											type: SEGMENTS,
 										}
 									),
+									icon: {symbol: 'pencil'},
 									label: Liferay.Language.get('edit-segment'),
+								},
+								{
+									icon: {symbol: 'download'},
+									label: Liferay.Language.get('download-csv'),
+									renderItem: (item) => (
+										<DownloadStaticCSVReport
+											disabled={disabled}
+											segmentId={segment.id}
+											type={CSVType.Membership}
+											typeLang={Liferay.Language.get(
+												'segment-membership'
+											)}
+										>
+											{item}
+										</DownloadStaticCSVReport>
+									),
+								},
+								{
+									icon: {symbol: 'bell-on'},
+									label: Liferay.Language.get(
+										'manage-notifications'
+									),
+									onClick: () =>
+										notificationsModal.onOpenChange(true),
+								},
+								{
+									className: 'text-danger',
+									icon: {symbol: 'trash'},
+									label: Liferay.Language.get('delete'),
+									onClick: () =>
+										deleteSegments({
+											ids: [segment.id],
+											name,
+											onSuccess: () =>
+												navigate(
+													toRoute(
+														Routes.CONTACTS_LIST_ENTITY,
+														{
+															channelId,
+															groupId,
+															type: SEGMENTS,
+														}
+													)
+												),
+										}),
 								},
 							]}
 						/>
-					</BasePage.Header.Section>
+					</BasePage.Header.TitleSection>
 				</BasePage.Row>
 			</BasePage.Header>
-
-			<BasePage.SubHeader>
-				<div className="d-flex justify-content-end w-100">
-					<DownloadStaticCSVReport
-						disabled={disabled}
-						segmentId={segment.id}
-						type={CSVType.Membership}
-						typeLang={Liferay.Language.get('segment-membership')}
-					/>
-				</div>
-			</BasePage.SubHeader>
 
 			<EmbeddedAlertList alerts={getSegmentAlerts(segment)} />
 
@@ -107,6 +159,7 @@ const AccountProfile: React.FC<IAccountProfileProps> = ({
 						criteriaString={segment.criteriaString ?? ''}
 						groupId={groupId}
 						includeAnonymousUsers={segment.includeAnonymousUsers}
+						segmentCategory={SegmentCategories.Account}
 						segmentType={SegmentTypes.Batch}
 						sequential={false}
 						timeZoneId={timeZoneId}
@@ -118,13 +171,35 @@ const AccountProfile: React.FC<IAccountProfileProps> = ({
 					title={Liferay.Language.get('segment-membership')}
 				/>
 
-				<AccountsDataSet
-					apiURL={`/o/faro/contacts/${groupId}/account/search?channelId=${channelId}&segmentId=${segment.id}`}
-					channelId={channelId}
-					dataSetId="segment-accounts-dataset"
-					groupId={groupId}
-				/>
+				{lifecyclesLoading ? (
+					<Loading spacer />
+				) : (
+					<AccountsDataSet
+						apiURL={setUriQueryValues(
+							{
+								accountLifecycleId: lifecycles?.[0]?.id,
+								channelId,
+								segmentId: segment.id,
+							},
+							`/o/faro/contacts/${groupId}/account/search`
+						)}
+						channelId={channelId}
+						dataSetId="segment-accounts-dataset"
+						groupId={groupId}
+					/>
+				)}
 			</BasePage.Body>
+
+			{deleteSegmentsModal}
+
+			{notificationsModal.open && (
+				<ManageSegmentNotificationsModal
+					groupId={groupId}
+					observer={notificationsModal.observer}
+					onClose={() => notificationsModal.onOpenChange(false)}
+					segmentId={segment.id}
+				/>
+			)}
 		</BasePage>
 	);
 };

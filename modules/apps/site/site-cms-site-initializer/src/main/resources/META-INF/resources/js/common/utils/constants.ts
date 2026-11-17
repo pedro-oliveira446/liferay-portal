@@ -26,7 +26,13 @@ export const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const NO_VALUE = '--';
 
-export const UPCOMING_REVIEWS_THRESHOLD_MONTHS = 1;
+export const PAGINATION_BAR_LABELS = {
+	paginationResults: Liferay.Language.get('showing-x-to-x-of-x-entries'),
+	perPageItems: Liferay.Language.get('x-items'),
+	selectPerPageItems: Liferay.Language.get('x-items'),
+};
+
+export const UPCOMING_REVIEW_THRESHOLD_DAYS = 7;
 
 export const ASSET_STATUS = {
 	APPROVED: 'approved',
@@ -68,7 +74,11 @@ export const ROOT_FOLDER_ERC = {
 	FILES: 'L_FILES',
 } as const;
 
+export const DESIGN_LIBRARY_TYPE = 'DesignLibrary';
+
 export const SITE_TEMPLATE_TYPE = 'SiteTemplate';
+
+export const SITE_TYPE = 'Site';
 
 export const ROOT_FOLDER_ERCS: ReadonlySet<string> = new Set([
 	ROOT_FOLDER_ERC.CONTENTS,
@@ -103,7 +113,9 @@ export type WorkflowStatus =
 	(typeof WORKFLOW_STATUS)[keyof typeof WORKFLOW_STATUS];
 
 export const FDS_FILTER_ID = {
+	DATE_CREATED: 'dateCreated',
 	DATE_EXPIRATION: 'dateExpiration',
+	DATE_MODIFIED: 'dateModified',
 	DATE_REVIEW: 'dateReview',
 	SCOPE_GROUP_ID: 'scopeGroupId',
 	STATUS: 'status',

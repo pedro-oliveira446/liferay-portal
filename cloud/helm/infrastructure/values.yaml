@@ -1,26 +1,19 @@
 backup:
-    dayOfWeek: Sunday
-    enabled: false
-    frequency: Daily
-    retentionDays: 30
-    timeOfDay: 05:00
-    timeZone: UTC
-    vaultTags: {}
+    restore:
+        sanitizationScripts: {}
 clusterSecretStoreName: ""
-cmk:
-    enabled: false
+cmk: {}
 commonTags: {}
-database:
-    authentication: password
-    highAvailability: false
-    instanceType: GP_Standard_D2s_v3
-    storageGB: 32
-    version: "16"
+database: {}
+databaseAppPassword:
+    enabled: true
 enabled: true
 endpoints: {}
 environmentId: ""
-forceDestroy: false
 gateway:
+    accessControl:
+        allowedCIDRs: []
+        enabled: false
     annotations: {}
     className: ""
     clientTrafficPolicySpec: {}
@@ -29,9 +22,7 @@ license:
     externalSecretKey: ""
     externalSecretProperty: license.xml
     targetSecretName: ""
-orphanOnDelete: false
-overlayAccess:
-    enabled: false
+overlayAccess: {}
 overlayBucket:
     commonTags: {}
     enabled: false
@@ -40,11 +31,42 @@ overlayBucket:
 persistence:
     storageClassName: ""
 projectId: ""
-region: ""
 search:
     elasticsearch:
+        config: {}
         env:
             ES_JAVA_OPTS: -Xms4g -Xmx4g
+        exporter:
+            enabled: false
+            image:
+                pullPolicy: IfNotPresent
+                repository: quay.io/prometheuscommunity/elasticsearch-exporter
+                tag: v1.10.0
+            livenessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 10
+                periodSeconds: 30
+                tcpSocket:
+                    port: metrics
+                timeoutSeconds: 5
+            readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                    path: /healthz
+                    port: metrics
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 5
+            resources:
+                limits:
+                    cpu: 300m
+                    memory: 384Mi
+                requests:
+                    cpu: 50m
+                    memory: 128Mi
+        extraInitContainers: []
+        extraVolumeMounts: []
+        extraVolumes: []
         nodeCount: 1
         resources:
             limits:
@@ -55,7 +77,9 @@ search:
                 memory: 4Gi
         version: 8.19.11
         volumeSize: 10Gi
-    engine: elasticsearch
-storage:
-    enableVersioning: true
-    tags: {}
+    engine: ""
+    opensearch: {}
+    supportedEngines:
+        -   elasticsearch
+secretNames: []
+storage: {}

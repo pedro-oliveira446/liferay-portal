@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
@@ -73,9 +74,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -463,20 +462,9 @@ public class ContentLayoutTestUtil {
 	public static JSONObject addPortletToLayout(Layout layout, String portletId)
 		throws Exception {
 
-		MVCActionCommand addPortletMVCActionCommand = getMVCActionCommand(
-			"/layout_content_page_editor/add_portlet");
-
-		MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
-			getMockLiferayPortletActionRequest(
-				CompanyLocalServiceUtil.getCompany(layout.getCompanyId()),
-				GroupLocalServiceUtil.getGroup(layout.getGroupId()), layout);
-
 		long segmentsExperienceId =
 			SegmentsExperienceLocalServiceUtil.fetchDefaultSegmentsExperienceId(
 				layout.getPlid());
-
-		mockLiferayPortletActionRequest.setParameter(
-			"segmentsExperienceId", String.valueOf(segmentsExperienceId));
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			LayoutPageTemplateStructureLocalServiceUtil.
@@ -486,10 +474,29 @@ public class ContentLayoutTestUtil {
 		LayoutStructure layoutStructure = LayoutStructure.of(
 			layoutPageTemplateStructure.getData(segmentsExperienceId));
 
-		mockLiferayPortletActionRequest.setParameter(
-			"parentItemId", layoutStructure.getMainItemId());
+		return addPortletToLayout(
+			layout, layoutStructure.getMainItemId(), portletId,
+			segmentsExperienceId);
+	}
 
+	public static JSONObject addPortletToLayout(
+			Layout layout, String parentItemId, String portletId,
+			long segmentsExperienceId)
+		throws Exception {
+
+		MVCActionCommand addPortletMVCActionCommand = getMVCActionCommand(
+			"/layout_content_page_editor/add_portlet");
+
+		MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
+			getMockLiferayPortletActionRequest(
+				CompanyLocalServiceUtil.getCompany(layout.getCompanyId()),
+				GroupLocalServiceUtil.getGroup(layout.getGroupId()), layout);
+
+		mockLiferayPortletActionRequest.setParameter(
+			"parentItemId", parentItemId);
 		mockLiferayPortletActionRequest.setParameter("portletId", portletId);
+		mockLiferayPortletActionRequest.setParameter(
+			"segmentsExperienceId", String.valueOf(segmentsExperienceId));
 
 		return ReflectionTestUtil.invoke(
 			addPortletMVCActionCommand, "_processAddPortlet",
@@ -500,10 +507,7 @@ public class ContentLayoutTestUtil {
 
 	public static MVCActionCommand getMVCActionCommand(String mvcCommandName) {
 		try {
-			Bundle bundle = FrameworkUtil.getBundle(
-				ContentLayoutTestUtil.class);
-
-			BundleContext bundleContext = bundle.getBundleContext();
+			BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 			Collection<ServiceReference<MVCActionCommand>>
 				mvcActionCommandReferences = bundleContext.getServiceReferences(

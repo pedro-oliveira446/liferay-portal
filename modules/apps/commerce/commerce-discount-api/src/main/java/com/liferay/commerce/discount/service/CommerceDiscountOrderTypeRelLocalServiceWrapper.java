@@ -136,7 +136,9 @@ public class CommerceDiscountOrderTypeRelLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteCommerceDiscountOrderTypeRels(long commerceDiscountId) {
+	public void deleteCommerceDiscountOrderTypeRels(long commerceDiscountId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_commerceDiscountOrderTypeRelLocalService.
 			deleteCommerceDiscountOrderTypeRels(commerceDiscountId);
 	}
@@ -462,6 +464,15 @@ public class CommerceDiscountOrderTypeRelLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.commerce.discount.model.CommerceDiscountOrderTypeRel
+			updatePriority(long commerceDiscountOrderTypeRelId, int priority)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceDiscountOrderTypeRelLocalService.updatePriority(
+			commerceDiscountOrderTypeRelId, priority);
+	}
+
+	@Override
 	public BasePersistence<?> getBasePersistence() {
 		return _commerceDiscountOrderTypeRelLocalService.getBasePersistence();
 	}
@@ -484,4 +495,4 @@ public class CommerceDiscountOrderTypeRelLocalServiceWrapper
 		_commerceDiscountOrderTypeRelLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-835035701
+// LIFERAY-SERVICE-BUILDER-HASH:-1030808042

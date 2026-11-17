@@ -40,12 +40,12 @@ import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.security.permission.DDMPermissionSupport;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceLinkLocalService;
-import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.dynamic.data.mapping.service.base.DDMStructureLocalServiceBaseImpl;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMDataProviderInstanceLinkPersistence;
+import com.liferay.dynamic.data.mapping.service.persistence.DDMDataProviderInstancePersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMStructureLayoutPersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMStructureLinkPersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMStructureVersionPersistence;
@@ -933,21 +933,6 @@ public class DDMStructureLocalServiceImpl
 				" in the ancestor groups");
 	}
 
-	/**
-	 * Returns all the structures matching the group, name, and description.
-	 *
-	 * @param  groupId the primary key of the structure's group
-	 * @param  name the structure's name
-	 * @param  description the structure's description
-	 * @return the matching structures
-	 */
-	@Override
-	public List<DDMStructure> getStructure(
-		long groupId, String name, String description) {
-
-		return ddmStructurePersistence.findByG_N_D(groupId, name, description);
-	}
-
 	@Override
 	public DDMStructure getStructureByExternalReferenceCode(
 			String externalReferenceCode, long groupId, long classNameId)
@@ -1125,13 +1110,6 @@ public class DDMStructureLocalServiceImpl
 			));
 	}
 
-	@Override
-	public List<DDMStructure> getStructures(
-		long groupId, String name, String description) {
-
-		return ddmStructurePersistence.findByG_N_D(groupId, name, description);
-	}
-
 	/**
 	 * Returns all the structures belonging to the groups.
 	 *
@@ -1193,41 +1171,6 @@ public class DDMStructureLocalServiceImpl
 
 		return ddmStructurePersistence.findByG_C(
 			groupIds, classNameId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			orderByComparator);
-	}
-
-	/**
-	 * Returns an ordered range of all the structures matching the group, class
-	 * name ID, name, and description.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end -
-	 * start</code> instances. <code>start</code> and <code>end</code> are not
-	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
-	 * refers to the first result in the set. Setting both <code>start</code>
-	 * and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
-	 * result set.
-	 * </p>
-	 *
-	 * @param  groupIds the primary keys of the groups
-	 * @param  classNameId the primary key of the class name for the structure's
-	 *         related model
-	 * @param  name the name keywords
-	 * @param  description the description keywords
-	 * @param  start the lower bound of the range of structures to return
-	 * @param  end the upper bound of the range of structures to return (not
-	 *         inclusive)
-	 * @param  orderByComparator the comparator to order the structures
-	 *         (optionally <code>null</code>)
-	 * @return the range of matching structures ordered by the comparator
-	 */
-	@Override
-	public List<DDMStructure> getStructures(
-		long[] groupIds, long classNameId, String name, String description,
-		int start, int end, OrderByComparator<DDMStructure> orderByComparator) {
-
-		return ddmStructurePersistence.findByG_C_N_D(
-			groupIds, classNameId, name, description, start, end,
 			orderByComparator);
 	}
 
@@ -1850,9 +1793,11 @@ public class DDMStructureLocalServiceImpl
 				ddmFormField.getProperty("ddmDataProviderInstanceId"));
 
 			for (long ddmDataProviderInstanceId : ddmDataProviderInstanceIds) {
-				if (ddmDataProviderInstanceId > 0) {
-					dataProviderInstanceIds.add(ddmDataProviderInstanceId);
+				if (ddmDataProviderInstanceId <= 0) {
+					continue;
 				}
+
+				dataProviderInstanceIds.add(ddmDataProviderInstanceId);
 			}
 		}
 
@@ -1884,14 +1829,15 @@ public class DDMStructureLocalServiceImpl
 				String dataProviderUuid = matcher.group(1);
 
 				DDMDataProviderInstance dataProviderInstance =
-					_ddmDataProviderInstanceLocalService.
-						fetchDDMDataProviderInstanceByUuidAndGroupId(
-							dataProviderUuid, groupId);
+					_ddmDataProviderInstancePersistence.fetchByUUID_G(
+						dataProviderUuid, groupId);
 
-				if (dataProviderInstance != null) {
-					dataProviderInstanceIds.add(
-						dataProviderInstance.getDataProviderInstanceId());
+				if (dataProviderInstance == null) {
+					continue;
 				}
+
+				dataProviderInstanceIds.add(
+					dataProviderInstance.getDataProviderInstanceId());
 			}
 		}
 
@@ -1960,7 +1906,8 @@ public class DDMStructureLocalServiceImpl
 			}
 
 			Predicate keywordPredicate = DSLFunctionFactoryUtil.lower(
-				DSLFunctionFactoryUtil.castText(DDMStructureTable.INSTANCE.name)
+				DSLFunctionFactoryUtil.castClobText(
+					DDMStructureTable.INSTANCE.name)
 			).like(
 				keyword
 			).or(
@@ -2089,8 +2036,8 @@ public class DDMStructureLocalServiceImpl
 			groupId, ddmForm);
 
 		List<DDMDataProviderInstanceLink> dataProviderInstanceLinks =
-			_ddmDataProviderInstanceLinkLocalService.
-				getDataProviderInstanceLinks(structureId);
+			_ddmDataProviderInstanceLinkPersistence.findByStructureId(
+				structureId);
 
 		for (DDMDataProviderInstanceLink dataProviderInstanceLink :
 				dataProviderInstanceLinks) {
@@ -2439,8 +2386,8 @@ public class DDMStructureLocalServiceImpl
 		_ddmDataProviderInstanceLinkPersistence;
 
 	@Reference
-	private DDMDataProviderInstanceLocalService
-		_ddmDataProviderInstanceLocalService;
+	private DDMDataProviderInstancePersistence
+		_ddmDataProviderInstancePersistence;
 
 	@Reference
 	private DDMFormValidator _ddmFormValidator;

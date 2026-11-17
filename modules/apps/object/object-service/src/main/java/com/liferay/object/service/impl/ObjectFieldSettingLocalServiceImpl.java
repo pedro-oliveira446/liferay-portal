@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -131,6 +132,10 @@ public class ObjectFieldSettingLocalServiceImpl
 		ObjectFieldSetting objectFieldSetting =
 			objectFieldSettingPersistence.fetchByPrimaryKey(
 				objectFieldSettingId);
+
+		if (Objects.equals(objectFieldSetting.getValue(), value)) {
+			return objectFieldSetting;
+		}
 
 		objectFieldSetting.setValue(value);
 

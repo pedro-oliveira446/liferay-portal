@@ -103,17 +103,6 @@ public interface CompanyLocalService
 		throws PortalException;
 
 	/**
-	 * Returns the company with the web domain.
-	 *
-	 * The method sets mail domain to the web domain to the default name set in
-	 * portal.properties
-	 *
-	 * @param webId the company's web domain
-	 * @return the company with the web domain
-	 */
-	public Company checkCompany(String webId) throws PortalException;
-
-	/**
 	 * Checks if the company has an encryption key. It will create a key if one
 	 * does not exist.
 	 *
@@ -271,16 +260,6 @@ public interface CompanyLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Company fetchCompanyById(long companyId);
 
-	/**
-	 * Returns the company with the virtual host name.
-	 *
-	 * @param virtualHostname the virtual host name
-	 * @return the company with the virtual host name, <code>null</code> if a
-	 company with the virtual host could not be found
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public Company fetchCompanyByVirtualHost(String virtualHostname);
-
 	@Transactional(enabled = false)
 	public <E extends Exception> void forEachCompany(
 			UnsafeConsumer<Company, E> unsafeConsumer)
@@ -352,16 +331,6 @@ public interface CompanyLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Company getCompanyById(long companyId) throws PortalException;
-
-	/**
-	 * Returns the company with the virtual host name.
-	 *
-	 * @param virtualHostname the company's virtual host name
-	 * @return the company with the virtual host name
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public Company getCompanyByVirtualHost(String virtualHostname)
-		throws PortalException;
 
 	/**
 	 * Returns the company with the web domain.
@@ -605,5 +574,9 @@ public interface CompanyLocalService
 		boolean sendPassword, boolean strangers, boolean strangersWithMx,
 		boolean strangersVerify, boolean siteLogo);
 
+	public void validateCompany(
+			String webId, String virtualHostname, String mx, int maxUsers)
+		throws PortalException;
+
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1174259808
+// LIFERAY-SERVICE-BUILDER-HASH:-1560764492

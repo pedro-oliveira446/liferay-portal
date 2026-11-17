@@ -1,20 +1,62 @@
 import React from 'react';
+import {CustomValue} from 'shared/util/records';
+import {
+	findLifecycleFromValue,
+	getLifecycleStageERCsFromValue,
+} from 'segment/segment-editor/dynamic/utils/custom-inputs';
 import {sub} from 'shared/util/lang';
-import {useLifecycleStageOptions} from 'shared/hooks/useLifecycleStageOptions';
+import {useChannelLifecycles} from 'shared/hooks/useChannelLifecycles';
 import {useParams} from 'react-router-dom';
 
-const LifecycleStageDisplay: React.FC<{label: string; value: string}> = ({
-	label,
+interface ILifecycleStageDisplayProps {
+	propertyLabel: string;
+	value: CustomValue;
+}
+
+const LifecycleStageDisplay: React.FC<ILifecycleStageDisplayProps> = ({
+	propertyLabel,
 	value,
 }) => {
-	const {groupId = ''} = useParams<{groupId: string}>();
+	const {channelId, groupId = ''} = useParams<{
+		channelId: string;
+		groupId: string;
+	}>();
 
-	const {loading, options} = useLifecycleStageOptions({groupId});
+	const {lifecycles, loading} = useChannelLifecycles({channelId, groupId});
 
-	const option = options.find(({value: stageId}) => stageId === value);
+	const lifecycleStageERCs = getLifecycleStageERCsFromValue(value);
 
-	if (option) {
-		return <b>{`'${option.label}'`}</b>;
+	const lifecycle = findLifecycleFromValue(lifecycles, value);
+
+	if (lifecycle?.name) {
+		if (!lifecycleStageERCs.length) {
+			return <b>{`'${lifecycle.name}'`}</b>;
+		}
+
+		return (
+			<>
+				{lifecycleStageERCs.map((lifecycleStageERC, index) => {
+					const stage = lifecycle.accountLifecycleStages?.find(
+						({externalReferenceCode}) =>
+							externalReferenceCode === lifecycleStageERC
+					);
+
+					return (
+						<React.Fragment key={lifecycleStageERC}>
+							{index > 0 && ', '}
+
+							{stage ? (
+								<b>{`'${lifecycle.name}: ${stage.name}'`}</b>
+							) : (
+								<b className="undefined-entity">
+									{Liferay.Language.get('undefined-stage')}
+								</b>
+							)}
+						</React.Fragment>
+					);
+				})}
+			</>
+		);
 	}
 
 	if (loading) {
@@ -23,7 +65,7 @@ const LifecycleStageDisplay: React.FC<{label: string; value: string}> = ({
 
 	return (
 		<b className="undefined-entity">
-			{sub(Liferay.Language.get('undefined-x'), [label])}
+			{sub(Liferay.Language.get('undefined-x'), [propertyLabel])}
 		</b>
 	);
 };

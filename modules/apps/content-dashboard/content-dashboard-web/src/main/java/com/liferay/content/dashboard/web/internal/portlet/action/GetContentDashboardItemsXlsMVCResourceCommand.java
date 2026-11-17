@@ -16,7 +16,7 @@ import com.liferay.content.dashboard.web.internal.constants.ContentDashboardPort
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItemFactoryRegistry;
 import com.liferay.content.dashboard.web.internal.item.filter.ContentDashboardItemFilterProviderRegistry;
 import com.liferay.content.dashboard.web.internal.search.request.ContentDashboardSearchContextBuilder;
-import com.liferay.content.dashboard.web.internal.searcher.ContentDashboardSearchRequestBuilderFactory;
+import com.liferay.content.dashboard.web.internal.util.ContentDashboardSearchRequestBuilderUtil;
 import com.liferay.info.search.InfoSearchClassMapperRegistry;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -40,6 +41,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.configuration.DefaultSearchResultPermissionFilterConfiguration;
+import com.liferay.portal.search.legacy.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.searcher.SearchResponse;
 import com.liferay.portal.search.searcher.Searcher;
 
@@ -276,12 +278,14 @@ public class GetContentDashboardItemsXlsMVCResourceCommand
 				ContentDashboardItem<?> contentDashboardItem =
 					_toContentDashboardItem(document);
 
-				if (contentDashboardItem != null) {
-					workbookBuilder.row();
-
-					_addWorkbookCell(
-						contentDashboardItem, themeDisplay, workbookBuilder);
+				if (contentDashboardItem == null) {
+					continue;
 				}
+
+				workbookBuilder.row();
+
+				_addWorkbookCell(
+					contentDashboardItem, themeDisplay, workbookBuilder);
 			}
 
 			if (documents.size() < searchQueryResultWindowLimit) {
@@ -295,21 +299,25 @@ public class GetContentDashboardItemsXlsMVCResourceCommand
 	private SearchResponse _getSearchResponse(
 		int end, ResourceRequest resourceRequest, int start) {
 
+		SearchContext searchContext = new ContentDashboardSearchContextBuilder(
+			_portal.getHttpServletRequest(resourceRequest),
+			_assetCategoryLocalService, _assetVocabularyLocalService,
+			_contentDashboardItemFilterProviderRegistry
+		).withEnd(
+			end
+		).withSort(
+			new Sort(Field.CREATE_DATE, Sort.LONG_TYPE, false),
+			new Sort(Field.CLASS_NAME_ID, Sort.LONG_TYPE, false),
+			new Sort(Field.CLASS_PK, Sort.LONG_TYPE, false)
+		).withStart(
+			start
+		).build();
+
 		return _searcher.search(
-			_contentDashboardSearchRequestBuilderFactory.builder(
-				new ContentDashboardSearchContextBuilder(
-					_portal.getHttpServletRequest(resourceRequest),
-					_assetCategoryLocalService, _assetVocabularyLocalService,
-					_contentDashboardItemFilterProviderRegistry
-				).withEnd(
-					end
-				).withSort(
-					new Sort(Field.CREATE_DATE, Sort.LONG_TYPE, false),
-					new Sort(Field.CLASS_NAME_ID, Sort.LONG_TYPE, false),
-					new Sort(Field.CLASS_PK, Sort.LONG_TYPE, false)
-				).withStart(
-					start
-				).build()
+			ContentDashboardSearchRequestBuilderUtil.builder(
+				_contentDashboardItemFactoryRegistry,
+				_infoSearchClassMapperRegistry, searchContext,
+				_searchRequestBuilderFactory
 			).build());
 	}
 
@@ -363,7 +371,7 @@ public class GetContentDashboardItemsXlsMVCResourceCommand
 
 	private String _toString(ThemeDisplay themeDisplay, Object value) {
 		if (value instanceof Date) {
-			return _toString(themeDisplay, (Date)value);
+			return _toString((Date)value, themeDisplay);
 		}
 
 		if (value == null) {
@@ -390,10 +398,6 @@ public class GetContentDashboardItemsXlsMVCResourceCommand
 	private ContentDashboardItemFilterProviderRegistry
 		_contentDashboardItemFilterProviderRegistry;
 
-	@Reference
-	private ContentDashboardSearchRequestBuilderFactory
-		_contentDashboardSearchRequestBuilderFactory;
-
 	private volatile DefaultSearchResultPermissionFilterConfiguration
 		_defaultSearchResultPermissionFilterConfiguration;
 
@@ -405,6 +409,9 @@ public class GetContentDashboardItemsXlsMVCResourceCommand
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
 	@Reference
 	private Searcher _searcher;

@@ -17,6 +17,7 @@ import com.liferay.fragment.processor.FragmentEntryProcessor;
 import com.liferay.fragment.processor.FragmentEntryProcessorContext;
 import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.fragment.processor.FragmentEntryValidator;
+import com.liferay.fragment.processor.util.FragmentEntryHtmlParserUtil;
 import com.liferay.fragment.renderer.FragmentPortletRenderer;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
@@ -24,6 +25,7 @@ import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReference
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.lang.CentralizedThreadLocal;
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.cache.PortalCache;
@@ -40,24 +42,30 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.io.Serializable;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Pavel Savinov
@@ -125,14 +133,15 @@ public class FragmentEntryProcessorRegistryImpl
 				fragmentEntryProcessor.getDefaultEditableValuesJSONObject(
 					configurationJSONObject, html);
 
-			if ((defaultEditableValuesJSONObject != null) &&
-				(defaultEditableValuesJSONObject.length() > 0)) {
+			if ((defaultEditableValuesJSONObject == null) ||
+				(defaultEditableValuesJSONObject.length() <= 0)) {
 
-				Class<?> clazz = fragmentEntryProcessor.getClass();
-
-				jsonObject.put(
-					clazz.getName(), defaultEditableValuesJSONObject);
+				continue;
 			}
+
+			Class<?> clazz = fragmentEntryProcessor.getClass();
+
+			jsonObject.put(clazz.getName(), defaultEditableValuesJSONObject);
 		}
 
 		Document document = _getDocument(html);
@@ -146,13 +155,15 @@ public class FragmentEntryProcessorRegistryImpl
 					getDefaultEditableValuesJSONObject(
 						configurationJSONObject, document);
 
-			if ((defaultEditableValuesJSONObject != null) &&
-				(defaultEditableValuesJSONObject.length() > 0)) {
+			if ((defaultEditableValuesJSONObject == null) ||
+				(defaultEditableValuesJSONObject.length() <= 0)) {
 
-				jsonObject.put(
-					defaultEditableValuesFragmentEntryProcessor.getKey(),
-					defaultEditableValuesJSONObject);
+				continue;
 			}
+
+			jsonObject.put(
+				defaultEditableValuesFragmentEntryProcessor.getKey(),
+				defaultEditableValuesJSONObject);
 		}
 
 		return jsonObject;
@@ -191,21 +202,23 @@ public class FragmentEntryProcessorRegistryImpl
 		while (defaultEditableValuesIterator.hasNext()) {
 			String key = defaultEditableValuesIterator.next();
 
-			if (editableFragmentEntryProcessorJSONObject.has(key)) {
-				JSONObject editableValueJSONObject =
-					editableFragmentEntryProcessorJSONObject.getJSONObject(key);
-
-				JSONObject defaultEditableValueJSONObject =
-					defaultEditableFragmentEntryProcessorJSONObject.
-						getJSONObject(key);
-
-				editableValueJSONObject.put(
-					"defaultValue",
-					defaultEditableValueJSONObject.get("defaultValue"));
-
-				defaultEditableFragmentEntryProcessorJSONObject.put(
-					key, editableValueJSONObject);
+			if (!editableFragmentEntryProcessorJSONObject.has(key)) {
+				continue;
 			}
+
+			JSONObject editableValueJSONObject =
+				editableFragmentEntryProcessorJSONObject.getJSONObject(key);
+
+			JSONObject defaultEditableValueJSONObject =
+				defaultEditableFragmentEntryProcessorJSONObject.getJSONObject(
+					key);
+
+			editableValueJSONObject.put(
+				"defaultValue",
+				defaultEditableValueJSONObject.get("defaultValue"));
+
+			defaultEditableFragmentEntryProcessorJSONObject.put(
+				key, editableValueJSONObject);
 		}
 
 		Iterator<String> editableValuesIterator =
@@ -214,10 +227,12 @@ public class FragmentEntryProcessorRegistryImpl
 		while (editableValuesIterator.hasNext()) {
 			String key = editableValuesIterator.next();
 
-			if (!defaultEditableFragmentEntryProcessorJSONObject.has(key)) {
-				defaultEditableFragmentEntryProcessorJSONObject.put(
-					key, editableFragmentEntryProcessorJSONObject.get(key));
+			if (defaultEditableFragmentEntryProcessorJSONObject.has(key)) {
+				continue;
 			}
+
+			defaultEditableFragmentEntryProcessorJSONObject.put(
+				key, editableFragmentEntryProcessorJSONObject.get(key));
 		}
 
 		editableValuesJSONObject.put(
@@ -274,6 +289,10 @@ public class FragmentEntryProcessorRegistryImpl
 		throws PortalException {
 
 		if (fragmentEntryLink.isTypePortlet()) {
+			if (fragmentEntryProcessorContext.isDisablePortletRender()) {
+				return StringPool.BLANK;
+			}
+
 			return _renderWidgetHTML(
 				fragmentEntryLink, fragmentEntryProcessorContext);
 		}
@@ -288,37 +307,73 @@ public class FragmentEntryProcessorRegistryImpl
 				fragmentEntryProcessorContext, html);
 		}
 
-		Document document = _getDocument(html);
+		DefaultEditableValuesFragmentEntryProcessor
+			defaultEditableValuesFragmentEntryProcessor = null;
 
 		if (editableValuesJSONObject.length() == 0) {
-			DefaultEditableValuesFragmentEntryProcessor
-				defaultEditableValuesFragmentEntryProcessor =
-					_serviceTrackerMap.getService(
-						FragmentEntryProcessorConstants.
-							KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
+			defaultEditableValuesFragmentEntryProcessor =
+				_serviceTrackerMap.getService(
+					FragmentEntryProcessorConstants.
+						KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
+		}
+
+		if (!_isDocumentRequired(
+				html, defaultEditableValuesFragmentEntryProcessor)) {
 
 			if (defaultEditableValuesFragmentEntryProcessor != null) {
 				editableValuesJSONObject.put(
 					FragmentEntryProcessorConstants.
 						KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
-					defaultEditableValuesFragmentEntryProcessor.
-						getDefaultEditableValuesJSONObject(
-							fragmentEntryLink.getConfigurationJSONObject(),
-							document));
+					_jsonFactory.createJSONObject());
 			}
+
+			return html;
 		}
 
-		for (DocumentFragmentEntryProcessor documentFragmentEntryProcessor :
-				_documentFragmentEntryProcessors) {
+		Document document = _getDocument(html);
 
-			documentFragmentEntryProcessor.processFragmentEntryLinkHTML(
-				document, editableValuesJSONObject, fragmentEntryLink,
-				fragmentEntryProcessorContext);
+		if (defaultEditableValuesFragmentEntryProcessor != null) {
+			editableValuesJSONObject.put(
+				FragmentEntryProcessorConstants.
+					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
+				defaultEditableValuesFragmentEntryProcessor.
+					getDefaultEditableValuesJSONObject(
+						fragmentEntryLink.getConfigurationJSONObject(),
+						document));
+		}
+
+		Map<String, String> htmls = null;
+
+		try {
+			for (DocumentFragmentEntryProcessor documentFragmentEntryProcessor :
+					_documentFragmentEntryProcessors) {
+
+				documentFragmentEntryProcessor.processFragmentEntryLinkHTML(
+					document, editableValuesJSONObject, fragmentEntryLink,
+					fragmentEntryProcessorContext);
+			}
+		}
+		finally {
+			Map<String, Serializable> attributes =
+				fragmentEntryProcessorContext.getAttributes();
+
+			htmls = (Map<String, String>)attributes.remove(
+				DocumentFragmentEntryProcessor.class.getName());
 		}
 
 		Element bodyElement = document.body();
 
-		return bodyElement.html();
+		html = bodyElement.html();
+
+		if (htmls == null) {
+			return html;
+		}
+
+		for (Map.Entry<String, String> entry : htmls.entrySet()) {
+			html = StringUtil.replace(html, entry.getKey(), entry.getValue());
+		}
+
+		return html;
 	}
 
 	@Override
@@ -364,9 +419,11 @@ public class FragmentEntryProcessorRegistryImpl
 					"fragment.entry.processor.priority")));
 		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
 			bundleContext, DefaultEditableValuesFragmentEntryProcessor.class,
-			"fragment.entry.processor.key");
+			"fragment.entry.processor.key",
+			_getServiceTrackerCustomizer(bundleContext));
 		_documentFragmentEntryProcessors = ServiceTrackerListFactory.open(
-			bundleContext, DocumentFragmentEntryProcessor.class,
+			bundleContext, DocumentFragmentEntryProcessor.class, null,
+			_getServiceTrackerCustomizer(bundleContext),
 			Collections.reverseOrder(
 				new PropertyServiceReferenceComparator<>(
 					"fragment.entry.processor.priority")));
@@ -411,19 +468,132 @@ public class FragmentEntryProcessorRegistryImpl
 		Document document = _documentPortalCache.get(html);
 
 		if (document == null) {
-			document = Jsoup.parseBodyFragment(html);
-
-			Document.OutputSettings outputSettings =
-				new Document.OutputSettings();
-
-			outputSettings.prettyPrint(false);
-
-			document.outputSettings(outputSettings);
+			document = FragmentEntryHtmlParserUtil.parseBodyFragment(html);
 
 			_documentPortalCache.put(html, document);
 		}
 
 		return document.clone();
+	}
+
+	private String[] _getMarkers(ServiceReference<?> serviceReference) {
+		Object value = serviceReference.getProperty(
+			"fragment.entry.processor.marker");
+
+		if (value instanceof String marker) {
+			return new String[] {marker};
+		}
+
+		if (value instanceof String[] markers) {
+			return markers;
+		}
+
+		return null;
+	}
+
+	private <S> ServiceTrackerCustomizer<S, S> _getServiceTrackerCustomizer(
+		BundleContext bundleContext) {
+
+		return new ServiceTrackerCustomizer<S, S>() {
+
+			@Override
+			public S addingService(ServiceReference<S> serviceReference) {
+				S service = bundleContext.getService(serviceReference);
+
+				if (service == null) {
+					return null;
+				}
+
+				String[] markers = _getMarkers(serviceReference);
+
+				if (markers != null) {
+					_markers.put(service, markers);
+				}
+
+				return service;
+			}
+
+			@Override
+			public void modifiedService(
+				ServiceReference<S> serviceReference, S service) {
+
+				String[] markers = _getMarkers(serviceReference);
+
+				if (markers == null) {
+					_markers.remove(service);
+				}
+				else {
+					_markers.put(service, markers);
+				}
+			}
+
+			@Override
+			public void removedService(
+				ServiceReference<S> serviceReference, S service) {
+
+				_markers.remove(service);
+
+				bundleContext.ungetService(serviceReference);
+			}
+
+		};
+	}
+
+	private boolean _hasMarker(String html, Object processor) {
+		String[] markers = _markers.get(processor);
+
+		if (markers == null) {
+			return true;
+		}
+
+		for (String marker : markers) {
+			if (html.contains(marker)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean _hasMarkers(
+		String html,
+		DefaultEditableValuesFragmentEntryProcessor
+			defaultEditableValuesFragmentEntryProcessor) {
+
+		if ((defaultEditableValuesFragmentEntryProcessor != null) &&
+			_hasMarker(html, defaultEditableValuesFragmentEntryProcessor)) {
+
+			return true;
+		}
+
+		for (DocumentFragmentEntryProcessor documentFragmentEntryProcessor :
+				_documentFragmentEntryProcessors) {
+
+			if (_hasMarker(html, documentFragmentEntryProcessor)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean _isDocumentRequired(
+		String html,
+		DefaultEditableValuesFragmentEntryProcessor
+			defaultEditableValuesFragmentEntryProcessor) {
+
+		if (_hasMarkers(html, defaultEditableValuesFragmentEntryProcessor)) {
+			return true;
+		}
+
+		String lowerCaseHTML = _toLowerCaseASCII(html);
+
+		if (lowerCaseHTML == html) {
+			return false;
+		}
+
+		return _hasMarkers(
+			lowerCaseHTML, defaultEditableValuesFragmentEntryProcessor);
 	}
 
 	private String _renderWidgetHTML(
@@ -471,6 +641,32 @@ public class FragmentEntryProcessorRegistryImpl
 		return html;
 	}
 
+	private String _toLowerCaseASCII(char[] chars, int index) {
+		for (int i = index; i < chars.length; i++) {
+			char c = chars[i];
+
+			if ((c < CharPool.UPPER_CASE_A) || (c > CharPool.UPPER_CASE_Z)) {
+				continue;
+			}
+
+			chars[i] = (char)(c + 32);
+		}
+
+		return new String(chars);
+	}
+
+	private String _toLowerCaseASCII(String html) {
+		for (int i = 0; i < html.length(); i++) {
+			char c = html.charAt(i);
+
+			if ((c >= CharPool.UPPER_CASE_A) && (c <= CharPool.UPPER_CASE_Z)) {
+				return _toLowerCaseASCII(html.toCharArray(), i);
+			}
+		}
+
+		return html;
+	}
+
 	private static final String _DOCUMENT_PORTAL_CACHE_NAME =
 		FragmentEntryProcessorRegistryImpl.class.getName() +
 			"._documentPortalCache";
@@ -498,6 +694,7 @@ public class FragmentEntryProcessorRegistryImpl
 	@Reference
 	private JSONFactory _jsonFactory;
 
+	private final Map<Object, String[]> _markers = new ConcurrentHashMap<>();
 	private ServiceTrackerMap
 		<String, DefaultEditableValuesFragmentEntryProcessor>
 			_serviceTrackerMap;

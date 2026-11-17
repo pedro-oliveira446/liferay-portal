@@ -5,6 +5,7 @@
 
 package com.liferay.fragment.web.internal.display.context;
 
+import com.liferay.fragment.constants.FragmentActionKeys;
 import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.constants.FragmentEntryLinkConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributorRegistry;
@@ -15,6 +16,7 @@ import com.liferay.fragment.renderer.DefaultFragmentRendererContext;
 import com.liferay.fragment.service.FragmentCollectionLocalServiceUtil;
 import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
 import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
+import com.liferay.fragment.web.internal.security.permission.resource.FragmentPermission;
 import com.liferay.portal.kernel.bean.BeanParamUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -29,6 +31,8 @@ import com.liferay.portal.kernel.util.WebKeys;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.File;
+
+import java.util.function.Function;
 
 /**
  * @author Jürgen Kappler
@@ -59,12 +63,16 @@ public class RenderFragmentEntryDisplayContext {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		String css = _readParameter(fragmentEntry, "css", uploadRequest);
-		String html = _readParameter(fragmentEntry, "html", uploadRequest);
-		String js = _readParameter(fragmentEntry, "js", uploadRequest);
+		String css = _readParameter(
+			fragmentEntry, FragmentEntry::getCss, "css", uploadRequest);
+		String html = _readParameter(
+			fragmentEntry, FragmentEntry::getHtml, "html", uploadRequest);
+		String js = _readParameter(
+			fragmentEntry, FragmentEntry::getJs, "js", uploadRequest);
 
 		String configuration = BeanParamUtil.getString(
-			fragmentEntry, _httpServletRequest, "configuration");
+			fragmentEntry, _httpServletRequest, "configuration",
+			FragmentEntry::getConfiguration);
 
 		FragmentEntryLink fragmentEntryLink =
 			FragmentEntryLinkLocalServiceUtil.createFragmentEntryLink(0);
@@ -115,6 +123,19 @@ public class RenderFragmentEntryDisplayContext {
 		return defaultFragmentRendererContext;
 	}
 
+	public boolean hasPermission() {
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)_httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		long groupId = ParamUtil.getLong(
+			_httpServletRequest, "groupId", themeDisplay.getScopeGroupId());
+
+		return FragmentPermission.contains(
+			themeDisplay.getPermissionChecker(), groupId,
+			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
+	}
+
 	private FragmentEntry _getFragmentEntry() {
 		long fragmentCollectionId = ParamUtil.getLong(
 			_httpServletRequest, "fragmentCollectionId");
@@ -153,7 +174,8 @@ public class RenderFragmentEntryDisplayContext {
 	}
 
 	private String _readParameter(
-			FragmentEntry fragmentEntry, String parameterName,
+			FragmentEntry fragmentEntry,
+			Function<FragmentEntry, String> function, String parameterName,
 			UploadRequest uploadRequest)
 		throws Exception {
 
@@ -164,7 +186,7 @@ public class RenderFragmentEntryDisplayContext {
 		}
 
 		return BeanParamUtil.getString(
-			fragmentEntry, _httpServletRequest, parameterName);
+			fragmentEntry, _httpServletRequest, parameterName, function);
 	}
 
 	private final FragmentCollectionContributorRegistry

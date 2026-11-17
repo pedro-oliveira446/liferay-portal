@@ -216,7 +216,7 @@ describe('The instance list item should', () => {
 		expect(slaNamePopoverText).toBeTruthy();
 
 		const slaDateTimeRemainingTime = queryByText(
-			'Apr 16, 2021, 12:44 PM (1d 3h 46min left)'
+			'Apr 16, 2021, 12:44 PM (1d 3h 46min left[remaining])'
 		);
 
 		expect(slaDateTimeRemainingTime).toBeTruthy();
@@ -357,7 +357,7 @@ describe('The instance list item should', () => {
 		expect(popoverElement).toBeTruthy();
 
 		const slaDateTimeRemainingTime = queryByText(
-			'Apr 16, 2021, 12:44 PM (10sec left)'
+			'Apr 16, 2021, 12:44 PM (10sec left[remaining])'
 		);
 
 		expect(slaDateTimeRemainingTime).toBeTruthy();
@@ -403,7 +403,7 @@ describe('The instance list item should', () => {
 
 		fireEvent.click(instanceIdLink);
 
-		expect(setInstanceId).toBeCalledWith(1);
+		expect(setInstanceId).toHaveBeenCalledWith(1);
 	});
 
 	it('set BulkReassign modal visualization by clicking the reassign task button', () => {

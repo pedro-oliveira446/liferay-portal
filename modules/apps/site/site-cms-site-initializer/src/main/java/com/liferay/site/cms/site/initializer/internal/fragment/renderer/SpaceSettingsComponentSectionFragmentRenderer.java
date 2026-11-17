@@ -5,18 +5,26 @@
 
 package com.liferay.site.cms.site.initializer.internal.fragment.renderer;
 
+import com.liferay.depot.model.DepotEntry;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
+import com.liferay.map.util.MapProviderHelperUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.site.cms.site.initializer.internal.util.InfoItemUtil;
 
@@ -60,6 +68,20 @@ public class SpaceSettingsComponentSectionFragmentRenderer
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
+		try {
+			_depotEntryModelResourcePermission.check(
+				themeDisplay.getPermissionChecker(),
+				InfoItemUtil.getDepotEntryId(httpServletRequest),
+				ActionKeys.UPDATE);
+		}
+		catch (PrincipalException principalException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(principalException);
+			}
+
+			throw principalException;
+		}
+
 		JSONArray jsonArray = _jsonFactory.createJSONArray();
 
 		for (Locale availableLocale :
@@ -80,15 +102,27 @@ public class SpaceSettingsComponentSectionFragmentRenderer
 		Group group = _groupLocalService.getGroup(groupId);
 
 		return HashMapBuilder.<String, Object>put(
-			"backURL", ParamUtil.getString(httpServletRequest, "redirect")
+			"backURL",
+			PortalUtil.escapeRedirect(
+				ParamUtil.getString(httpServletRequest, "redirect"))
 		).put(
 			"companyAvailableLanguages", jsonArray
+		).put(
+			"companyMapProviderKey",
+			MapProviderHelperUtil.getMapProviderKey(themeDisplay.getCompanyId())
 		).put(
 			"externalReferenceCode", group.getExternalReferenceCode()
 		).put(
 			"groupId", groupId
 		).build();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		SpaceSettingsComponentSectionFragmentRenderer.class);
+
+	@Reference(target = "(model.class.name=com.liferay.depot.model.DepotEntry)")
+	private ModelResourcePermission<DepotEntry>
+		_depotEntryModelResourcePermission;
 
 	@Reference
 	private GroupLocalService _groupLocalService;

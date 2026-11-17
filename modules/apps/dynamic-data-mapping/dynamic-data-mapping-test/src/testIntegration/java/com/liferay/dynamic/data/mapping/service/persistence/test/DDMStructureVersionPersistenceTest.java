@@ -240,14 +240,6 @@ public class DDMStructureVersionPersistenceTest {
 	}
 
 	@Test
-	public void testCountByS_S() throws Exception {
-		_persistence.countByS_S(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
-
-		_persistence.countByS_S(0L, 0);
-	}
-
-	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		DDMStructureVersion newDDMStructureVersion = addDDMStructureVersion();
 
@@ -277,9 +269,9 @@ public class DDMStructureVersionPersistenceTest {
 			"DDMStructureVersion", "mvccVersion", true, "ctCollectionId", true,
 			"structureVersionId", true, "groupId", true, "companyId", true,
 			"userId", true, "userName", true, "createDate", true, "structureId",
-			true, "version", true, "parentStructureId", true, "name", true,
-			"storageType", true, "type", true, "status", true, "statusByUserId",
-			true, "statusByUserName", true, "statusDate", true);
+			true, "version", true, "parentStructureId", true, "storageType",
+			true, "type", true, "status", true, "statusByUserId", true,
+			"statusByUserName", true, "statusDate", true);
 	}
 
 	@Test
@@ -624,4 +616,4 @@ public class DDMStructureVersionPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2062373413
+// LIFERAY-SERVICE-BUILDER-HASH:1409394290

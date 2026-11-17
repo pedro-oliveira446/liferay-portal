@@ -6,6 +6,7 @@
 package com.liferay.batch.engine.internal.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.batch.engine.BatchEngineContentProcessor;
 import com.liferay.batch.engine.BatchEngineImportTaskExecutor;
 import com.liferay.batch.engine.BatchEngineTaskExecuteStatus;
 import com.liferay.batch.engine.BatchEngineTaskOperation;
@@ -30,6 +31,8 @@ import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
+import com.liferay.portal.kernel.audit.AuditRequestContext;
+import com.liferay.portal.kernel.audit.AuditRequestContextThreadLocal;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -37,6 +40,7 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.spring.orm.LastSessionRecorderHelper;
 import com.liferay.portal.kernel.spring.orm.LastSessionRecorderHelperUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -388,6 +392,122 @@ public class BatchEngineImportTaskExecutorTest
 				LastSessionRecorderHelperUtil.class,
 				"_lastSessionRecorderHelper",
 				originalLastSessionRecorderHelper);
+		}
+	}
+
+	@Test
+	@TestInfo("LPD-108617")
+	public void testCreateBlogPostingsWithBatchEngineContentProcessor()
+		throws Exception {
+
+		Bundle bundle = FrameworkUtil.getBundle(
+			BatchEngineImportTaskExecutorTest.class);
+
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		List<String> processedHeadlines = new ArrayList<>();
+
+		List<ServiceRegistration<BatchEngineContentProcessor>>
+			serviceRegistrations = Arrays.asList(
+				bundleContext.registerService(
+					BatchEngineContentProcessor.class,
+					(content, fieldNameValueMap) -> StringUtil.randomString(),
+					HashMapDictionaryBuilder.<String, Object>put(
+						"field.name", "articleBody"
+					).put(
+						"model.class.name", BlogsEntry.class.getName()
+					).build()),
+				bundleContext.registerService(
+					BatchEngineContentProcessor.class,
+					(content, fieldNameValueMap) -> {
+						processedHeadlines.add(content);
+
+						return StringBundler.concat(
+							content, StringPool.DASH,
+							fieldNameValueMap.get("articleBody"));
+					},
+					HashMapDictionaryBuilder.<String, Object>put(
+						"field.name", "headline"
+					).put(
+						"model.class.name", BlogPosting.class.getName()
+					).build()));
+
+		String[] articleBodies = new String[ROWS_COUNT];
+		String[] headlines = new String[ROWS_COUNT];
+		String nestedHeadline = StringUtil.randomString();
+
+		StringBundler sb = new StringBundler();
+
+		sb.append(StringPool.OPEN_BRACKET);
+
+		for (int i = 0; i < ROWS_COUNT; i++) {
+			articleBodies[i] = StringUtil.randomString();
+			headlines[i] = StringUtil.randomString();
+
+			_createJSONRow(
+				sb, "articleBody", _toJSONValue(articleBodies[i]),
+				"datePublished",
+				_toJSONValue(
+					dateFormat.format(new Date(_toTime(baseDate, i - 1000)))),
+				"headline", _toJSONValue(headlines[i]),
+				StringUtil.randomString(),
+				"{\"headline\": " + _toJSONValue(nestedHeadline) + "}",
+				"siteId", String.valueOf(TestPropsValues.getGroupId()));
+
+			sb.append(StringPool.COMMA);
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(StringPool.CLOSE_BRACKET);
+
+		ExportImportThreadLocal.setPortletImportInProcess(true);
+
+		try {
+			_importBlogPostings(
+				BatchEngineTaskOperation.CREATE, _toContent("JSON", sb), "JSON",
+				HashMapBuilder.put(
+					"articleBody", "articleBody"
+				).put(
+					"datePublished", "datePublished"
+				).put(
+					"headline", "headline"
+				).put(
+					"siteId", "siteId"
+				).build());
+		}
+		finally {
+			ExportImportThreadLocal.setPortletImportInProcess(false);
+
+			for (ServiceRegistration<BatchEngineContentProcessor>
+					serviceRegistration : serviceRegistrations) {
+
+				serviceRegistration.unregister();
+			}
+		}
+
+		Assert.assertEquals(
+			ROWS_COUNT, _batchEngineImportTask.getProcessedItemsCount());
+		Assert.assertEquals(
+			processedHeadlines.toString(), ROWS_COUNT,
+			processedHeadlines.size());
+		Assert.assertFalse(processedHeadlines.contains(nestedHeadline));
+
+		List<BlogsEntry> blogsEntries = new ArrayList<>(
+			blogsEntryLocalService.getGroupEntries(
+				TestPropsValues.getGroupId(),
+				new QueryDefinition<>(WorkflowConstants.STATUS_ANY)));
+
+		blogsEntries.sort(Comparator.comparingLong(BlogsEntry::getEntryId));
+
+		for (int i = 0; i < ROWS_COUNT; i++) {
+			BlogsEntry blogsEntry = blogsEntries.get(i + initialCount);
+
+			Assert.assertEquals(articleBodies[i], blogsEntry.getContent());
+			Assert.assertEquals(
+				StringBundler.concat(
+					headlines[i], StringPool.DASH, articleBodies[i]),
+				blogsEntry.getTitle());
 		}
 	}
 
@@ -984,6 +1104,92 @@ public class BatchEngineImportTaskExecutorTest
 	}
 
 	@Test
+	public void testImportBlogPostingsWithAuditRequestContext()
+		throws Exception {
+
+		AuditRequestContext auditRequestContext =
+			AuditRequestContextThreadLocal.getAuditRequestContext();
+
+		String clientHost = RandomTestUtil.randomString();
+
+		auditRequestContext.setClientHost(clientHost);
+
+		String clientIP = RandomTestUtil.randomString();
+
+		auditRequestContext.setClientIP(clientIP);
+
+		long realUserId = RandomTestUtil.randomLong();
+
+		auditRequestContext.setRealUserId(realUserId);
+
+		String serverName = RandomTestUtil.randomString();
+
+		auditRequestContext.setServerName(serverName);
+
+		int serverPort = RandomTestUtil.randomInt();
+
+		auditRequestContext.setServerPort(serverPort);
+
+		String sessionID = RandomTestUtil.randomString();
+
+		auditRequestContext.setSessionID(sessionID);
+
+		try {
+			_importBlogPostings(
+				BatchEngineTaskOperation.CREATE,
+				_getBlogPostingsJSONCreateContent(
+					TestPropsValues.getGroupId(), FIELD_NAMES),
+				"JSON", null);
+
+			Assert.assertEquals(
+				BatchEngineTaskExecuteStatus.COMPLETED.toString(),
+				_batchEngineImportTask.getExecuteStatus());
+
+			_assertAuditRequestContext(
+				clientHost, clientIP, realUserId, serverName, serverPort,
+				sessionID);
+
+			StringBundler sb = new StringBundler();
+
+			sb.append(StringPool.OPEN_BRACKET);
+
+			_createJSONRow(
+				sb, FIELD_NAMES[0], _toJSONValue("alternativeHeadline"),
+				FIELD_NAMES[1], _toJSONValue("articleBody"), FIELD_NAMES[2],
+				_toJSONValue(dateFormat.format(new Date(baseDate.getTime()))),
+				FIELD_NAMES[3], _toJSONValue("headline"), FIELD_NAMES[4],
+				String.valueOf(TestPropsValues.getGroupId()), "unknownColumn",
+				_toJSONValue("unknownValue"));
+
+			sb.append(StringPool.CLOSE_BRACKET);
+
+			String content = sb.toString();
+
+			try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+					_CLASS_NAME_BATCH_ENGINE_IMPORT_TASK_EXECUTOR_IMPL,
+					LoggerTestUtil.ERROR)) {
+
+				_importBlogPostings(
+					BatchEngineTaskOperation.CREATE,
+					_compressContent(
+						content.getBytes(StandardCharsets.UTF_8), "JSON"),
+					"JSON", null);
+			}
+
+			Assert.assertEquals(
+				BatchEngineTaskExecuteStatus.FAILED.toString(),
+				_batchEngineImportTask.getExecuteStatus());
+
+			_assertAuditRequestContext(
+				clientHost, clientIP, realUserId, serverName, serverPort,
+				sessionID);
+		}
+		finally {
+			AuditRequestContextThreadLocal.removeAuditRequestContext();
+		}
+	}
+
+	@Test
 	public void testImportBlogPostingsWithCallbackURL() throws Exception {
 		Bundle bundle = FrameworkUtil.getBundle(
 			BatchEngineImportTaskExecutorTest.class);
@@ -1249,6 +1455,21 @@ public class BatchEngineImportTaskExecutorTest
 
 		Assert.assertEquals(count + 1, testApplication.getCount());
 		Assert.assertEquals(logEntries.toString(), 0, logEntries.size());
+	}
+
+	private void _assertAuditRequestContext(
+		String clientHost, String clientIP, long realUserId, String serverName,
+		int serverPort, String sessionID) {
+
+		AuditRequestContext auditRequestContext =
+			AuditRequestContextThreadLocal.getAuditRequestContext();
+
+		Assert.assertEquals(clientHost, auditRequestContext.getClientHost());
+		Assert.assertEquals(clientIP, auditRequestContext.getClientIP());
+		Assert.assertEquals(realUserId, auditRequestContext.getRealUserId());
+		Assert.assertEquals(serverName, auditRequestContext.getServerName());
+		Assert.assertEquals(serverPort, auditRequestContext.getServerPort());
+		Assert.assertEquals(sessionID, auditRequestContext.getSessionID());
 	}
 
 	private void _assertCreatedBlogPostings() throws Exception {

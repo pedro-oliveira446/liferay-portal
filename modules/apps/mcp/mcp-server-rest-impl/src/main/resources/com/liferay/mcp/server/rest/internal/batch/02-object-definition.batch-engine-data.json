@@ -19,7 +19,6 @@
 			"label": {
 				"en_US": "MCP Server Profile"
 			},
-			"modifiable": true,
 			"name": "MCPServerProfile",
 			"objectFields": [
 				{
@@ -118,7 +117,7 @@
 					"type": "oneToMany"
 				}
 			],
-			"panelCategoryKey": "control_panel.object",
+			"panelCategoryKey": "",
 			"pluralLabel": {
 				"en_US": "MCP Server Profiles"
 			},

@@ -7,6 +7,7 @@ package com.liferay.object.internal.model.listener.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.field.builder.LocationObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectDefinition;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.TreeMapBuilder;
+import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -114,12 +116,68 @@ public class ObjectEntryAuditModelListenerTest {
 	public void testOnAfterCreateWithLocalizedValues() throws Exception {
 		_addObjectEntry("en_US", "Description", "Descrição");
 
+		AuditMessage auditMessage = _auditMessages.peek();
+
+		Assert.assertEquals("objectentry", auditMessage.getResourceType());
+
 		_assertLocalizedValues(
 			TreeMapBuilder.put(
 				"description", "Description"
 			).put(
 				"description[pt_BR]", "Descrição"
 			).build());
+	}
+
+	@FeatureFlag("LPD-11388")
+	@Test
+	public void testOnAfterCreateWithLocationObjectField() throws Exception {
+		ObjectFieldUtil.addCustomObjectField(
+			new LocationObjectFieldBuilder(
+			).labelMap(
+				RandomTestUtil.randomLocaleStringMap()
+			).name(
+				"location"
+			).objectDefinitionId(
+				_objectDefinition.getObjectDefinitionId()
+			).userId(
+				TestPropsValues.getUserId()
+			).build());
+
+		String address = RandomTestUtil.randomString();
+		double latitude = RandomTestUtil.randomDouble();
+		double longitude = RandomTestUtil.randomDouble();
+
+		_objectEntryLocalService.addObjectEntry(
+			0, TestPropsValues.getUserId(),
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectEntryFolderConstants.PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
+			"en_US",
+			HashMapBuilder.<String, Serializable>put(
+				"location",
+				HashMapBuilder.<String, Serializable>put(
+					"address", address
+				).put(
+					"latitude", latitude
+				).put(
+					"longitude", longitude
+				).build()
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+
+		JSONObject additionalInfoJSONObject = _pollAdditionalInfoJSONObject();
+
+		JSONObject locationJSONObject = additionalInfoJSONObject.getJSONObject(
+			"location");
+
+		Assert.assertEquals(address, locationJSONObject.getString("address"));
+
+		JSONObject coordinatesJSONObject = locationJSONObject.getJSONObject(
+			"coordinates");
+
+		Assert.assertEquals(
+			latitude, coordinatesJSONObject.getDouble("latitude"), 0.0001);
+		Assert.assertEquals(
+			longitude, coordinatesJSONObject.getDouble("longitude"), 0.0001);
 	}
 
 	@Test
@@ -180,10 +238,11 @@ public class ObjectEntryAuditModelListenerTest {
 		JSONObject additionalInfoJSONObject = _pollAdditionalInfoJSONObject();
 
 		for (String key : additionalInfoJSONObject.keySet()) {
-			if (key.startsWith(_objectField.getName())) {
-				localizedValues.put(
-					key, additionalInfoJSONObject.getString(key));
+			if (!key.startsWith(_objectField.getName())) {
+				continue;
 			}
+
+			localizedValues.put(key, additionalInfoJSONObject.getString(key));
 		}
 
 		Assert.assertEquals(expectedLocalizedValues, localizedValues);
@@ -239,6 +298,10 @@ public class ObjectEntryAuditModelListenerTest {
 		_auditMessages.clear();
 
 		_updateObjectEntry("Description 2", objectEntry, "Descrição");
+
+		AuditMessage auditMessage = _auditMessages.peek();
+
+		Assert.assertEquals("objectentry", auditMessage.getResourceType());
 
 		_assertModifiedAttributes("description=Description>Description 2");
 	}

@@ -8,10 +8,12 @@ package com.liferay.portal.workflow.kaleo.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -25,17 +27,24 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.util.PortalInstances;
+import com.liferay.portal.workflow.configuration.WorkflowDefinitionConfiguration;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
+import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionService;
 
 import java.io.InputStream;
+
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -56,6 +65,65 @@ public class KaleoDefinitionVersionServiceImplTest {
 		new AggregateTestRule(
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
+
+	@Test
+	public void testDeleteKaleoDefinitionVersions() throws Exception {
+		KaleoDefinition kaleoDefinition =
+			_kaleoDefinitionLocalService.addKaleoDefinition(
+				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+				_read(), StringPool.BLANK, false, 1,
+				ServiceContextTestUtil.getServiceContext());
+
+		User user = UserTestUtil.addUser();
+
+		_setUpPermissionThreadLocal(user);
+
+		AssertUtils.assertFailure(
+			PrincipalException.MustHavePermission.class,
+			StringBundler.concat(
+				"User ", user.getUserId(), " must have ", ActionKeys.DELETE,
+				" permission for ", WorkflowConstants.RESOURCE_NAME,
+				StringPool.SPACE),
+			() -> _kaleoDefinitionVersionService.deleteKaleoDefinitionVersions(
+				kaleoDefinition.getCompanyId(), kaleoDefinition.getName()));
+
+		Company company = CompanyTestUtil.addCompany();
+
+		PortalInstances.initCompany(company);
+
+		_setUpPermissionThreadLocal(UserTestUtil.addCompanyAdminUser(company));
+
+		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
+				new ConfigurationTemporarySwapper(
+					WorkflowDefinitionConfiguration.class.getName(),
+					HashMapDictionaryBuilder.<String, Object>put(
+						"company.administrator.can.publish", true
+					).build())) {
+
+			AssertUtils.assertFailure(
+				PrincipalException.class,
+				"User is not an omniadmin and does not belong to the company",
+				() ->
+					_kaleoDefinitionVersionService.
+						deleteKaleoDefinitionVersions(
+							kaleoDefinition.getCompanyId(),
+							kaleoDefinition.getName()));
+		}
+
+		_setUpPermissionThreadLocal(TestPropsValues.getUser());
+
+		_kaleoDefinitionVersionService.deleteKaleoDefinitionVersions(
+			kaleoDefinition.getCompanyId(), kaleoDefinition.getName());
+
+		List<KaleoDefinitionVersion> kaleoDefinitionVersions =
+			_kaleoDefinitionVersionLocalService.getKaleoDefinitionVersions(
+				kaleoDefinition.getCompanyId(), kaleoDefinition.getName());
+
+		Assert.assertEquals(
+			kaleoDefinitionVersions.toString(), 0,
+			kaleoDefinitionVersions.size());
+	}
 
 	@Test
 	public void testGetKaleoDefinitionVersion() throws Exception {
@@ -129,6 +197,10 @@ public class KaleoDefinitionVersionServiceImplTest {
 
 	@Inject
 	private KaleoDefinitionLocalService _kaleoDefinitionLocalService;
+
+	@Inject
+	private KaleoDefinitionVersionLocalService
+		_kaleoDefinitionVersionLocalService;
 
 	@Inject
 	private KaleoDefinitionVersionService _kaleoDefinitionVersionService;

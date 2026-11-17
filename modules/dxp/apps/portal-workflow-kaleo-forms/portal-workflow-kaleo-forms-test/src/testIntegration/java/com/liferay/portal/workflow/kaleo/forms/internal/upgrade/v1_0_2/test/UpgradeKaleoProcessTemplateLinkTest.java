@@ -31,9 +31,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -76,12 +73,10 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 		_kaleoProcessTemplateLinkUpgradeProcess.upgrade();
 
 		DDMTemplateLink ddmTemplateLink =
-			DDMTemplateLinkLocalServiceUtil.getTemplateLink(
+			DDMTemplateLinkLocalServiceUtil.deleteTemplateLink(
 				_kaleoProcessClassNameId, _kaleoProcessId);
 
 		Assert.assertNotNull(ddmTemplateLink);
-
-		_ddmTemplateLinks.add(ddmTemplateLink);
 	}
 
 	@Test
@@ -91,12 +86,10 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 		_kaleoProcessTemplateLinkUpgradeProcess.upgrade();
 
 		DDMTemplateLink ddmTemplateLink =
-			DDMTemplateLinkLocalServiceUtil.getTemplateLink(
+			DDMTemplateLinkLocalServiceUtil.deleteTemplateLink(
 				_kaleoProcessLinkClassNameId, _kaleoProcessLinkId);
 
 		Assert.assertNotNull(ddmTemplateLink);
-
-		_ddmTemplateLinks.add(ddmTemplateLink);
 	}
 
 	private void _addKaleoProcess(long kaleoProcessId) throws Exception {
@@ -193,20 +186,19 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 
 						String className = clazz.getName();
 
-						if (className.contains(
+						if (!className.contains(
 								"KaleoProcessTemplateLinkUpgradeProcess")) {
 
-							_kaleoProcessTemplateLinkUpgradeProcess =
-								(UpgradeProcess)upgradeStep;
+							continue;
 						}
+
+						_kaleoProcessTemplateLinkUpgradeProcess =
+							(UpgradeProcess)upgradeStep;
 					}
 				}
 
 			});
 	}
-
-	@DeleteAfterTestRun
-	private final List<DDMTemplateLink> _ddmTemplateLinks = new ArrayList<>();
 
 	@DeleteAfterTestRun
 	private Group _group;

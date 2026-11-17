@@ -31,22 +31,13 @@ test(
 	'A Basic Web Content with an untranslated field falls back to the default language for that field',
 	{tag: ['@LPD-95528', '@LPD-95528/TC-5.d']},
 	async ({apiHelpers, browser, page, pageEditorPage, site}) => {
-		test.fail(
-			true,
-			'Fails due to LPD-96215: an untranslated field does not fall back to the default language, it renders empty'
-		);
-
 		test.setTimeout(240000);
 
-		const spaceName = `Space ${getRandomString()}`;
 		const titleEn = `TitleEN ${getRandomString()}`;
 		const titleEs = `TitleES ${getRandomString()}`;
 		const contentEn = `BodyEN ${getRandomString()}`;
 
-		const space = await apiHelpers.headlessAssetLibrary.createAssetLibrary({
-			name: spaceName,
-			type: 'Space',
-		});
+		const space = await apiHelpers.headlessAssetLibrary.createSpace();
 
 		await apiHelpers.headlessAssetLibrary.connectSite(
 			space.externalReferenceCode,
@@ -60,7 +51,7 @@ test(
 				title_i18n: {en_US: titleEn, es_ES: titleEs},
 			},
 			APPLICATION_NAME,
-			spaceName
+			space.name
 		);
 
 		const objectDefinition =

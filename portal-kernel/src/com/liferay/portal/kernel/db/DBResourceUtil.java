@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.model.ReleaseConstants;
 import com.liferay.portal.kernel.module.util.BundleUtil;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -103,6 +104,7 @@ public class DBResourceUtil {
 		Set<String> liferayTableNames = new TreeSet<>(
 			String.CASE_INSENSITIVE_ORDER);
 
+		liferayTableNames.addAll(_removedTableNames);
 		liferayTableNames.addAll(getModuleTableNames());
 		liferayTableNames.addAll(getPortalTableNames());
 		liferayTableNames.addAll(
@@ -111,6 +113,17 @@ public class DBResourceUtil {
 			getServiceComponentPortalTableNames(connection));
 
 		return liferayTableNames;
+	}
+
+	public static Map<String, List<String>> getModuleColumnDefinitionsMap() {
+		Map<String, List<String>> columnDefinitionsMap = new TreeMap<>(
+			String.CASE_INSENSITIVE_ORDER);
+
+		for (Bundle bundle : _getLiferayServiceBundles()) {
+			columnDefinitionsMap.putAll(getModuleColumnDefinitionsMap(bundle));
+		}
+
+		return columnDefinitionsMap;
 	}
 
 	public static Map<String, List<String>> getModuleColumnDefinitionsMap(
@@ -318,9 +331,8 @@ public class DBResourceUtil {
 		return tableNames;
 	}
 
-	private static Set<String> _getModuleTableNames() {
-		Set<String> moduleTableNames = new TreeSet<>(
-			String.CASE_INSENSITIVE_ORDER);
+	private static List<Bundle> _getLiferayServiceBundles() {
+		List<Bundle> bundles = new ArrayList<>();
 
 		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
@@ -333,6 +345,17 @@ public class DBResourceUtil {
 				continue;
 			}
 
+			bundles.add(bundle);
+		}
+
+		return bundles;
+	}
+
+	private static Set<String> _getModuleTableNames() {
+		Set<String> moduleTableNames = new TreeSet<>(
+			String.CASE_INSENSITIVE_ORDER);
+
+		for (Bundle bundle : _getLiferayServiceBundles()) {
 			String tableSQL = getModuleTablesSQL(bundle);
 
 			if (tableSQL == null) {
@@ -546,6 +569,36 @@ public class DBResourceUtil {
 		_moduleTableNamesDCLSingleton = new DCLSingleton<>();
 	private static final DCLSingleton<Set<String>>
 		_portalTableNamesDCLSingleton = new DCLSingleton<>();
+	private static final Set<String> _removedTableNames = SetUtil.fromArray(
+		"Account_", "AppBuilderApp", "AppBuilderAppDataRecordLink",
+		"AppBuilderAppDeployment", "AppBuilderAppVersion",
+		"AppBuilderWorkflowTaskLink", "AssetEntries_AssetCategories",
+		"AssetEntryUsage", "AssetTagProperty", "AssetTagStats",
+		"BlogsStatsUser", "CAModelCProductRel", "CAccountGroupCAccountRel",
+		"CBOMFolderApplicationRel", "CDataIntegrationProcess",
+		"CDataIntegrationProcessLog", "CTCollection_CTEntryAggregate",
+		"CTCollections_CTEntries", "CTEntryAggregate",
+		"CTEntryAggregates_CTEntries", "CalEvent", "ClusterGroup",
+		"CommerceAccount", "CommerceAccountGroup", "CommerceAccountGroupRel",
+		"CommerceAccountOrganizationRel", "CommerceAccountUserRel",
+		"CommerceAddress", "CommerceApplicationBrand",
+		"CommerceApplicationModel", "CommerceBOMDefinition", "CommerceBOMEntry",
+		"CommerceBOMFolder", "CommerceCountry", "CommerceRegion",
+		"DLFileEntryTypes_DDMStructures", "DLFileRank", "HtmlPreviewEntry",
+		"JournalArticleImage", "KaleoDraftDefinition", "LayoutSetVersion",
+		"LayoutVersion", "MBStatsUser", "MDRAction", "MDRRule", "MDRRuleGroup",
+		"MDRRuleGroupInstance", "OAuth_OAuthApplication", "OAuth_OAuthUser",
+		"OpenSocial_Gadget", "OpenSocial_OAuthConsumer",
+		"OpenSocial_OAuthToken", "OrgGroupRole", "PollsChoice", "PollsQuestion",
+		"PollsVote", "RemoteAppEntry", "ResourceBlock",
+		"ResourceBlockPermission", "ResourceTypePermission",
+		"SCFrameworkVersi_SCProductVers", "SCFrameworkVersion", "SCLicense",
+		"SCLicenses_SCProductEntries", "SCProductEntry", "SCProductScreenshot",
+		"SCProductVersion", "Shard", "ShoppingCart", "ShoppingCategory",
+		"ShoppingCoupon", "ShoppingItem", "ShoppingItemField",
+		"ShoppingItemPrice", "ShoppingOrder", "ShoppingOrderItem",
+		"SyncDLFileVersionDiff", "SyncDLObject", "SyncDevice",
+		"WorkflowMetricsSLADefinition");
 	private static final DCLSingleton<ServiceTrackerList<DBResourceProvider>>
 		_serviceTrackerListDCLSingleton = new DCLSingleton<>();
 

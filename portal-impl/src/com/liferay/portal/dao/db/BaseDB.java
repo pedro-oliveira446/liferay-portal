@@ -171,8 +171,11 @@ public abstract class BaseDB implements DB {
 	@Override
 	public void alterColumnName(
 			Connection connection, String tableName, String oldColumnName,
-			String newColumnDefinition)
+			String newColumnName)
 		throws Exception {
+
+		newColumnName = getNewColumnName(
+			newColumnName, oldColumnName, tableName);
 
 		StringBundler sb = new StringBundler(6);
 
@@ -181,7 +184,7 @@ public abstract class BaseDB implements DB {
 		sb.append(StringPool.SPACE);
 		sb.append(oldColumnName);
 		sb.append(StringPool.SPACE);
-		sb.append(newColumnDefinition);
+		sb.append(newColumnName);
 
 		runSQL(connection, sb.toString());
 	}
@@ -279,11 +282,13 @@ public abstract class BaseDB implements DB {
 			sb.append(".");
 			sb.append(sourceColumnNames[i]);
 
-			if (defaultValue != null) {
-				sb.append(", ");
-				sb.append(defaultValue);
-				sb.append(")");
+			if (defaultValue == null) {
+				continue;
 			}
+
+			sb.append(", ");
+			sb.append(defaultValue);
+			sb.append(")");
 		}
 
 		sb.append(" from ");
@@ -306,9 +311,11 @@ public abstract class BaseDB implements DB {
 			sb.append(".");
 			sb.append(columnNamesMap.get(primaryKeyColumnName));
 
-			if (i < (primaryKeyColumnNames.length - 1)) {
-				sb.append(" and ");
+			if (i >= (primaryKeyColumnNames.length - 1)) {
+				continue;
 			}
+
+			sb.append(" and ");
 		}
 
 		sb.append(" where ");
@@ -367,12 +374,14 @@ public abstract class BaseDB implements DB {
 						tableName));
 			}
 
-			if (dbInspector.hasIndex(tableName, indexName)) {
-				runSQL(
-					connection,
-					StringBundler.concat(
-						"drop index ", indexName, " on ", tableName));
+			if (!dbInspector.hasIndex(tableName, indexName)) {
+				continue;
 			}
+
+			runSQL(
+				connection,
+				StringBundler.concat(
+					"drop index ", indexName, " on ", tableName));
 		}
 	}
 
@@ -1038,24 +1047,26 @@ public abstract class BaseDB implements DB {
 		}
 
 		for (String columnName : primaryKeyColumnNames) {
-			if (!dbInspector.hasColumn(tableName, columnName)) {
-				if (StringUtil.equalsIgnoreCase(columnName, "ctCollectionId")) {
-					primaryKeyColumnNames = ArrayUtil.filter(
-						primaryKeyColumnNames,
-						name -> !StringUtil.equalsIgnoreCase(
-							name, "ctCollectionId"));
-				}
-				else {
-					if (_log.isDebugEnabled()) {
-						_log.debug(
-							StringBundler.concat(
-								"Unable to recreate primary key for table ",
-								tableName, " because column ", columnName,
-								" does not exist"));
-					}
+			if (dbInspector.hasColumn(tableName, columnName)) {
+				continue;
+			}
 
-					return;
+			if (StringUtil.equalsIgnoreCase(columnName, "ctCollectionId")) {
+				primaryKeyColumnNames = ArrayUtil.filter(
+					primaryKeyColumnNames,
+					name -> !StringUtil.equalsIgnoreCase(
+						name, "ctCollectionId"));
+			}
+			else {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						StringBundler.concat(
+							"Unable to recreate primary key for table ",
+							tableName, " because column ", columnName,
+							" does not exist"));
 				}
+
+				return;
 			}
 		}
 
@@ -1161,23 +1172,9 @@ public abstract class BaseDB implements DB {
 				"Invalid alter column name statement");
 		}
 
-		String defaultValue = matcher.group(5);
-		String nullable = matcher.group(6);
-
-		if (defaultValue != null) {
-			nullable = "not null";
-		}
-		else {
-			defaultValue = StringPool.BLANK;
-
-			if (nullable == null) {
-				nullable = StringPool.BLANK;
-			}
-		}
-
 		return new String[] {
 			matcher.group(1), matcher.group(2), matcher.group(3),
-			matcher.group(4), defaultValue, StringUtil.toLowerCase(nullable)
+			StringPool.BLANK, StringPool.BLANK, StringPool.BLANK
 		};
 	}
 
@@ -1280,11 +1277,13 @@ public abstract class BaseDB implements DB {
 			sb.append("new.");
 			sb.append(sourceColumnNames[i]);
 
-			if (defaultValue != null) {
-				sb.append(", ");
-				sb.append(defaultValue);
-				sb.append(")");
+			if (defaultValue == null) {
+				continue;
 			}
+
+			sb.append(", ");
+			sb.append(defaultValue);
+			sb.append(")");
 		}
 
 		sb.append(")");
@@ -1328,11 +1327,13 @@ public abstract class BaseDB implements DB {
 			sb.append("new.");
 			sb.append(sourceColumnNames[i]);
 
-			if (defaultValue != null) {
-				sb.append(", ");
-				sb.append(defaultValue);
-				sb.append(")");
+			if (defaultValue == null) {
+				continue;
 			}
+
+			sb.append(", ");
+			sb.append(defaultValue);
+			sb.append(")");
 		}
 
 		sb.append(" where ");
@@ -1532,6 +1533,26 @@ public abstract class BaseDB implements DB {
 
 	protected String getLongRunningQueryInfosSQL() {
 		return null;
+	}
+
+	protected String getNewColumnName(
+		String newColumnName, String oldColumnName, String tableName) {
+
+		int index = newColumnName.indexOf(CharPool.SPACE);
+
+		if (index == -1) {
+			return newColumnName;
+		}
+
+		if (_log.isWarnEnabled()) {
+			_log.warn(
+				StringBundler.concat(
+					"Ignoring column definition \"", newColumnName,
+					"\" passed as the new name of ", tableName,
+					StringPool.PERIOD, oldColumnName));
+		}
+
+		return newColumnName.substring(0, index);
 	}
 
 	protected List<QueryInfo> getQueryInfos(
@@ -1867,9 +1888,7 @@ public abstract class BaseDB implements DB {
 			"(?:(?:DEFAULT\\s+('?.*[^']'?)\\s+NOT\\s+NULL)|((?:NOT\\s+)?NULL))";
 
 		_alterColumnNamePattern = Pattern.compile(
-			StringBundler.concat(
-				"^ALTER_COLUMN_NAME\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+",
-				dataTypeRegex, "\\s*", defaultAndNullableRegex, "?;?$"),
+			"^ALTER_COLUMN_NAME\\s+(\\S+)\\s+(\\S+)\\s+([^\\s;]+);?$",
 			Pattern.CASE_INSENSITIVE);
 		_alterColumnTypePattern = Pattern.compile(
 			StringBundler.concat(

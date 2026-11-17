@@ -132,6 +132,51 @@ public class AssetStatistics implements Serializable {
 	private Supplier<Long> _brokenLinksCountSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public Long getCompletedWorkflowTasksCount() {
+		if (_completedWorkflowTasksCountSupplier != null) {
+			completedWorkflowTasksCount =
+				_completedWorkflowTasksCountSupplier.get();
+
+			_completedWorkflowTasksCountSupplier = null;
+		}
+
+		return completedWorkflowTasksCount;
+	}
+
+	public void setCompletedWorkflowTasksCount(
+		Long completedWorkflowTasksCount) {
+
+		this.completedWorkflowTasksCount = completedWorkflowTasksCount;
+
+		_completedWorkflowTasksCountSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setCompletedWorkflowTasksCount(
+		UnsafeSupplier<Long, Exception>
+			completedWorkflowTasksCountUnsafeSupplier) {
+
+		_completedWorkflowTasksCountSupplier = () -> {
+			try {
+				return completedWorkflowTasksCountUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Long completedWorkflowTasksCount;
+
+	@JsonIgnore
+	private Supplier<Long> _completedWorkflowTasksCountSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public Long getExpiredCount() {
 		if (_expiredCountSupplier != null) {
 			expiredCount = _expiredCountSupplier.get();
@@ -253,6 +298,133 @@ public class AssetStatistics implements Serializable {
 
 	@JsonIgnore
 	private Supplier<Long> _inDraftCountSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	public Long getLongStandingDraftsCount() {
+		if (_longStandingDraftsCountSupplier != null) {
+			longStandingDraftsCount = _longStandingDraftsCountSupplier.get();
+
+			_longStandingDraftsCountSupplier = null;
+		}
+
+		return longStandingDraftsCount;
+	}
+
+	public void setLongStandingDraftsCount(Long longStandingDraftsCount) {
+		this.longStandingDraftsCount = longStandingDraftsCount;
+
+		_longStandingDraftsCountSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setLongStandingDraftsCount(
+		UnsafeSupplier<Long, Exception> longStandingDraftsCountUnsafeSupplier) {
+
+		_longStandingDraftsCountSupplier = () -> {
+			try {
+				return longStandingDraftsCountUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Long longStandingDraftsCount;
+
+	@JsonIgnore
+	private Supplier<Long> _longStandingDraftsCountSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	public Long getMissingRequiredFieldsCount() {
+		if (_missingRequiredFieldsCountSupplier != null) {
+			missingRequiredFieldsCount =
+				_missingRequiredFieldsCountSupplier.get();
+
+			_missingRequiredFieldsCountSupplier = null;
+		}
+
+		return missingRequiredFieldsCount;
+	}
+
+	public void setMissingRequiredFieldsCount(Long missingRequiredFieldsCount) {
+		this.missingRequiredFieldsCount = missingRequiredFieldsCount;
+
+		_missingRequiredFieldsCountSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setMissingRequiredFieldsCount(
+		UnsafeSupplier<Long, Exception>
+			missingRequiredFieldsCountUnsafeSupplier) {
+
+		_missingRequiredFieldsCountSupplier = () -> {
+			try {
+				return missingRequiredFieldsCountUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Long missingRequiredFieldsCount;
+
+	@JsonIgnore
+	private Supplier<Long> _missingRequiredFieldsCountSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	public Long getOverdueWorkflowTasksCount() {
+		if (_overdueWorkflowTasksCountSupplier != null) {
+			overdueWorkflowTasksCount =
+				_overdueWorkflowTasksCountSupplier.get();
+
+			_overdueWorkflowTasksCountSupplier = null;
+		}
+
+		return overdueWorkflowTasksCount;
+	}
+
+	public void setOverdueWorkflowTasksCount(Long overdueWorkflowTasksCount) {
+		this.overdueWorkflowTasksCount = overdueWorkflowTasksCount;
+
+		_overdueWorkflowTasksCountSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setOverdueWorkflowTasksCount(
+		UnsafeSupplier<Long, Exception>
+			overdueWorkflowTasksCountUnsafeSupplier) {
+
+		_overdueWorkflowTasksCountSupplier = () -> {
+			try {
+				return overdueWorkflowTasksCountUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Long overdueWorkflowTasksCount;
+
+	@JsonIgnore
+	private Supplier<Long> _overdueWorkflowTasksCountSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
 	public Long getPendingCount() {
@@ -378,6 +550,51 @@ public class AssetStatistics implements Serializable {
 	private Supplier<Long> _scheduledCountSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public Long getSlaBreachedWorkflowTasksCount() {
+		if (_slaBreachedWorkflowTasksCountSupplier != null) {
+			slaBreachedWorkflowTasksCount =
+				_slaBreachedWorkflowTasksCountSupplier.get();
+
+			_slaBreachedWorkflowTasksCountSupplier = null;
+		}
+
+		return slaBreachedWorkflowTasksCount;
+	}
+
+	public void setSlaBreachedWorkflowTasksCount(
+		Long slaBreachedWorkflowTasksCount) {
+
+		this.slaBreachedWorkflowTasksCount = slaBreachedWorkflowTasksCount;
+
+		_slaBreachedWorkflowTasksCountSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setSlaBreachedWorkflowTasksCount(
+		UnsafeSupplier<Long, Exception>
+			slaBreachedWorkflowTasksCountUnsafeSupplier) {
+
+		_slaBreachedWorkflowTasksCountSupplier = () -> {
+			try {
+				return slaBreachedWorkflowTasksCountUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Long slaBreachedWorkflowTasksCount;
+
+	@JsonIgnore
+	private Supplier<Long> _slaBreachedWorkflowTasksCountSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public Long getTotalCount() {
 		if (_totalCountSupplier != null) {
 			totalCount = _totalCountSupplier.get();
@@ -419,6 +636,47 @@ public class AssetStatistics implements Serializable {
 	private Supplier<Long> _totalCountSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public Long getUnlinkedCount() {
+		if (_unlinkedCountSupplier != null) {
+			unlinkedCount = _unlinkedCountSupplier.get();
+
+			_unlinkedCountSupplier = null;
+		}
+
+		return unlinkedCount;
+	}
+
+	public void setUnlinkedCount(Long unlinkedCount) {
+		this.unlinkedCount = unlinkedCount;
+
+		_unlinkedCountSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setUnlinkedCount(
+		UnsafeSupplier<Long, Exception> unlinkedCountUnsafeSupplier) {
+
+		_unlinkedCountSupplier = () -> {
+			try {
+				return unlinkedCountUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Long unlinkedCount;
+
+	@JsonIgnore
+	private Supplier<Long> _unlinkedCountSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public Long getUpcomingReviewCount() {
 		if (_upcomingReviewCountSupplier != null) {
 			upcomingReviewCount = _upcomingReviewCountSupplier.get();
@@ -458,6 +716,47 @@ public class AssetStatistics implements Serializable {
 
 	@JsonIgnore
 	private Supplier<Long> _upcomingReviewCountSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	public Long getWorkflowTasksCount() {
+		if (_workflowTasksCountSupplier != null) {
+			workflowTasksCount = _workflowTasksCountSupplier.get();
+
+			_workflowTasksCountSupplier = null;
+		}
+
+		return workflowTasksCount;
+	}
+
+	public void setWorkflowTasksCount(Long workflowTasksCount) {
+		this.workflowTasksCount = workflowTasksCount;
+
+		_workflowTasksCountSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setWorkflowTasksCount(
+		UnsafeSupplier<Long, Exception> workflowTasksCountUnsafeSupplier) {
+
+		_workflowTasksCountSupplier = () -> {
+			try {
+				return workflowTasksCountUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Long workflowTasksCount;
+
+	@JsonIgnore
+	private Supplier<Long> _workflowTasksCountSupplier;
 
 	@Override
 	public boolean equals(Object object) {
@@ -510,6 +809,18 @@ public class AssetStatistics implements Serializable {
 			sb.append(brokenLinksCount);
 		}
 
+		Long completedWorkflowTasksCount = getCompletedWorkflowTasksCount();
+
+		if (completedWorkflowTasksCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"completedWorkflowTasksCount\": ");
+
+			sb.append(completedWorkflowTasksCount);
+		}
+
 		Long expiredCount = getExpiredCount();
 
 		if (expiredCount != null) {
@@ -544,6 +855,42 @@ public class AssetStatistics implements Serializable {
 			sb.append("\"inDraftCount\": ");
 
 			sb.append(inDraftCount);
+		}
+
+		Long longStandingDraftsCount = getLongStandingDraftsCount();
+
+		if (longStandingDraftsCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"longStandingDraftsCount\": ");
+
+			sb.append(longStandingDraftsCount);
+		}
+
+		Long missingRequiredFieldsCount = getMissingRequiredFieldsCount();
+
+		if (missingRequiredFieldsCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"missingRequiredFieldsCount\": ");
+
+			sb.append(missingRequiredFieldsCount);
+		}
+
+		Long overdueWorkflowTasksCount = getOverdueWorkflowTasksCount();
+
+		if (overdueWorkflowTasksCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"overdueWorkflowTasksCount\": ");
+
+			sb.append(overdueWorkflowTasksCount);
 		}
 
 		Long pendingCount = getPendingCount();
@@ -582,6 +929,18 @@ public class AssetStatistics implements Serializable {
 			sb.append(scheduledCount);
 		}
 
+		Long slaBreachedWorkflowTasksCount = getSlaBreachedWorkflowTasksCount();
+
+		if (slaBreachedWorkflowTasksCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"slaBreachedWorkflowTasksCount\": ");
+
+			sb.append(slaBreachedWorkflowTasksCount);
+		}
+
 		Long totalCount = getTotalCount();
 
 		if (totalCount != null) {
@@ -594,6 +953,18 @@ public class AssetStatistics implements Serializable {
 			sb.append(totalCount);
 		}
 
+		Long unlinkedCount = getUnlinkedCount();
+
+		if (unlinkedCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"unlinkedCount\": ");
+
+			sb.append(unlinkedCount);
+		}
+
 		Long upcomingReviewCount = getUpcomingReviewCount();
 
 		if (upcomingReviewCount != null) {
@@ -604,6 +975,18 @@ public class AssetStatistics implements Serializable {
 			sb.append("\"upcomingReviewCount\": ");
 
 			sb.append(upcomingReviewCount);
+		}
+
+		Long workflowTasksCount = getWorkflowTasksCount();
+
+		if (workflowTasksCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"workflowTasksCount\": ");
+
+			sb.append(workflowTasksCount);
 		}
 
 		sb.append("}");
@@ -728,4 +1111,4 @@ public class AssetStatistics implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1836060076
+// LIFERAY-REST-BUILDER-HASH:1117174221

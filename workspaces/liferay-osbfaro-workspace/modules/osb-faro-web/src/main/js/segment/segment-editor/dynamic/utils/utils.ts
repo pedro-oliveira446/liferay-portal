@@ -28,11 +28,53 @@ import {Event} from 'event-analysis/utils/types';
 import {every, isBoolean, isString, isUndefined} from 'lodash';
 import {FieldContexts, FieldOwnerTypes} from 'shared/util/constants';
 import {fromJS, Map} from 'immutable';
+import {insertAtIndex} from 'shared/util/array';
 import {Property} from 'shared/util/records';
 import {v4 as uuidv4} from 'uuid';
 
 const GROUP_ID_NAMESPACE = 'group_';
 const ROW_ID_NAMESPACE = 'row_';
+
+/**
+ * Inserts a criterion coming from the conditions library into the group at
+ * the given index, creating the group when there is none yet.
+ */
+export const buildCriterion = ({
+	defaultValue,
+	operatorName,
+	propertyName,
+	touched,
+	type,
+	valid,
+	value,
+}: Criterion): Criterion =>
+	({
+		operatorName:
+			operatorName || getSupportedOperatorsFromType(type ?? '')[0].name,
+		propertyName,
+		rowId: generateRowId(),
+		touched,
+		type,
+		valid,
+		value: isValid(value) ? value : defaultValue,
+	}) as unknown as Criterion;
+
+export const addCriterionAtIndex = (
+	criteria: CriterionGroup | null | undefined,
+	index: number,
+	criterion: Criterion
+): CriterionGroup => {
+	const newCriterion = buildCriterion(criterion);
+
+	if (!criteria) {
+		return createNewGroup([newCriterion]);
+	}
+
+	return {
+		...criteria,
+		items: insertAtIndex(criteria.items, index, newCriterion),
+	};
+};
 
 export const createInterestProperty = (name: string): Property =>
 	new Property({
@@ -356,9 +398,11 @@ export const findPropertyByCriterion = (
 		)
 	) {
 		if (getPropertyContextFromRaw(propertyName) !== FieldContexts.Custom) {
+			const [accountPropertyName] = (propertyName ?? '').split('@');
+
 			return ACCOUNT_PROPERTIES.find(
 				(property: Property | undefined) =>
-					property?.name === propertyName
+					property?.name === accountPropertyName
 			);
 		}
 
@@ -535,10 +579,14 @@ export const convertFieldMappingToAccountProperty = (
 		? fieldMapping.get('rawType')
 		: fieldMapping.rawType;
 
+	const accountProperty = ACCOUNT_PROPERTIES.find(
+		(property: Property | undefined) => property?.name === id
+	);
+
 	return new Property({
 		entityName: Liferay.Language.get('account'),
 		id,
-		label: displayName || name,
+		label: accountProperty?.label || displayName || name,
 		name: id,
 		propertyKey: FieldOwnerTypes.Account,
 		type: `account-${type.toLowerCase()}` as PropertyTypes,

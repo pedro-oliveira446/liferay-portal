@@ -12,7 +12,7 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 DDMStructure structure = ddmFormAdminDisplayContext.getDDMStructure();
 
-long groupId = BeanParamUtil.getLong(structure, request, "groupId", scopeGroupId);
+long groupId = BeanParamUtil.getLong(structure, request, "groupId", DDMStructure::getGroupId, scopeGroupId);
 
 long structureId = ParamUtil.getLong(request, "structureId");
 
@@ -20,7 +20,7 @@ if (structure != null) {
 	structureId = structure.getStructureId();
 }
 
-String structureKey = BeanParamUtil.getString(structure, request, "structureKey");
+String structureKey = BeanParamUtil.getString(structure, request, "structureKey", DDMStructure::getStructureKey);
 
 JSONObject formBuilderContextJSONObject = ddmFormAdminDisplayContext.getFormBuilderContextJSONObject();
 
@@ -113,7 +113,7 @@ renderResponse.setTitle((structure == null) ? LanguageUtil.get(request, "new-ele
 					).put(
 						"portletNamespace", liferayPortletResponse.getNamespace()
 					).put(
-						"redirectURL", HtmlUtil.escape(redirect)
+						"redirectURL", PortalUtil.escapeRedirect(redirect)
 					).put(
 						"spritemap", themeDisplay.getPathThemeSpritemap()
 					).put(

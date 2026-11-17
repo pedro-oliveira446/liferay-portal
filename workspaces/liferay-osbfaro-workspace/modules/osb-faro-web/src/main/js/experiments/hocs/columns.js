@@ -1,4 +1,5 @@
-import Label from 'shared/components/Label';
+import ClayLabel from '@clayui/label';
+import DataValue from 'shared/components/DataValue';
 import moment from 'moment';
 import momentTimezone from 'moment-timezone';
 import React from 'react';
@@ -6,6 +7,7 @@ import TextTruncate from 'shared/components/TextTruncate';
 import {
 	applyTimeZone,
 	formatDateToTimeZone,
+	formatRelativeTime,
 	getCustomDateFormat,
 } from 'shared/util/date';
 import {DateCell} from 'shared/components/table/cell-components';
@@ -29,7 +31,7 @@ const ExperimentListTitle = ({id, title, touchpoint}) => {
 		<td className="table-cell-expand">
 			<Link className="table-title" to={url}>
 				<TextTruncate title={title || touchpoint}>
-					{title || '-'}
+					<DataValue value={title} />
 				</TextTruncate>
 			</Link>
 		</td>
@@ -60,14 +62,15 @@ export default (timeZoneId) => [
 	{
 		accessor: 'status',
 		dataFormatter: (value) => (
-			<Label
+			<ClayLabel
 				className="experiment-status"
-				display={getStatusColor(value)}
+				displayType={getStatusColor(value) || 'secondary'}
+				inverse
 				key="status"
 				size="lg"
 			>
 				{getStatusName(value)}
-			</Label>
+			</ClayLabel>
 		),
 		label: Liferay.Language.get('status'),
 	},
@@ -106,7 +109,7 @@ export default (timeZoneId) => [
 								getCustomDateFormat(),
 								timeZoneId
 							)
-						: moment.utc(modifiedDate).fromNow();
+						: formatRelativeTime(moment.utc(modifiedDate));
 				}
 			},
 			datePath: 'modifiedDate',

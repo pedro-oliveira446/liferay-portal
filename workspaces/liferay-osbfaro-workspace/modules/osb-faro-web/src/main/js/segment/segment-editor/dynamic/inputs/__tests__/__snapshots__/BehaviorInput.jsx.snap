@@ -12,7 +12,9 @@ exports[`BehaviorInput should render 1`] = `
     >
       <div
         class="form-group-item entity-name form-group-item-label form-group-item-shrink"
-      />
+      >
+        Individual
+      </div>
       <div>
         test
       </div>
@@ -77,11 +79,11 @@ exports[`BehaviorInput should render 1`] = `
             class="form-control form-control-tag-group"
             style="max-width: 52rem; overflow-y: auto;"
           >
-            <div
-              class="label label-root label-secondary label-dismissible"
+            <span
+              class="label label-dismissible label-inverse-secondary"
             >
               <span
-                class="label-item"
+                class="label-item label-item-expand"
               >
                 123123123
               </span>
@@ -90,20 +92,20 @@ exports[`BehaviorInput should render 1`] = `
               >
                 <button
                   aria-label="Close"
-                  class="button-root close btn btn-secondary"
+                  class="close"
                   type="button"
                 >
                   <svg
-                    class="lexicon-icon lexicon-icon-times icon-root"
+                    class="lexicon-icon lexicon-icon-times-small"
                     role="presentation"
                   >
                     <use
-                      href="#times"
+                      href="#times-small"
                     />
                   </svg>
                 </button>
               </span>
-            </div>
+            </span>
             <button
               aria-label="Clear"
               class="button-root text-secondary btn btn-unstyled"
@@ -240,7 +242,9 @@ exports[`BehaviorInput should render w/ data 1`] = `
     >
       <div
         class="form-group-item entity-name form-group-item-label form-group-item-shrink"
-      />
+      >
+        Individual
+      </div>
       <div>
         test
       </div>
@@ -305,11 +309,11 @@ exports[`BehaviorInput should render w/ data 1`] = `
             class="form-control form-control-tag-group"
             style="max-width: 52rem; overflow-y: auto;"
           >
-            <div
-              class="label label-root label-secondary label-dismissible"
+            <span
+              class="label label-dismissible label-inverse-secondary"
             >
               <span
-                class="label-item"
+                class="label-item label-item-expand"
               >
                 123123123
               </span>
@@ -318,20 +322,20 @@ exports[`BehaviorInput should render w/ data 1`] = `
               >
                 <button
                   aria-label="Close"
-                  class="button-root close btn btn-secondary"
+                  class="close"
                   type="button"
                 >
                   <svg
-                    class="lexicon-icon lexicon-icon-times icon-root"
+                    class="lexicon-icon lexicon-icon-times-small"
                     role="presentation"
                   >
                     <use
-                      href="#times"
+                      href="#times-small"
                     />
                   </svg>
                 </button>
               </span>
-            </div>
+            </span>
             <button
               aria-label="Clear"
               class="button-root text-secondary btn btn-unstyled"

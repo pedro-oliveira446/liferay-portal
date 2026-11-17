@@ -7,8 +7,13 @@ package com.liferay.portal.workflow.kaleo.service.impl;
 
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService;
@@ -31,6 +36,16 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class KaleoDefinitionVersionServiceImpl
 	extends KaleoDefinitionVersionServiceBaseImpl {
+
+	@Override
+	public void deleteKaleoDefinitionVersions(long companyId, String name)
+		throws PortalException {
+
+		_checkPermissions(ActionKeys.DELETE, companyId);
+
+		_kaleoDefinitionVersionLocalService.deleteKaleoDefinitionVersions(
+			companyId, name);
+	}
 
 	@Override
 	public KaleoDefinitionVersion getKaleoDefinitionVersion(
@@ -56,6 +71,27 @@ public class KaleoDefinitionVersionServiceImpl
 			companyId, name);
 	}
 
+	private void _checkPermissions(String actionId, long companyId)
+		throws PrincipalException {
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		if (permissionChecker == null) {
+			return;
+		}
+
+		if (!permissionChecker.isOmniadmin() &&
+			(permissionChecker.getCompanyId() != companyId)) {
+
+			throw new PrincipalException(
+				"User is not an omniadmin and does not belong to the company");
+		}
+
+		_portletResourcePermission.check(
+			permissionChecker, WorkflowConstants.DEFAULT_GROUP_ID, actionId);
+	}
+
 	@Reference(
 		target = "(model.class.name=com.liferay.portal.workflow.kaleo.model.KaleoDefinition)"
 	)
@@ -65,5 +101,10 @@ public class KaleoDefinitionVersionServiceImpl
 	@Reference
 	private KaleoDefinitionVersionLocalService
 		_kaleoDefinitionVersionLocalService;
+
+	@Reference(
+		target = "(resource.name=" + WorkflowConstants.RESOURCE_NAME + ")"
+	)
+	private PortletResourcePermission _portletResourcePermission;
 
 }

@@ -7,7 +7,6 @@ package com.liferay.exportimport.test.util.lar;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
-import com.liferay.asset.link.model.AssetLink;
 import com.liferay.asset.link.service.AssetLinkLocalServiceUtil;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactoryUtil;
 import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
@@ -69,7 +68,11 @@ public abstract class BaseExportImportTestCase {
 			boolean privateLayout)
 		throws Exception {
 
-		try (LogCapture logCapture = getLogCapture(expectError)) {
+		try (LogCapture logCapture1 = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.headless.admin.site.internal.util.LogUtil",
+				LoggerTestUtil.ERROR);
+			LogCapture logCapture2 = getLogCapture(expectError)) {
+
 			User user = TestPropsValues.getUser();
 
 			Map<String, Serializable> importLayoutSettingsMap =
@@ -114,7 +117,7 @@ public abstract class BaseExportImportTestCase {
 		}
 	}
 
-	protected AssetLink addAssetLink(
+	protected void addAssetLink(
 			StagedModel sourceStagedModel, StagedModel targetStagedModel,
 			int weight)
 		throws PortalException {
@@ -122,7 +125,7 @@ public abstract class BaseExportImportTestCase {
 		AssetEntry originAssetEntry = getAssetEntry(sourceStagedModel);
 		AssetEntry targetAssetEntry = getAssetEntry(targetStagedModel);
 
-		return AssetLinkLocalServiceUtil.addLink(
+		AssetLinkLocalServiceUtil.addLink(
 			TestPropsValues.getUserId(), originAssetEntry.getEntryId(),
 			targetAssetEntry.getEntryId(), 0, weight);
 	}

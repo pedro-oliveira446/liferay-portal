@@ -8,9 +8,12 @@ package com.liferay.site.internal.storage.helper;
 import com.liferay.document.library.kernel.store.DLStore;
 import com.liferay.document.library.kernel.store.DLStoreRequest;
 import com.liferay.document.library.kernel.store.Store;
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -23,6 +26,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -35,18 +40,17 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 
 	@Override
 	public void deleteSitemap(
-			long companyId, long groupId, String assetTypeKey, int page)
+			long companyId, long groupId, String childSitemapKey, int page)
 		throws PortalException {
 
 		_dlStore.deleteFile(
 			companyId, CompanyConstants.SYSTEM,
-			_getSitemapFileName(groupId, assetTypeKey, page));
+			_getSitemapFileName(groupId, childSitemapKey, page));
 	}
 
 	@Override
 	public void deleteSitemaps(long companyId) throws PortalException {
-		_dlStore.deleteDirectory(
-			companyId, CompanyConstants.SYSTEM, _getDirName());
+		_deleteFiles(companyId, _getDirName());
 
 		String lastRegenerateSitemapDateFileName =
 			_getLastRegenerateSitemapDateFileName();
@@ -65,8 +69,15 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 	public void deleteSitemaps(long companyId, long groupId)
 		throws PortalException {
 
-		_dlStore.deleteDirectory(
-			companyId, CompanyConstants.SYSTEM, _getDirName(groupId));
+		_deleteFiles(companyId, _getDirName(groupId));
+	}
+
+	@Override
+	public void deleteSitemaps(
+			long companyId, long groupId, String childSitemapKey)
+		throws PortalException {
+
+		_deleteFiles(companyId, _getDirName(groupId, childSitemapKey));
 	}
 
 	@Override
@@ -95,6 +106,33 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 	}
 
 	@Override
+	public Map<String, Integer> getPageCountsByChildSitemapKey(
+			long companyId, long groupId)
+		throws PortalException {
+
+		Map<String, Integer> pageCountsByChildSitemapKey = new HashMap<>();
+
+		String dirName = _getDirName(groupId);
+
+		for (String fileName :
+				_dlStore.getFileNames(
+					companyId, CompanyConstants.SYSTEM, dirName)) {
+
+			int index = fileName.lastIndexOf(CharPool.SLASH);
+
+			if (index <= dirName.length()) {
+				continue;
+			}
+
+			pageCountsByChildSitemapKey.merge(
+				fileName.substring(dirName.length() + 1, index), 1,
+				Integer::sum);
+		}
+
+		return pageCountsByChildSitemapKey;
+	}
+
+	@Override
 	public InputStream getSitemapInputStream(long companyId, long groupId)
 		throws PortalException {
 
@@ -105,12 +143,12 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 
 	@Override
 	public InputStream getSitemapInputStream(
-			long companyId, long groupId, String assetTypeKey, int page)
+			long companyId, long groupId, String childSitemapKey, int page)
 		throws PortalException {
 
 		return _dlStore.getFileAsStream(
 			companyId, CompanyConstants.SYSTEM,
-			_getSitemapFileName(groupId, assetTypeKey, page),
+			_getSitemapFileName(groupId, childSitemapKey, page),
 			Store.VERSION_DEFAULT);
 	}
 
@@ -125,12 +163,12 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 
 	@Override
 	public boolean hasSitemapFile(
-			long companyId, long groupId, String assetTypeKey, int page)
+			long companyId, long groupId, String childSitemapKey, int page)
 		throws PortalException {
 
 		return _dlStore.hasFile(
 			companyId, CompanyConstants.SYSTEM,
-			_getSitemapFileName(groupId, assetTypeKey, page),
+			_getSitemapFileName(groupId, childSitemapKey, page),
 			Store.VERSION_DEFAULT);
 	}
 
@@ -171,12 +209,32 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 
 	@Override
 	public void storeSitemapFile(
-			long companyId, long groupId, String assetTypeKey, int page,
+			long companyId, long groupId, String childSitemapKey, int page,
 			String xml)
 		throws PortalException {
 
 		_storeSitemapFile(
-			companyId, _getSitemapFileName(groupId, assetTypeKey, page), xml);
+			companyId, _getSitemapFileName(groupId, childSitemapKey, page),
+			xml);
+	}
+
+	private void _deleteFiles(long companyId, String dirName)
+		throws PortalException {
+
+		for (String fileName :
+				_dlStore.getFileNames(
+					companyId, CompanyConstants.SYSTEM, dirName)) {
+
+			try {
+				_dlStore.deleteFile(
+					companyId, CompanyConstants.SYSTEM, fileName);
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(exception);
+				}
+			}
+		}
 	}
 
 	private String _getDirName() {
@@ -185,6 +243,11 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 
 	private String _getDirName(long groupId) {
 		return "sitemaps/" + groupId;
+	}
+
+	private String _getDirName(long groupId, String childSitemapKey) {
+		return StringBundler.concat(
+			"sitemaps/", groupId, StringPool.SLASH, childSitemapKey);
 	}
 
 	private String _getLastRegenerateSitemapDateFileName() {
@@ -196,10 +259,10 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 	}
 
 	private String _getSitemapFileName(
-		long groupId, String assetTypeKey, int page) {
+		long groupId, String childSitemapKey, int page) {
 
 		return StringBundler.concat(
-			"sitemaps/", groupId, StringPool.SLASH, assetTypeKey,
+			"sitemaps/", groupId, StringPool.SLASH, childSitemapKey,
 			StringPool.SLASH, page, ".xml");
 	}
 
@@ -218,6 +281,9 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 
 		_dlStore.addFile(dlStoreRequest, bytes);
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		SitemapStorageHelperImpl.class);
 
 	@Reference
 	private DLStore _dlStore;

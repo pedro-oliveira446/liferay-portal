@@ -74,6 +74,19 @@ public final class DLValidatorImpl implements DLValidator {
 	}
 
 	@Override
+	public long getMaxAllowableDownloadSize(long groupId) {
+		long companyId = _getCompanyId(groupId);
+
+		return _min(
+			_dlSizeLimitConfigurationHelper.getSystemMaxSizeToDownload(),
+			_min(
+				_dlSizeLimitConfigurationHelper.getCompanyMaxSizeToDownload(
+					companyId),
+				_dlSizeLimitConfigurationHelper.getGroupMaxSizeToDownload(
+					companyId, groupId)));
+	}
+
+	@Override
 	public long getMaxAllowableSize(long groupId, String mimeType) {
 		return getMaxAllowableSize(groupId, mimeType, 0);
 	}
@@ -166,6 +179,21 @@ public final class DLValidatorImpl implements DLValidator {
 		if (!isValidName(directoryName)) {
 			throw new FolderNameException(
 				"Invalid folder name " + directoryName);
+		}
+	}
+
+	@Override
+	public void validateDownloadSize(long groupId, long size)
+		throws FileSizeException {
+
+		long maxSize = getMaxAllowableDownloadSize(groupId);
+
+		if ((maxSize > 0) && (size > maxSize)) {
+			throw new FileSizeException(
+				StringBundler.concat(
+					size, " exceeds the maximum permitted download size of ",
+					maxSize),
+				maxSize);
 		}
 	}
 
@@ -434,10 +462,12 @@ public final class DLValidatorImpl implements DLValidator {
 						blacklistLastChar);
 				}
 
-				if (title.endsWith(blacklistLastChar)) {
-					title = StringUtil.replaceLast(
-						title, blacklistLastChar, StringPool.BLANK);
+				if (!title.endsWith(blacklistLastChar)) {
+					continue;
 				}
+
+				title = StringUtil.replaceLast(
+					title, blacklistLastChar, StringPool.BLANK);
 			}
 		}
 

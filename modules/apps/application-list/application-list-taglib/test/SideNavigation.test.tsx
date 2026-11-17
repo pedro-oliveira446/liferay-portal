@@ -190,13 +190,7 @@ describe('SideNavigation', () => {
 	it('renders the side navigation header', () => {
 		renderComponent();
 
-		const title = screen.getByText('Applications');
-
-		expect(title).toBeInTheDocument();
-
-		const icon = screen.getByTestId('sideNavigationProductIcon');
-
-		expect(icon).toHaveAttribute('src', 'categoryImageUrl');
+		expect(screen.getByText('Applications')).toBeInTheDocument();
 	});
 
 	it('renders each navigation item', () => {
@@ -449,7 +443,7 @@ describe('SideNavigation', () => {
 		expect(screen.getByText('no-matching-items')).toBeInTheDocument();
 	});
 
-	it('stops describing an item while the filter hides the scope items', async () => {
+	it('keeps describing an item by its scope item while filtering', async () => {
 		renderComponent({items: ITEMS_WITH_SCOPES});
 
 		await userEvent.type(
@@ -461,9 +455,11 @@ describe('SideNavigation', () => {
 			expect(screen.queryByText('Workflow')).not.toBeInTheDocument()
 		);
 
-		expect(screen.getByText('Content')).not.toHaveAttribute(
-			'aria-describedby'
+		expect(screen.getByText('Content')).toHaveAccessibleDescription(
+			'System'
 		);
+
+		expect(screen.queryByText('Instance: Liferay')).not.toBeInTheDocument();
 	});
 
 	it('clears the query with the clear button and restores the tree', async () => {

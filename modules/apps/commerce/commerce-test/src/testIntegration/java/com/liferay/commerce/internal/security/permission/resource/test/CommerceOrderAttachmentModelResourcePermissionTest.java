@@ -37,7 +37,6 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -53,7 +52,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Stefano Motta
  */
-@FeatureFlag("LPD-6252")
 @RunWith(Arquillian.class)
 public class CommerceOrderAttachmentModelResourcePermissionTest {
 
@@ -304,44 +302,21 @@ public class CommerceOrderAttachmentModelResourcePermissionTest {
 			CommerceOrderAttachment.class.getName(),
 			ResourceConstants.SCOPE_COMPANY,
 			String.valueOf(_commerceOrder.getCompanyId()), _role.getRoleId(),
-			new String[] {ActionKeys.VIEW});
-
-		Assert.assertFalse(
-			_commerceOrderAttachmentModelResourcePermission.contains(
-				permissionChecker,
-				commerceOrderAttachment.getCommerceOrderAttachmentId(),
-				ActionKeys.DELETE));
-		Assert.assertFalse(
-			_commerceOrderAttachmentModelResourcePermission.contains(
-				permissionChecker,
-				commerceOrderAttachment.getCommerceOrderAttachmentId(),
-				ActionKeys.UPDATE));
-		Assert.assertTrue(
-			_commerceOrderAttachmentModelResourcePermission.contains(
-				permissionChecker,
-				commerceOrderAttachment.getCommerceOrderAttachmentId(),
-				ActionKeys.VIEW));
-
-		_resourcePermissionLocalService.setResourcePermissions(
-			_commerceOrder.getCompanyId(),
-			CommerceOrderAttachment.class.getName(),
-			ResourceConstants.SCOPE_COMPANY,
-			String.valueOf(_commerceOrder.getCompanyId()), _role.getRoleId(),
 			new String[] {
 				ActionKeys.DELETE, ActionKeys.UPDATE, ActionKeys.VIEW
 			});
 
-		Assert.assertTrue(
+		Assert.assertFalse(
 			_commerceOrderAttachmentModelResourcePermission.contains(
 				permissionChecker,
 				commerceOrderAttachment.getCommerceOrderAttachmentId(),
 				ActionKeys.DELETE));
-		Assert.assertTrue(
+		Assert.assertFalse(
 			_commerceOrderAttachmentModelResourcePermission.contains(
 				permissionChecker,
 				commerceOrderAttachment.getCommerceOrderAttachmentId(),
 				ActionKeys.UPDATE));
-		Assert.assertTrue(
+		Assert.assertFalse(
 			_commerceOrderAttachmentModelResourcePermission.contains(
 				permissionChecker,
 				commerceOrderAttachment.getCommerceOrderAttachmentId(),

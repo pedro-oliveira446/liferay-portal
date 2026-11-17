@@ -8,7 +8,6 @@ import {expect, mergeTests} from '@playwright/test';
 import {commercePagesTest} from '../../../../fixtures/commercePagesTest';
 import {dataApiHelpersTest} from '../../../../fixtures/dataApiHelpersTest';
 import {displayPageTemplatesPagesTest} from '../../../../fixtures/displayPageTemplatesPagesTest';
-import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {globalMenuPagesTest} from '../../../../fixtures/globalMenuPagesTest';
 import {isolatedSiteTest} from '../../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../../fixtures/loginTest';
@@ -18,15 +17,15 @@ import {getRandomInt} from '../../../../utils/getRandomInt';
 import getRandomString from '../../../../utils/getRandomString';
 import {waitForAlert} from '../../../../utils/waitForAlert';
 import {ORDER_WORKFLOW_STATUS_CODE} from '../../../workspaces/liferay-workspace-marketplace/main/utils/constants';
-import {classicCommerceSetUp} from '../../utils/commerce';
+import {
+	activateChannelPaymentMethod,
+	classicCommerceSetUp,
+} from '../../utils/commerce';
 
 export const test = mergeTests(
 	commercePagesTest,
 	dataApiHelpersTest,
 	displayPageTemplatesPagesTest,
-	featureFlagsTest({
-		'LPD-6252': {enabled: true},
-	}),
 	globalMenuPagesTest,
 	pageEditorPagesTest,
 	isolatedSiteTest,
@@ -37,6 +36,8 @@ async function setUpOrder(apiHelpers, site) {
 	const channel = await apiHelpers.headlessCommerceAdminChannel.postChannel({
 		siteGroupId: site.id,
 	});
+
+	await activateChannelPaymentMethod(apiHelpers, channel.id, 'money-order');
 
 	const catalog = await apiHelpers.headlessCommerceAdminCatalog.postCatalog();
 

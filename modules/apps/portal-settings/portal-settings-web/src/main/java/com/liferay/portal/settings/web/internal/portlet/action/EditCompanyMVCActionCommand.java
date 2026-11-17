@@ -8,6 +8,7 @@ package com.liferay.portal.settings.web.internal.portlet.action;
 import com.liferay.configuration.admin.constants.ConfigurationAdminPortletKeys;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.google.places.constants.GooglePlacesWebKeys;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.Disjunction;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -75,6 +76,7 @@ import jakarta.portlet.ActionResponse;
 import jakarta.portlet.PortletPreferences;
 import jakarta.portlet.ReadOnlyException;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
@@ -184,7 +186,9 @@ public class EditCompanyMVCActionCommand extends BaseFormMVCActionCommand {
 		unicodeProperties.setProperty(
 			key,
 			_secretResolver.store(
-				companyId, key, "company/" + companyId,
+				companyId,
+				StringBundler.concat(
+					"preference/company/", companyId, StringPool.SLASH, key),
 				unicodeProperties.getProperty(key)));
 	}
 
@@ -280,32 +284,24 @@ public class EditCompanyMVCActionCommand extends BaseFormMVCActionCommand {
 
 		String[] discardLegacyKeys = ParamUtil.getStringValues(
 			actionRequest, "discardLegacyKey");
+		List<String> legacyKeys = new ArrayList<>();
 
 		PortletPreferences portletPreferences = _prefsProps.getPreferences(
 			companyId);
 
 		Enumeration<String> enumeration = portletPreferences.getNames();
 
-		try {
-			while (enumeration.hasMoreElements()) {
-				String curName = enumeration.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String curName = enumeration.nextElement();
 
-				for (String discardLegacyKey : discardLegacyKeys) {
-					if (curName.startsWith(discardLegacyKey + "_")) {
-						if (_log.isDebugEnabled()) {
-							_log.debug("Discarding property key " + curName);
-						}
-
-						portletPreferences.reset(curName);
-						unicodeProperties.remove(curName);
-					}
+			for (String discardLegacyKey : discardLegacyKeys) {
+				if (!curName.startsWith(discardLegacyKey + "_")) {
+					continue;
 				}
-			}
 
-			portletPreferences.store();
-		}
-		catch (ReadOnlyException readOnlyException) {
-			throw new SystemException(readOnlyException);
+				legacyKeys.add(curName);
+				unicodeProperties.remove(curName);
+			}
 		}
 
 		String name = ParamUtil.getString(
@@ -347,6 +343,27 @@ public class EditCompanyMVCActionCommand extends BaseFormMVCActionCommand {
 			emailAddresses, phones, websites, unicodeProperties);
 
 		_portal.resetCDNHosts();
+
+		if (legacyKeys.isEmpty()) {
+			return;
+		}
+
+		portletPreferences = _prefsProps.getPreferences(companyId);
+
+		try {
+			for (String legacyKey : legacyKeys) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("Discarding property key " + legacyKey);
+				}
+
+				portletPreferences.reset(legacyKey);
+			}
+
+			portletPreferences.store();
+		}
+		catch (ReadOnlyException readOnlyException) {
+			throw new SystemException(readOnlyException);
+		}
 	}
 
 	private void _validateAvailableLanguages(ActionRequest actionRequest)

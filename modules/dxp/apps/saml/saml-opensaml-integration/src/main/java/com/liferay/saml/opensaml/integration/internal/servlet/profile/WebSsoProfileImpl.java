@@ -202,8 +202,7 @@ public class WebSsoProfileImpl extends BaseProfile implements WebSsoProfile {
 		try {
 			messageContext = _decodeAuthnResponse(
 				httpServletRequest, httpServletResponse,
-				samlBindingProvider.getSamlBinding(
-					SAMLConstants.SAML2_POST_BINDING_URI));
+				getSamlBinding(SAMLConstants.SAML2_POST_BINDING_URI));
 
 			_processResponse(
 				messageContext, httpServletRequest, httpServletResponse);
@@ -404,12 +403,11 @@ public class WebSsoProfileImpl extends BaseProfile implements WebSsoProfile {
 		if (StringUtil.equalsIgnoreCase(
 				httpServletRequest.getMethod(), "GET")) {
 
-			samlBinding = samlBindingProvider.getSamlBinding(
+			samlBinding = getSamlBinding(
 				SAMLConstants.SAML2_REDIRECT_BINDING_URI);
 		}
 		else {
-			samlBinding = samlBindingProvider.getSamlBinding(
-				SAMLConstants.SAML2_POST_BINDING_URI);
+			samlBinding = getSamlBinding(SAMLConstants.SAML2_POST_BINDING_URI);
 		}
 
 		if (idpInitiatedSSO) {
@@ -1247,23 +1245,27 @@ public class WebSsoProfileImpl extends BaseProfile implements WebSsoProfile {
 			List<AuthnStatement> authnStatements =
 				curAssertion.getAuthnStatements();
 
-			if (!authnStatements.isEmpty()) {
-				Subject subject = curAssertion.getSubject();
+			if (authnStatements.isEmpty()) {
+				continue;
+			}
 
-				if ((subject != null) &&
-					(subject.getSubjectConfirmations() != null)) {
+			Subject subject = curAssertion.getSubject();
 
-					for (SubjectConfirmation subjectConfirmation :
-							subject.getSubjectConfirmations()) {
+			if ((subject == null) ||
+				(subject.getSubjectConfirmations() == null)) {
 
-						if (SubjectConfirmation.METHOD_BEARER.equals(
-								subjectConfirmation.getMethod())) {
+				continue;
+			}
 
-							assertion = curAssertion;
+			for (SubjectConfirmation subjectConfirmation :
+					subject.getSubjectConfirmations()) {
 
-							break;
-						}
-					}
+				if (SubjectConfirmation.METHOD_BEARER.equals(
+						subjectConfirmation.getMethod())) {
+
+					assertion = curAssertion;
+
+					break;
 				}
 			}
 		}
@@ -2055,7 +2057,7 @@ public class WebSsoProfileImpl extends BaseProfile implements WebSsoProfile {
 		MessageContext<?> messageContext =
 			samlSsoRequestContext.getSAMLMessageContext();
 
-		SamlBinding samlBinding = samlBindingProvider.getSamlBinding(
+		SamlBinding samlBinding = getSamlBinding(
 			SAMLConstants.SAML2_POST_BINDING_URI);
 
 		AssertionConsumerService assertionConsumerService =
@@ -2139,7 +2141,7 @@ public class WebSsoProfileImpl extends BaseProfile implements WebSsoProfile {
 		MessageContext<?> messageContext =
 			samlSsoRequestContext.getSAMLMessageContext();
 
-		SamlBinding samlBinding = samlBindingProvider.getSamlBinding(
+		SamlBinding samlBinding = getSamlBinding(
 			SAMLConstants.SAML2_POST_BINDING_URI);
 
 		AssertionConsumerService assertionConsumerService =

@@ -242,13 +242,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long TYPE_COLUMN_BITMASK = 16384L;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
-	 */
-	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 32768L;
+	public static final long UUID_COLUMN_BITMASK = 16384L;
 
 	public static final String MAPPING_TABLE_GROUPS_ORGS_NAME = "Groups_Orgs";
 
@@ -1117,16 +1111,6 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		_type = type;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public int getOriginalType() {
-		return GetterUtil.getInteger(
-			this.<Integer>getColumnOriginalValue("type_"));
-	}
-
 	@JSON
 	@Override
 	public String getTypeSettings() {
@@ -1569,9 +1553,15 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 			return;
 		}
 
-		GroupModelImpl sourceModelImpl = (GroupModelImpl)source;
-
-		setClassName(sourceModelImpl.getClassName());
+		try {
+			_classNameSetterMethodHandle.invokeExact(
+				(GroupImpl)this,
+				(String)_classNameGetterMethodHandle.invokeExact(
+					(GroupImpl)source));
+		}
+		catch (Throwable throwable) {
+			ReflectionUtil.throwException(throwable);
+		}
 	}
 
 	@Override
@@ -1741,7 +1731,8 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 
 		try {
 			groupCacheModel.className =
-				(String)_classNameMethodHandle.invokeExact((GroupImpl)this);
+				(String)_classNameGetterMethodHandle.invokeExact(
+					(GroupImpl)this);
 		}
 		catch (Throwable throwable) {
 			ReflectionUtil.throwException(throwable);
@@ -1986,13 +1977,16 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 			}
 		};
 
-	private static final MethodHandle _classNameMethodHandle;
+	private static final MethodHandle _classNameGetterMethodHandle;
+	private static final MethodHandle _classNameSetterMethodHandle;
 
 	static {
 		MethodHandles.Lookup lookup = ReflectionUtil.getImplLookup();
 
 		try {
-			_classNameMethodHandle = lookup.findGetter(
+			_classNameGetterMethodHandle = lookup.findGetter(
+				GroupImpl.class, "_className", String.class);
+			_classNameSetterMethodHandle = lookup.findSetter(
 				GroupImpl.class, "_className", String.class);
 		}
 		catch (ReflectiveOperationException reflectiveOperationException) {
@@ -2003,4 +1997,4 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	private Group _escapedModel;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1035949016
+// LIFERAY-SERVICE-BUILDER-HASH:-1375888203

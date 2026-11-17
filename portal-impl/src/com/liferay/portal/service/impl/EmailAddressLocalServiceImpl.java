@@ -97,11 +97,6 @@ public class EmailAddressLocalServiceImpl
 	}
 
 	@Override
-	public List<EmailAddress> getEmailAddresses() {
-		return emailAddressPersistence.findAll();
-	}
-
-	@Override
 	public List<EmailAddress> getEmailAddresses(
 		long companyId, String className, long classPK) {
 
@@ -143,13 +138,15 @@ public class EmailAddressLocalServiceImpl
 					companyId, classNameId, classPK, primary);
 
 			for (EmailAddress emailAddress : emailAddresses) {
-				if ((emailAddressId <= 0) ||
-					(emailAddress.getEmailAddressId() != emailAddressId)) {
+				if ((emailAddressId > 0) &&
+					(emailAddress.getEmailAddressId() == emailAddressId)) {
 
-					emailAddress.setPrimary(false);
-
-					emailAddressPersistence.update(emailAddress);
+					continue;
 				}
+
+				emailAddress.setPrimary(false);
+
+				emailAddressPersistence.update(emailAddress);
 			}
 		}
 	}

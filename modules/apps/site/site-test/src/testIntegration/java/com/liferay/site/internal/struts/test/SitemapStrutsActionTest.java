@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.VirtualHostLocalService;
+import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.struts.StrutsAction;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -45,6 +46,8 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReader;
+import com.liferay.portal.test.log.LogCapture;
+import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -115,8 +118,14 @@ public class SitemapStrutsActionTest {
 
 	@After
 	public void tearDown() throws Exception {
-		_sitemapManager.deleteRegenerateSitemapScheduledJobs(
-			TestPropsValues.getCompanyId());
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.portal.scheduler.quartz.internal." +
+					"QuartzSchedulerEngine",
+				LoggerTestUtil.OFF)) {
+
+			_sitemapManager.deleteRegenerateSitemapScheduledJobs(
+				TestPropsValues.getCompanyId());
+		}
 
 		if (_group != null) {
 			_sitemapStorageHelper.deleteSitemaps(
@@ -181,7 +190,7 @@ public class SitemapStrutsActionTest {
 	}
 
 	@Test
-	public void testExecuteReturnsSitemapIndexXMLFromDLStore()
+	public void testExecuteReturnsNotFoundWithSitemapIndexNotStored()
 		throws Exception {
 
 		try (CompanyConfigurationTemporarySwapper
@@ -201,6 +210,78 @@ public class SitemapStrutsActionTest {
 			MockHttpServletResponse mockHttpServletResponse = _executeRequest(
 				null, null);
 
+			Assert.assertEquals(
+				HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE,
+				mockHttpServletResponse.getHeader(HttpHeaders.CACHE_CONTROL));
+			Assert.assertEquals(404, mockHttpServletResponse.getStatus());
+		}
+	}
+
+	@Test
+	public void testExecuteReturnsPageLayoutSitemapXMLFromDLStore()
+		throws Exception {
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						_PID_SITEMAP_COMPANY_CONFIGURATION,
+						HashMapDictionaryBuilder.<String, Object>put(
+							"cachedGenerationEnabled", true
+						).put(
+							"xmlSitemapIndexEnabled", true
+						).put(
+							"xmlSitemapIndexMode",
+							SitemapConstants.INDEX_MODE_PAGE_LAYOUT
+						).build())) {
+
+			_sitemapManager.regenerateSitemap(
+				SitemapConstants.INDEX_MODE_PAGE_LAYOUT,
+				TestPropsValues.getCompanyId(), _group.getGroupId());
+
+			MockHttpServletResponse mockHttpServletResponse = _executeRequest(
+				null, _layout.getUuid());
+
+			Assert.assertEquals(200, mockHttpServletResponse.getStatus());
+
+			Document document = _saxReader.read(
+				mockHttpServletResponse.getContentAsString());
+
+			Element rootElement = document.getRootElement();
+
+			Assert.assertEquals("urlset", rootElement.getName());
+
+			List<Element> elements = rootElement.elements();
+
+			Assert.assertFalse(elements.isEmpty());
+		}
+	}
+
+	@Test
+	public void testExecuteReturnsSitemapIndexXMLFromDLStore()
+		throws Exception {
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						_PID_SITEMAP_COMPANY_CONFIGURATION,
+						HashMapDictionaryBuilder.<String, Object>put(
+							"cachedGenerationEnabled", true
+						).put(
+							"xmlSitemapIndexEnabled", true
+						).put(
+							"xmlSitemapIndexMode",
+							SitemapConstants.INDEX_MODE_ASSET_TYPE
+						).build())) {
+
+			_sitemapManager.regenerateSitemap(
+				SitemapConstants.ASSET_TYPE_KEY_PAGES,
+				TestPropsValues.getCompanyId(), _group.getGroupId());
+
+			MockHttpServletResponse mockHttpServletResponse = _executeRequest(
+				null, null);
+
 			Assert.assertEquals(200, mockHttpServletResponse.getStatus());
 
 			Document document = _saxReader.read(
@@ -213,10 +294,6 @@ public class SitemapStrutsActionTest {
 			List<Element> elements = rootElement.elements();
 
 			Assert.assertFalse(elements.isEmpty());
-
-			Assert.assertTrue(
-				_sitemapStorageHelper.hasSitemapFile(
-					TestPropsValues.getCompanyId(), _group.getGroupId()));
 		}
 	}
 
@@ -240,6 +317,10 @@ public class SitemapStrutsActionTest {
 
 			_addJournalArticleAssetDisplayPageEntry(_addJournalArticle());
 
+			_sitemapManager.regenerateSitemap(
+				SitemapConstants.ASSET_TYPE_KEY_WEB_CONTENT,
+				TestPropsValues.getCompanyId(), _group.getGroupId());
+
 			Map<Long, String> assetTypeKeys =
 				_sitemapManager.getAssetTypeKeys();
 
@@ -260,11 +341,6 @@ public class SitemapStrutsActionTest {
 			List<Element> elements = rootElement.elements();
 
 			Assert.assertFalse(elements.isEmpty());
-
-			Assert.assertTrue(
-				_sitemapStorageHelper.hasSitemapFile(
-					TestPropsValues.getCompanyId(), _group.getGroupId(),
-					"web-content", 1));
 		}
 	}
 
@@ -281,31 +357,6 @@ public class SitemapStrutsActionTest {
 
 			MockHttpServletResponse mockHttpServletResponse = _executeRequest(
 				null, null);
-
-			Assert.assertEquals(200, mockHttpServletResponse.getStatus());
-
-			Assert.assertFalse(
-				_sitemapStorageHelper.hasSitemapFile(
-					TestPropsValues.getCompanyId(), _group.getGroupId()));
-		}
-	}
-
-	@Test
-	public void testExecuteWithPageLayoutModeDoesNotStore() throws Exception {
-		try (CompanyConfigurationTemporarySwapper
-				companyConfigurationTemporarySwapper =
-					new CompanyConfigurationTemporarySwapper(
-						TestPropsValues.getCompanyId(),
-						_PID_SITEMAP_COMPANY_CONFIGURATION,
-						HashMapDictionaryBuilder.<String, Object>put(
-							"xmlSitemapIndexEnabled", true
-						).put(
-							"xmlSitemapIndexMode",
-							SitemapConstants.INDEX_MODE_PAGE_LAYOUT
-						).build())) {
-
-			MockHttpServletResponse mockHttpServletResponse = _executeRequest(
-				null, _layout.getUuid());
 
 			Assert.assertEquals(200, mockHttpServletResponse.getStatus());
 

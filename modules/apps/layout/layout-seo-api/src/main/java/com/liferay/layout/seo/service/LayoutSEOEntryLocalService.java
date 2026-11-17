@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
@@ -133,9 +134,6 @@ public interface LayoutSEOEntryLocalService
 			long groupId, boolean privateLayout, long layoutId)
 		throws NoSuchEntryException;
 
-	public void deleteLayoutSEOEntry(String uuid, long groupId)
-		throws NoSuchEntryException;
-
 	/**
 	 * @throws PortalException
 	 */
@@ -214,6 +212,9 @@ public interface LayoutSEOEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long dynamicQueryCount(
 		DynamicQuery dynamicQuery, Projection projection);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public LayoutSEOEntry fetchLayoutSEOEntry(Layout layout);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public LayoutSEOEntry fetchLayoutSEOEntry(long layoutSEOEntryId);
@@ -401,4 +402,4 @@ public interface LayoutSEOEntryLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-428693256
+// LIFERAY-SERVICE-BUILDER-HASH:-1905923090

@@ -7,11 +7,15 @@ package com.liferay.ai.creator.openai.web.internal.portlet.action;
 
 import com.liferay.ai.creator.openai.web.internal.constants.AICreatorOpenAIPortletKeys;
 import com.liferay.ai.creator.openai.web.internal.exception.AICreatorOpenAIClientException;
+import com.liferay.ai.creator.openai.web.internal.util.AICreatorOpenAIGenerationUtil;
+import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -40,8 +44,10 @@ public class GetGenerationsMVCResourceCommand extends BaseMVCResourceCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (!aiCreatorOpenAIConfigurationManager.isAICreatorDALLEGroupEnabled(
-				themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId())) {
+		if (!aiCreatorOpenAIConfigurationManager.
+				isAICreatorOpenAIImageGenerationGroupEnabled(
+					themeDisplay.getCompanyId(),
+					themeDisplay.getScopeGroupId())) {
 
 			addDisabledConfigurationErrorMessage(
 				resourceRequest, resourceResponse);
@@ -69,18 +75,39 @@ public class GetGenerationsMVCResourceCommand extends BaseMVCResourceCommand {
 		}
 
 		try {
+			String[] generations = aiCreatorOpenAIClient.getGenerations(
+				apiKey,
+				aiCreatorOpenAIConfigurationManager.
+					getAICreatorOpenAIGroupImageModel(
+						themeDisplay.getCompanyId(),
+						themeDisplay.getScopeGroupId()),
+				ParamUtil.getInteger(resourceRequest, "numberOfImages", 1),
+				prompt, ParamUtil.getString(resourceRequest, "size"));
+
+			long expirationTime = System.currentTimeMillis() + Time.HOUR;
+
 			JSONPortletResponseUtil.writeJSON(
 				resourceRequest, resourceResponse,
 				JSONUtil.put(
 					"generations",
 					JSONUtil.put(
 						"content",
-						aiCreatorOpenAIClient.getGenerations(
-							apiKey, prompt,
-							ParamUtil.getString(
-								resourceRequest, "size", "256x256"),
-							ParamUtil.getInteger(
-								resourceRequest, "numberOfImages", 1)))));
+						JSONUtil.toJSONArray(
+							generations,
+							generation -> JSONUtil.put(
+								"expirationTime", expirationTime
+							).put(
+								"signature",
+								AICreatorOpenAIGenerationUtil.sign(
+									Base64.decode(
+										generation.substring(
+											generation.indexOf(CharPool.COMMA) +
+												1)),
+									themeDisplay.getCompany(), expirationTime,
+									themeDisplay.getUserId())
+							).put(
+								"url", generation
+							)))));
 		}
 		catch (AICreatorOpenAIClientException aiCreatorOpenAIClientException) {
 			handleAICreatorOpenAIClientExceptionMessages(

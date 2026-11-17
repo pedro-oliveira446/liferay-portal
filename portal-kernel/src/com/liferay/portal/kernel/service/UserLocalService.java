@@ -375,7 +375,7 @@ public interface UserLocalService
 	 that login does not exist.
 	 * @see AuthPipeline
 	 */
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional(propagation = Propagation.SUPPORTS)
 	public int authenticateByEmailAddress(
 			long companyId, String emailAddress, String password,
 			Map<String, String[]> headerMap, Map<String, String[]> parameterMap,
@@ -401,7 +401,7 @@ public interface UserLocalService
 	 that login does not exist.
 	 * @see AuthPipeline
 	 */
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional(propagation = Propagation.SUPPORTS)
 	public int authenticateByScreenName(
 			long companyId, String screenName, String password,
 			Map<String, String[]> headerMap, Map<String, String[]> parameterMap,
@@ -427,7 +427,7 @@ public interface UserLocalService
 	 that login does not exist.
 	 * @see AuthPipeline
 	 */
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional(propagation = Propagation.SUPPORTS)
 	public int authenticateByUserId(
 			long companyId, long userId, String password,
 			Map<String, String[]> headerMap, Map<String, String[]> parameterMap,
@@ -1013,25 +1013,6 @@ public interface UserLocalService
 			long roleId, int start, int end,
 			OrderByComparator<User> orderByComparator)
 		throws PortalException;
-
-	/**
-	 * Returns all the users who have not had any announcements of the type
-	 * delivered, excluding the default user.
-	 *
-	 * @param type the type of announcement
-	 * @return the users who have not had any annoucements of the type delivered
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> getNoAnnouncementsDeliveries(String type);
-
-	/**
-	 * Returns all the users who do not belong to any groups, excluding the
-	 * default user.
-	 *
-	 * @return the users who do not belong to any groups
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> getNoGroups();
 
 	/**
 	 * Returns the organizationIds of the organizations associated with the user.
@@ -2492,4 +2473,4 @@ public interface UserLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:90030289
+// LIFERAY-SERVICE-BUILDER-HASH:131305222

@@ -1,6 +1,6 @@
 import PercentOfCell from '../PercentOfCell';
 import React from 'react';
-import {DataTypes} from 'event-analysis/utils/types';
+import {DataTypes} from 'shared/types/DataTypes';
 import {mockBreakdownData} from 'test/data';
 import {parseBreakdownData} from 'event-analysis/utils/utils';
 import {render} from '@testing-library/react';
@@ -92,6 +92,53 @@ describe('PercentOfCell', () => {
 		);
 
 		expect(container.querySelectorAll('ul').length).toBe(2);
+	});
+
+	it('render the percentage of the total', () => {
+		const {container} = render(
+			<PercentOfCell
+				events={[{leafNode: true, name: 'Event', value: 25}]}
+				totalValue={200}
+			/>
+		);
+
+		expect(container.querySelector('li').textContent).toBe('12.5%');
+	});
+
+	it('render a zero percentage when the value is zero', () => {
+		const {container} = render(
+			<PercentOfCell
+				events={[{leafNode: true, name: 'Event', value: 0}]}
+				totalValue={200}
+			/>
+		);
+
+		expect(container.querySelector('li').textContent).toBe('0%');
+	});
+
+	it('render no data when the total is zero', () => {
+		const {container} = render(
+			<PercentOfCell
+				events={[{leafNode: true, name: 'Event', value: 0}]}
+				totalValue={0}
+			/>
+		);
+
+		expect(container.querySelector('li .text-secondary').textContent).toBe(
+			'–'
+		);
+	});
+
+	it('render no data when the total is missing', () => {
+		const {container} = render(
+			<PercentOfCell
+				events={[{leafNode: true, name: 'Event', value: 25}]}
+			/>
+		);
+
+		expect(container.querySelector('li .text-secondary').textContent).toBe(
+			'–'
+		);
 	});
 
 	it('display "undefined" value is attribute "name" is empty', () => {

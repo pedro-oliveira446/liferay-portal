@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.saml.constants.SamlWebKeys;
 import com.liferay.saml.helper.SamlHttpRequestHelper;
 import com.liferay.saml.opensaml.integration.internal.binding.SamlBinding;
-import com.liferay.saml.opensaml.integration.internal.transport.HttpClientFactory;
 import com.liferay.saml.opensaml.integration.internal.util.OpenSamlUtil;
 import com.liferay.saml.opensaml.integration.internal.util.SamlUtil;
 import com.liferay.saml.persistence.model.SamlIbSloMessage;
@@ -248,19 +247,18 @@ public class SingleLogoutProfileImpl
 		if (requestPath.endsWith("/slo") &&
 			StringUtil.equalsIgnoreCase(method, HttpMethods.GET)) {
 
-			samlBinding = samlBindingProvider.getSamlBinding(
+			samlBinding = getSamlBinding(
 				SAMLConstants.SAML2_REDIRECT_BINDING_URI);
 		}
 		else if (requestPath.endsWith("/slo") &&
 				 StringUtil.equalsIgnoreCase(method, HttpMethods.POST)) {
 
-			samlBinding = samlBindingProvider.getSamlBinding(
-				SAMLConstants.SAML2_POST_BINDING_URI);
+			samlBinding = getSamlBinding(SAMLConstants.SAML2_POST_BINDING_URI);
 		}
 		else if (requestPath.endsWith("/slo_soap") &&
 				 StringUtil.equalsIgnoreCase(method, HttpMethods.POST)) {
 
-			samlBinding = samlBindingProvider.getSamlBinding(
+			samlBinding = getSamlBinding(
 				SAMLConstants.SAML2_SOAP11_BINDING_URI);
 		}
 		else {
@@ -1048,17 +1046,21 @@ public class SingleLogoutProfileImpl
 
 			int status = samlRequestInfo.getStatus();
 
-			if (status == SamlSloRequestInfo.REQUEST_STATUS_INITIATED) {
-				DateTime initiateDateTime = samlRequestInfo.getInitiateTime();
-
-				DateTime expireDateTime = initiateDateTime.plusSeconds(10);
-
-				if (expireDateTime.isBeforeNow()) {
-					samlRequestInfo.setStatus(
-						SamlSloRequestInfo.REQUEST_STATUS_TIMED_OUT);
-					samlRequestInfo.setStatusCode(StatusCode.PARTIAL_LOGOUT);
-				}
+			if (status != SamlSloRequestInfo.REQUEST_STATUS_INITIATED) {
+				continue;
 			}
+
+			DateTime initiateDateTime = samlRequestInfo.getInitiateTime();
+
+			DateTime expireDateTime = initiateDateTime.plusSeconds(10);
+
+			if (!expireDateTime.isBeforeNow()) {
+				continue;
+			}
+
+			samlRequestInfo.setStatus(
+				SamlSloRequestInfo.REQUEST_STATUS_TIMED_OUT);
+			samlRequestInfo.setStatusCode(StatusCode.PARTIAL_LOGOUT);
 		}
 
 		httpServletResponse.setContentType(ContentTypes.TEXT_JAVASCRIPT);
@@ -1416,7 +1418,7 @@ public class SingleLogoutProfileImpl
 		OpenSamlUtil.signObject(
 			logoutRequest, credential, samlMetadataContext.getRoleDescriptor());
 
-		SamlBinding samlBinding = samlBindingProvider.getSamlBinding(
+		SamlBinding samlBinding = getSamlBinding(
 			_getSAMLPeerEntityBinding(messageContext));
 
 		Supplier<HttpServletResponseMessageEncoder>
@@ -1611,7 +1613,7 @@ public class SingleLogoutProfileImpl
 			logoutRequest, credential,
 			samlPeerMetadataContext.getRoleDescriptor());
 
-		SamlBinding samlBinding = samlBindingProvider.getSamlBinding(
+		SamlBinding samlBinding = getSamlBinding(
 			SAMLConstants.SAML2_SOAP11_BINDING_URI);
 
 		PipelineFactoryHttpSOAPClient<Object, Object>
@@ -1650,7 +1652,7 @@ public class SingleLogoutProfileImpl
 			});
 
 		pipelineFactoryHttpSOAPClient.setHttpClient(
-			_httpClientFactory.getHttpClient());
+			httpClientFactory.getHttpClient());
 
 		pipelineFactoryHttpSOAPClient.initialize();
 
@@ -1705,18 +1707,19 @@ public class SingleLogoutProfileImpl
 					_samlPeerBindingLocalService.getSamlPeerBinding(
 						samlSpSession.getSamlPeerBindingId());
 
-				if (Objects.equals(
-						samlPeerBinding.getSamlNameIdValue(), nameIDValue) &&
-					Objects.equals(
+				if (!Objects.equals(
+						samlPeerBinding.getSamlNameIdValue(), nameIDValue) ||
+					!Objects.equals(
 						samlPeerBinding.getSamlNameIdFormat(), nameIDFormat)) {
 
-					statusCodeURI = StatusCode.SUCCESS;
-
-					samlSpSession.setTerminated(true);
-
-					samlSpSessionLocalService.updateSamlSpSession(
-						samlSpSession);
+					continue;
 				}
+
+				statusCodeURI = StatusCode.SUCCESS;
+
+				samlSpSession.setTerminated(true);
+
+				samlSpSessionLocalService.updateSamlSpSession(samlSpSession);
 			}
 		}
 
@@ -1725,9 +1728,6 @@ public class SingleLogoutProfileImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SingleLogoutProfileImpl.class);
-
-	@Reference
-	private HttpClientFactory _httpClientFactory;
 
 	@Reference
 	private SamlHttpRequestHelper _samlHttpRequestHelper;

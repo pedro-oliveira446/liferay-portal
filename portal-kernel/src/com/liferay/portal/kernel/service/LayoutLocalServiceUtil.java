@@ -646,6 +646,10 @@ public class LayoutLocalServiceUtil {
 		return getService().fetchDraftLayout(plid);
 	}
 
+	public static Layout fetchDraftLayout(long plid, long launchSetId) {
+		return getService().fetchDraftLayout(plid, launchSetId);
+	}
+
 	public static Map<Layout, Layout> fetchDraftLayouts(List<Layout> layouts) {
 		return getService().fetchDraftLayouts(layouts);
 	}
@@ -1395,12 +1399,11 @@ public class LayoutLocalServiceUtil {
 
 	public static Layout getOrAddEmptyLayout(
 			String externalReferenceCode, long userId, long groupId,
-			boolean privateLayout, ServiceContext serviceContext)
+			boolean privateLayout)
 		throws Exception {
 
 		return getService().getOrAddEmptyLayout(
-			externalReferenceCode, userId, groupId, privateLayout,
-			serviceContext);
+			externalReferenceCode, userId, groupId, privateLayout);
 	}
 
 	/**
@@ -1474,13 +1477,6 @@ public class LayoutLocalServiceUtil {
 		throws PortalException {
 
 		return getService().hasLayout(uuid, groupId, privateLayout);
-	}
-
-	public static boolean hasLayouts(
-			com.liferay.portal.kernel.model.Group group)
-		throws PortalException {
-
-		return getService().hasLayouts(group);
 	}
 
 	public static boolean hasLayouts(
@@ -2109,4 +2105,4 @@ public class LayoutLocalServiceUtil {
 	private static volatile LayoutLocalService _service;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-374945548
+// LIFERAY-SERVICE-BUILDER-HASH:76729484

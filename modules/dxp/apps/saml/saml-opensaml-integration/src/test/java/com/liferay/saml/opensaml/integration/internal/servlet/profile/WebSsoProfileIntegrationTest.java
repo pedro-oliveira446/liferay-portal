@@ -169,11 +169,11 @@ public class WebSsoProfileIntegrationTest extends BaseSamlTestCase {
 		ReflectionTestUtil.setFieldValue(
 			_webSsoProfileImpl, "credentialResolver", credentialResolver);
 		ReflectionTestUtil.setFieldValue(
+			_webSsoProfileImpl, "httpClientFactory", httpClientFactory);
+		ReflectionTestUtil.setFieldValue(
 			_webSsoProfileImpl, "localEntityManager",
 			keyStoreLocalEntityManager);
 		ReflectionTestUtil.setFieldValue(_webSsoProfileImpl, "portal", portal);
-		ReflectionTestUtil.setFieldValue(
-			_webSsoProfileImpl, "samlBindingProvider", samlBindingProvider);
 		ReflectionTestUtil.setFieldValue(
 			_webSsoProfileImpl, "samlProviderConfigurationHelper",
 			samlProviderConfigurationHelper);
@@ -241,17 +241,21 @@ public class WebSsoProfileIntegrationTest extends BaseSamlTestCase {
 		while (iterator.hasNext()) {
 			XMLObject xmlObject = iterator.next();
 
-			if (xmlObject instanceof SigningMethod) {
-				SigningMethod signingMethod = (SigningMethod)xmlObject;
-
-				String algorithm = signingMethod.getAlgorithm();
-
-				if (!algorithm.equals(
-						"http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")) {
-
-					iterator.remove();
-				}
+			if (!(xmlObject instanceof SigningMethod)) {
+				continue;
 			}
+
+			SigningMethod signingMethod = (SigningMethod)xmlObject;
+
+			String algorithm = signingMethod.getAlgorithm();
+
+			if (algorithm.equals(
+					"http://www.w3.org/2001/04/xmldsig-more#rsa-sha512")) {
+
+				continue;
+			}
+
+			iterator.remove();
 		}
 
 		OpenSamlUtil.signObject(assertion, credential, spSSODescriptor);

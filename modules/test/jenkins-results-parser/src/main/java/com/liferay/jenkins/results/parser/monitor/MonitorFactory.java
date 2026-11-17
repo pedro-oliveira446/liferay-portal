@@ -16,6 +16,14 @@ public class MonitorFactory {
 		String type = monitorConfig.getType();
 
 		if (!JenkinsResultsParserUtil.isNullOrEmpty(type)) {
+			if (type.equals("controller-result")) {
+				return new ControllerResultMonitor(monitorConfig);
+			}
+
+			if (type.equals("external-status")) {
+				return new ExternalStatusMonitor(monitorConfig);
+			}
+
 			if (type.equals("http-endpoint")) {
 				return new HTTPEndpointMonitor(monitorConfig);
 			}
@@ -24,12 +32,24 @@ public class MonitorFactory {
 				return new JobHealthMonitor(monitorConfig);
 			}
 
+			if (type.equals("queued-build-duration")) {
+				return new QueuedBuildDurationMonitor(monitorConfig);
+			}
+
 			if (type.equals("report-freshness")) {
 				return new ReportFreshnessMonitor(monitorConfig);
 			}
 
 			if (type.equals("resource-threshold")) {
 				return new ResourceThresholdMonitor(monitorConfig);
+			}
+
+			if (type.equals("running-build-duration")) {
+				return new RunningBuildDurationMonitor(monitorConfig);
+			}
+
+			if (type.equals("smtp-endpoint")) {
+				return new SMTPEndpointMonitor(monitorConfig);
 			}
 
 			if (type.equals("upstream-job-health")) {

@@ -38,3 +38,35 @@ test(
 		}
 	}
 );
+
+test(
+	'LPD-93376 Exporting an instance twice shows an error',
+	{tag: '@LPD-93376'},
+	async ({virtualInstancesPage}) => {
+		test.setTimeout(3 * 180 * 1000);
+
+		const webId = getRandomString();
+
+		let created = false;
+
+		try {
+			await virtualInstancesPage.addNewVirtualInstance(webId);
+
+			created = true;
+
+			const schemaName =
+				await virtualInstancesPage.exportVirtualInstance(webId);
+
+			await virtualInstancesPage.submitExportVirtualInstance(webId);
+
+			await expect(
+				virtualInstancesPage.exportedSchemaExistsMessage(schemaName)
+			).toBeVisible();
+		}
+		finally {
+			if (created) {
+				await virtualInstancesPage.deleteVirtualInstance(webId);
+			}
+		}
+	}
+);

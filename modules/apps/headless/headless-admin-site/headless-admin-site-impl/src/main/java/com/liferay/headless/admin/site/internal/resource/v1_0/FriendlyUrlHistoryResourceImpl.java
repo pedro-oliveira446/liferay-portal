@@ -5,6 +5,7 @@
 
 package com.liferay.headless.admin.site.internal.resource.v1_0;
 
+import com.liferay.depot.constants.DepotConstants;
 import com.liferay.friendly.url.model.FriendlyURLEntryLocalizationModel;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.friendly.url.util.comparator.FriendlyURLEntryLocalizationComparator;
@@ -13,7 +14,6 @@ import com.liferay.headless.admin.site.dto.v1_0.FriendlyUrlHistory;
 import com.liferay.headless.admin.site.dto.v1_0.SitePage;
 import com.liferay.headless.admin.site.dto.v1_0.UtilityPage;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.LayoutUtil;
-import com.liferay.headless.admin.site.internal.util.EnabledUtil;
 import com.liferay.headless.admin.site.resource.v1_0.FriendlyUrlHistoryResource;
 import com.liferay.headless.common.spi.util.GroupUtil;
 import com.liferay.layout.friendly.url.LayoutFriendlyURLEntryHelper;
@@ -30,9 +30,13 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.fields.NestedField;
 import com.liferay.portal.vulcan.fields.NestedFieldId;
+
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -59,15 +63,11 @@ public class FriendlyUrlHistoryResourceImpl
 				displayPageTemplateExternalReferenceCode)
 		throws Exception {
 
-		EnabledUtil.checkEnabled(contextCompany);
-
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryService.
 				getLayoutPageTemplateEntryByExternalReferenceCode(
 					displayPageTemplateExternalReferenceCode,
-					GroupUtil.getGroupId(
-						true, contextCompany.getCompanyId(),
-						siteExternalReferenceCode));
+					_getGroupId(siteExternalReferenceCode));
 
 		if (layoutPageTemplateEntry.getType() !=
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE) {
@@ -89,9 +89,7 @@ public class FriendlyUrlHistoryResourceImpl
 				sitePageExternalReferenceCode)
 		throws Exception {
 
-		EnabledUtil.checkEnabled(contextCompany);
-
-		Layout layout = _layoutLocalService.getLayoutByExternalReferenceCode(
+		Layout layout = _layoutService.getLayoutByExternalReferenceCode(
 			sitePageExternalReferenceCode,
 			GroupUtil.getGroupId(
 				true, contextCompany.getCompanyId(),
@@ -124,8 +122,6 @@ public class FriendlyUrlHistoryResourceImpl
 			@NestedFieldId(value = "externalReferenceCode") String
 				utilityPageExternalReferenceCode)
 		throws Exception {
-
-		EnabledUtil.checkEnabled(contextCompany);
 
 		LayoutUtilityPageEntry layoutUtilityPageEntry =
 			_layoutUtilityPageEntryService.
@@ -169,6 +165,23 @@ public class FriendlyUrlHistoryResourceImpl
 		return jsonObject;
 	}
 
+	private long _getGroupId(String siteExternalReferenceCode)
+		throws Exception {
+
+		if (Validator.isNotNull(siteExternalReferenceCode)) {
+			return GroupUtil.getGroupId(
+				true, contextCompany.getCompanyId(), siteExternalReferenceCode);
+		}
+
+		MultivaluedMap<String, String> pathParameters =
+			contextUriInfo.getPathParameters();
+
+		return GroupUtil.getDepotGroupId(
+			contextCompany.getCompanyId(),
+			pathParameters.getFirst("designLibraryExternalReferenceCode"),
+			DepotConstants.TYPE_DESIGN_LIBRARY);
+	}
+
 	private FriendlyUrlHistory _toFriendlyUrlHistory(Layout layout)
 		throws Exception {
 
@@ -202,6 +215,9 @@ public class FriendlyUrlHistoryResourceImpl
 
 	@Reference
 	private LayoutPageTemplateEntryService _layoutPageTemplateEntryService;
+
+	@Reference
+	private LayoutService _layoutService;
 
 	@Reference
 	private LayoutUtilityPageEntryService _layoutUtilityPageEntryService;

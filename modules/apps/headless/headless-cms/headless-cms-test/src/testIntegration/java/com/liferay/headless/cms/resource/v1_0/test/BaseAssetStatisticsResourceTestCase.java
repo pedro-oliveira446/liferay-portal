@@ -290,6 +290,16 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"completedWorkflowTasksCount", additionalAssertFieldName)) {
+
+				if (assetStatistics.getCompletedWorkflowTasksCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("expiredCount", additionalAssertFieldName)) {
 				if (assetStatistics.getExpiredCount() == null) {
 					valid = false;
@@ -310,6 +320,36 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 
 			if (Objects.equals("inDraftCount", additionalAssertFieldName)) {
 				if (assetStatistics.getInDraftCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"longStandingDraftsCount", additionalAssertFieldName)) {
+
+				if (assetStatistics.getLongStandingDraftsCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"missingRequiredFieldsCount", additionalAssertFieldName)) {
+
+				if (assetStatistics.getMissingRequiredFieldsCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"overdueWorkflowTasksCount", additionalAssertFieldName)) {
+
+				if (assetStatistics.getOverdueWorkflowTasksCount() == null) {
 					valid = false;
 				}
 
@@ -342,8 +382,29 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"slaBreachedWorkflowTasksCount",
+					additionalAssertFieldName)) {
+
+				if (assetStatistics.getSlaBreachedWorkflowTasksCount() ==
+						null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("totalCount", additionalAssertFieldName)) {
 				if (assetStatistics.getTotalCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("unlinkedCount", additionalAssertFieldName)) {
+				if (assetStatistics.getUnlinkedCount() == null) {
 					valid = false;
 				}
 
@@ -354,6 +415,16 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 					"upcomingReviewCount", additionalAssertFieldName)) {
 
 				if (assetStatistics.getUpcomingReviewCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"workflowTasksCount", additionalAssertFieldName)) {
+
+				if (assetStatistics.getWorkflowTasksCount() == null) {
 					valid = false;
 				}
 
@@ -501,6 +572,19 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"completedWorkflowTasksCount", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						assetStatistics1.getCompletedWorkflowTasksCount(),
+						assetStatistics2.getCompletedWorkflowTasksCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("expiredCount", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						assetStatistics1.getExpiredCount(),
@@ -529,6 +613,45 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				if (!Objects.deepEquals(
 						assetStatistics1.getInDraftCount(),
 						assetStatistics2.getInDraftCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"longStandingDraftsCount", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						assetStatistics1.getLongStandingDraftsCount(),
+						assetStatistics2.getLongStandingDraftsCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"missingRequiredFieldsCount", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						assetStatistics1.getMissingRequiredFieldsCount(),
+						assetStatistics2.getMissingRequiredFieldsCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"overdueWorkflowTasksCount", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						assetStatistics1.getOverdueWorkflowTasksCount(),
+						assetStatistics2.getOverdueWorkflowTasksCount())) {
 
 					return false;
 				}
@@ -571,10 +694,35 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"slaBreachedWorkflowTasksCount",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						assetStatistics1.getSlaBreachedWorkflowTasksCount(),
+						assetStatistics2.getSlaBreachedWorkflowTasksCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("totalCount", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						assetStatistics1.getTotalCount(),
 						assetStatistics2.getTotalCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("unlinkedCount", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						assetStatistics1.getUnlinkedCount(),
+						assetStatistics2.getUnlinkedCount())) {
 
 					return false;
 				}
@@ -588,6 +736,19 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				if (!Objects.deepEquals(
 						assetStatistics1.getUpcomingReviewCount(),
 						assetStatistics2.getUpcomingReviewCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"workflowTasksCount", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						assetStatistics1.getWorkflowTasksCount(),
+						assetStatistics2.getWorkflowTasksCount())) {
 
 					return false;
 				}
@@ -713,6 +874,11 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("completedWorkflowTasksCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("expiredCount")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -724,6 +890,21 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 		}
 
 		if (entityFieldName.equals("inDraftCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("longStandingDraftsCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("missingRequiredFieldsCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("overdueWorkflowTasksCount")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -743,12 +924,27 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("slaBreachedWorkflowTasksCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("totalCount")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("unlinkedCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("upcomingReviewCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("workflowTasksCount")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -802,14 +998,21 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 			{
 				approvedCount = RandomTestUtil.randomLong();
 				brokenLinksCount = RandomTestUtil.randomLong();
+				completedWorkflowTasksCount = RandomTestUtil.randomLong();
 				expiredCount = RandomTestUtil.randomLong();
 				expiringSoonCount = RandomTestUtil.randomLong();
 				inDraftCount = RandomTestUtil.randomLong();
+				longStandingDraftsCount = RandomTestUtil.randomLong();
+				missingRequiredFieldsCount = RandomTestUtil.randomLong();
+				overdueWorkflowTasksCount = RandomTestUtil.randomLong();
 				pendingCount = RandomTestUtil.randomLong();
 				reviewDateOverdueCount = RandomTestUtil.randomLong();
 				scheduledCount = RandomTestUtil.randomLong();
+				slaBreachedWorkflowTasksCount = RandomTestUtil.randomLong();
 				totalCount = RandomTestUtil.randomLong();
+				unlinkedCount = RandomTestUtil.randomLong();
 				upcomingReviewCount = RandomTestUtil.randomLong();
+				workflowTasksCount = RandomTestUtil.randomLong();
 			}
 		};
 	}
@@ -1037,4 +1240,4 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 		_assetStatisticsResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1448042726
+// LIFERAY-REST-BUILDER-HASH:67483338

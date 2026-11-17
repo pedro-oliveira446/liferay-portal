@@ -71,9 +71,8 @@ public class CommerceAvailabilityEstimateServiceImpl
 		throws PortalException {
 
 		CommerceAvailabilityEstimate commerceAvailabilityEstimate =
-			commerceAvailabilityEstimateLocalService.
-				fetchCommerceAvailabilityEstimateByExternalReferenceCode(
-					externalReferenceCode, companyId);
+			commerceAvailabilityEstimatePersistence.fetchByERC_C(
+				externalReferenceCode, companyId);
 
 		if (commerceAvailabilityEstimate != null) {
 			_commerceAvailabilityEstimateModelResourcePermission.check(
@@ -93,8 +92,8 @@ public class CommerceAvailabilityEstimateServiceImpl
 			getPermissionChecker(), commerceAvailabilityEstimateId,
 			ActionKeys.VIEW);
 
-		return commerceAvailabilityEstimateLocalService.
-			getCommerceAvailabilityEstimate(commerceAvailabilityEstimateId);
+		return commerceAvailabilityEstimatePersistence.findByPrimaryKey(
+			commerceAvailabilityEstimateId);
 	}
 
 	@Override
@@ -106,9 +105,8 @@ public class CommerceAvailabilityEstimateServiceImpl
 		_checkPortletResourcePermission(
 			CommerceActionKeys.VIEW_COMMERCE_AVAILABILITY_ESTIMATES);
 
-		return commerceAvailabilityEstimateLocalService.
-			getCommerceAvailabilityEstimates(
-				companyId, start, end, orderByComparator);
+		return commerceAvailabilityEstimatePersistence.findByCompanyId(
+			companyId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -118,14 +116,14 @@ public class CommerceAvailabilityEstimateServiceImpl
 		_checkPortletResourcePermission(
 			CommerceActionKeys.VIEW_COMMERCE_AVAILABILITY_ESTIMATES);
 
-		return commerceAvailabilityEstimateLocalService.
-			getCommerceAvailabilityEstimatesCount(companyId);
+		return commerceAvailabilityEstimatePersistence.countByCompanyId(
+			companyId);
 	}
 
 	@Override
 	public CommerceAvailabilityEstimate
 			getOrAddEmptyCommerceAvailabilityEstimate(
-				String externalReferenceCode)
+				String externalReferenceCode, Map<Locale, String> titleMap)
 		throws PortalException {
 
 		PermissionChecker permissionChecker = getPermissionChecker();
@@ -145,7 +143,7 @@ public class CommerceAvailabilityEstimateServiceImpl
 		return commerceAvailabilityEstimateLocalService.
 			getOrAddEmptyCommerceAvailabilityEstimate(
 				externalReferenceCode, permissionChecker.getCompanyId(),
-				permissionChecker.getUserId());
+				permissionChecker.getUserId(), titleMap);
 	}
 
 	@Override

@@ -227,7 +227,8 @@ public class AssetTagsPortletDataHandlerTest
 			Group depotGroup = depotEntry.getGroup();
 
 			_assetTagGroupRelLocalService.setAssetTagGroupRels(
-				assetTag.getTagId(), new long[] {depotGroup.getGroupId()});
+				assetTag.getTagId(), new long[] {depotGroup.getGroupId()},
+				DepotConstants.TYPE_SPACE);
 
 			File larFile = _exportLayout();
 
@@ -246,15 +247,14 @@ public class AssetTagsPortletDataHandlerTest
 			Assert.assertNotNull(importedTag);
 
 			List<AssetTagGroupRel> assetTagGroupRels =
-				_assetTagGroupRelLocalService.getAssetTagGroupRelsByTagId(
-					importedTag.getTagId());
+				_assetTagGroupRelLocalService.getAssetTagGroupRelsByGroupId(
+					depotGroup.getGroupId());
 
 			Assert.assertTrue(
 				ListUtil.exists(
 					assetTagGroupRels,
 					assetTagGroupRel ->
-						assetTagGroupRel.getGroupId() ==
-							depotGroup.getGroupId()));
+						assetTagGroupRel.getTagId() == importedTag.getTagId()));
 		}
 		finally {
 			stagingGroup = originalStagingGroup;

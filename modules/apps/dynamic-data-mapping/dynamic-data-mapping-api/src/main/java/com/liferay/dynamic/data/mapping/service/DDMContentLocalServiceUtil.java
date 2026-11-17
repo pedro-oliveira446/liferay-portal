@@ -36,15 +36,6 @@ public class DDMContentLocalServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMContentLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
-	public static DDMContent addContent(
-			long userId, long groupId, String name, String description,
-			String data,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().addContent(
-			userId, groupId, name, description, data, serviceContext);
-	}
 
 	/**
 	 * Adds the ddm content to the database. Also notifies the appropriate model listeners.
@@ -78,14 +69,6 @@ public class DDMContentLocalServiceUtil {
 		throws PortalException {
 
 		return getService().createPersistedModel(primaryKeyObj);
-	}
-
-	public static void deleteContent(DDMContent content) {
-		getService().deleteContent(content);
-	}
-
-	public static void deleteContents(long groupId) {
-		getService().deleteContents(groupId);
 	}
 
 	/**
@@ -237,28 +220,6 @@ public class DDMContentLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
-	public static DDMContent getContent(long contentId) throws PortalException {
-		return getService().getContent(contentId);
-	}
-
-	public static List<DDMContent> getContents() {
-		return getService().getContents();
-	}
-
-	public static List<DDMContent> getContents(long groupId) {
-		return getService().getContents(groupId);
-	}
-
-	public static List<DDMContent> getContents(
-		long groupId, int start, int end) {
-
-		return getService().getContents(groupId, start, end);
-	}
-
-	public static int getContentsCount(long groupId) {
-		return getService().getContentsCount(groupId);
-	}
-
 	/**
 	 * Returns the ddm content with the primary key.
 	 *
@@ -375,15 +336,6 @@ public class DDMContentLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
-	public static DDMContent updateContent(
-			long contentId, String name, String description, String data,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().updateContent(
-			contentId, name, description, data, serviceContext);
-	}
-
 	/**
 	 * Updates the ddm content in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -407,4 +359,4 @@ public class DDMContentLocalServiceUtil {
 			DDMContentLocalServiceUtil.class, DDMContentLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1421593038
+// LIFERAY-SERVICE-BUILDER-HASH:722567835

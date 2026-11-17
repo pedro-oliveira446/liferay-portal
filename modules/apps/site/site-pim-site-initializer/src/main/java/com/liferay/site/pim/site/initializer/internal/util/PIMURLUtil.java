@@ -8,14 +8,42 @@ package com.liferay.site.pim.site.initializer.internal.util;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.Validator;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Andrea Sbarra
  * @author Stefano Motta
  */
 public class PIMURLUtil {
+
+	public static String getBackURL(
+		String defaultBackURL, HttpServletRequest httpServletRequest) {
+
+		String backURL = ParamUtil.getString(httpServletRequest, "backURL");
+
+		if (Validator.isNotNull(backURL)) {
+			return backURL;
+		}
+
+		return defaultBackURL;
+	}
+
+	public static String getConnectorExecuteURL(String objectEntryId) {
+		return "/o/pim/connector/execute?objectEntryId=" + objectEntryId;
+	}
+
+	public static String getConnectorScheduleURL(
+		String objectEntryId, ThemeDisplay themeDisplay) {
+
+		return StringBundler.concat(
+			"/o/pim/connector/schedule?backURL=",
+			URLCodec.encodeURL(themeDisplay.getURLCurrent()), "&objectEntryId=",
+			objectEntryId);
+	}
 
 	public static String getConnectorsURL(ThemeDisplay themeDisplay) {
 		return _getSiteURL("/connectors", themeDisplay);
@@ -27,16 +55,10 @@ public class PIMURLUtil {
 		return _getURL("/edit-connector", objectEntryId, themeDisplay);
 	}
 
-	public static String getEditFieldMappingURL(
+	public static String getEditFieldMappingsURL(
 		String objectEntryId, ThemeDisplay themeDisplay) {
 
-		return StringBundler.concat(
-			_getSiteURL("/edit-field-mapping", themeDisplay), "?objectEntryId=",
-			objectEntryId);
-	}
-
-	public static String getExportToLiferayCommerceURL() {
-		return "/o/pim/export-to-liferay-commerce";
+		return _getURL("/edit-field-mappings", objectEntryId, themeDisplay);
 	}
 
 	public static String getFieldMappingsURL(

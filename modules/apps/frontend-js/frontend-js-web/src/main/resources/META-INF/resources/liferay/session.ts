@@ -113,15 +113,7 @@ export class Session {
 	}
 
 	private _destroyBanner() {
-		const toast = document.getElementById(TOAST_ID);
-
-		const toastRootElement = toast?.parentElement;
-
 		Liferay.destroyComponent(TOAST_ID);
-
-		if (toastRootElement) {
-			toastRootElement.remove();
-		}
 
 		this._banner = false;
 	}
@@ -139,7 +131,7 @@ export class Session {
 			}
 			else {
 				setTimeout(() => {
-					this._expireSession;
+					this._expireSession();
 				}, 1000);
 			}
 		});
@@ -186,7 +178,7 @@ export class Session {
 		return time.toString();
 	}
 
-	private _getBanner() {
+	private _getBanner(initialProps?: any) {
 		let banner = this._banner;
 
 		if (!banner) {
@@ -213,6 +205,7 @@ export class Session {
 			openToast({
 				message: this._warningText,
 				type: 'warning',
+				...initialProps,
 				...toastDefaultConfig,
 			});
 
@@ -311,15 +304,20 @@ export class Session {
 	}
 
 	private _uiSetExpired() {
-		if (this._banner) {
-			this._banner.open({
-				message: this._expiredText,
-				title: Liferay.Language.get('danger'),
-				type: 'danger',
-			});
+		const props = {
+			message: this._expiredText,
+			title: Liferay.Language.get('danger'),
+			type: 'danger',
+		};
 
-			document.title = this._pageTitle;
+		if (this._banner) {
+			this._banner.open(props);
 		}
+		else if (this._warningLength > 0) {
+			this._getBanner(props);
+		}
+
+		document.title = this._pageTitle;
 	}
 
 	private _uiSetRemainingTime(

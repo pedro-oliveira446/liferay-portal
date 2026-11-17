@@ -37,7 +37,6 @@ import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.LocalizationUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.FastDateFormatFactoryImpl;
@@ -81,14 +80,12 @@ public class AssetListFiltersUtilTest {
 	public static void tearDownClass() {
 		_objectDefinitionLocalServiceUtilMockedStatic.close();
 		_objectFieldLocalServiceUtilMockedStatic.close();
-		_portalUtilMockedStatic.close();
 	}
 
 	@Before
 	public void setUp() {
 		_objectDefinitionLocalServiceUtilMockedStatic.reset();
 		_objectFieldLocalServiceUtilMockedStatic.reset();
-		_portalUtilMockedStatic.reset();
 
 		_setUpLocalizationUtil();
 	}
@@ -234,11 +231,6 @@ public class AssetListFiltersUtilTest {
 				BooleanClauseOccur.MUST,
 				_getCommonFieldFilterJSONObject(
 					"contains", Field.TITLE, title)));
-		_assertMatchQuery(
-			"localized_title_en_US", title,
-			_assertFilterQuery(
-				BooleanClauseOccur.MUST,
-				_getCommonFieldFilterJSONObject("eq", Field.TITLE, title)));
 
 		String userName = RandomTestUtil.randomString();
 
@@ -410,28 +402,6 @@ public class AssetListFiltersUtilTest {
 				_getFilterJSONObject("not-eq", keywordTextFieldName, "Alpha"),
 				keywordTextFieldName));
 
-		String localizedTextFieldName = RandomTestUtil.randomString();
-
-		ObjectField localizedObjectField = _setUpObjectField(
-			ObjectFieldConstants.BUSINESS_TYPE_TEXT,
-			ObjectFieldConstants.DB_TYPE_STRING, localizedTextFieldName);
-
-		Mockito.when(
-			localizedObjectField.isLocalized()
-		).thenReturn(
-			true
-		);
-
-		String localizedTextFieldValue = RandomTestUtil.randomString();
-
-		_assertTermQuery(
-			"nestedFieldArray.value_en_US", localizedTextFieldValue,
-			_assertNestedQuery(
-				BooleanClauseOccur.MUST,
-				_getFilterJSONObject(
-					"eq", localizedTextFieldName, localizedTextFieldValue),
-				localizedTextFieldName));
-
 		String longIntegerFieldName = RandomTestUtil.randomString();
 
 		_setUpObjectField(
@@ -448,27 +418,6 @@ public class AssetListFiltersUtilTest {
 				_getFilterJSONObject(
 					"eq", longIntegerFieldName, longIntegerFieldValue),
 				longIntegerFieldName));
-
-		String textFieldName = RandomTestUtil.randomString();
-
-		_setUpObjectField(
-			ObjectFieldConstants.BUSINESS_TYPE_TEXT,
-			ObjectFieldConstants.DB_TYPE_STRING, textFieldName);
-
-		String textFieldValue = RandomTestUtil.randomString();
-
-		_assertTermQuery(
-			"nestedFieldArray.value_text", textFieldValue,
-			_assertNestedQuery(
-				BooleanClauseOccur.MUST,
-				_getFilterJSONObject("eq", textFieldName, textFieldValue),
-				textFieldName));
-		_assertTermQuery(
-			"nestedFieldArray.value_text", textFieldValue,
-			_assertNestedQuery(
-				BooleanClauseOccur.MUST_NOT,
-				_getFilterJSONObject("not-eq", textFieldName, textFieldValue),
-				textFieldName));
 	}
 
 	@Test
@@ -1373,9 +1322,8 @@ public class AssetListFiltersUtilTest {
 		String operatorName, String propertyName, JSONArray valueJSONArray) {
 
 		return JSONUtil.put(
-			"classNameId", _CLASS_NAME_ID
-		).put(
-			"classTypeId", _CLASS_TYPE_ID
+			"objectDefinitionExternalReferenceCode",
+			_OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE
 		).put(
 			"operatorName", operatorName
 		).put(
@@ -1389,9 +1337,8 @@ public class AssetListFiltersUtilTest {
 		String operatorName, String propertyName, String value) {
 
 		return JSONUtil.put(
-			"classNameId", _CLASS_NAME_ID
-		).put(
-			"classTypeId", _CLASS_TYPE_ID
+			"objectDefinitionExternalReferenceCode",
+			_OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE
 		).put(
 			"operatorName", operatorName
 		).put(
@@ -1474,7 +1421,7 @@ public class AssetListFiltersUtilTest {
 		Mockito.when(
 			objectDefinition.getObjectDefinitionId()
 		).thenReturn(
-			_CLASS_TYPE_ID
+			_OBJECT_DEFINITION_ID
 		);
 
 		ObjectField objectField = Mockito.mock(ObjectField.class);
@@ -1500,23 +1447,17 @@ public class AssetListFiltersUtilTest {
 		_objectDefinitionLocalServiceUtilMockedStatic.when(
 			() ->
 				ObjectDefinitionLocalServiceUtil.
-					fetchObjectDefinitionByClassName(
-						_COMPANY_ID, "com.liferay.test.Class" + _CLASS_NAME_ID)
+					fetchObjectDefinitionByExternalReferenceCode(
+						_OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE, _COMPANY_ID)
 		).thenReturn(
 			objectDefinition
 		);
 
 		_objectFieldLocalServiceUtilMockedStatic.when(
 			() -> ObjectFieldLocalServiceUtil.fetchObjectField(
-				_CLASS_TYPE_ID, fieldName)
+				_OBJECT_DEFINITION_ID, fieldName)
 		).thenReturn(
 			objectField
-		);
-
-		_portalUtilMockedStatic.when(
-			() -> PortalUtil.getClassName(_CLASS_NAME_ID)
-		).thenReturn(
-			"com.liferay.test.Class" + _CLASS_NAME_ID
 		);
 
 		return objectField;
@@ -1540,14 +1481,16 @@ public class AssetListFiltersUtilTest {
 		);
 	}
 
-	private static final long _CLASS_NAME_ID = RandomTestUtil.randomLong();
-
-	private static final long _CLASS_TYPE_ID = RandomTestUtil.randomLong();
-
 	private static final long _COMPANY_ID = RandomTestUtil.randomLong();
 
 	private static final String _NESTED_TEXT_FIELD =
 		"nestedFieldArray.value_text";
+
+	private static final String _OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE =
+		RandomTestUtil.randomString();
+
+	private static final long _OBJECT_DEFINITION_ID =
+		RandomTestUtil.randomLong();
 
 	private static final MockedStatic<ObjectDefinitionLocalServiceUtil>
 		_objectDefinitionLocalServiceUtilMockedStatic = Mockito.mockStatic(
@@ -1555,7 +1498,5 @@ public class AssetListFiltersUtilTest {
 	private static final MockedStatic<ObjectFieldLocalServiceUtil>
 		_objectFieldLocalServiceUtilMockedStatic = Mockito.mockStatic(
 			ObjectFieldLocalServiceUtil.class);
-	private static final MockedStatic<PortalUtil> _portalUtilMockedStatic =
-		Mockito.mockStatic(PortalUtil.class);
 
 }

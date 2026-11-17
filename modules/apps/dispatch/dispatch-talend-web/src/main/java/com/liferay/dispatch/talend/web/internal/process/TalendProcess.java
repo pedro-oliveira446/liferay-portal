@@ -13,7 +13,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.util.AggregateClassLoader;
-import com.liferay.portal.kernel.util.JavaDetector;
 import com.liferay.portal.util.PortalClassPathUtil;
 
 import java.io.File;
@@ -45,13 +44,6 @@ public class TalendProcess {
 
 	public ProcessConfig getProcessConfig() {
 		return _processConfig;
-	}
-
-	@Override
-	public String toString() {
-		return StringBundler.concat(
-			"{mainMethodArguments=", _mainMethodArguments, ", processConfig=",
-			_processConfig, "}");
 	}
 
 	public static class Builder {
@@ -114,12 +106,6 @@ public class TalendProcess {
 
 			if (_jvmOptions != null) {
 				arguments.addAll(_jvmOptions);
-			}
-
-			String javaVersion = JavaDetector.getJavaVersion();
-
-			if (javaVersion.startsWith("21")) {
-				arguments.add("-Djava.security.manager=allow");
 			}
 
 			ProcessConfig portalProcessConfig =

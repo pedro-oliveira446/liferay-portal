@@ -1,12 +1,13 @@
+import DataValue from 'shared/components/DataValue';
 import moment from 'moment';
 import React from 'react';
 import {get} from 'lodash';
-import {getCustomDateFormat} from 'shared/util/date';
+import {formatDate, getCustomDateFormat} from 'shared/util/date';
 import {PropTypes} from 'prop-types';
 
 export default class DateRenderer extends React.Component {
 	static defaultProps = {
-		dateFormatter: date => moment(date).format(getCustomDateFormat()),
+		dateFormatter: date => formatDate(moment(date), getCustomDateFormat()),
 		datePath: 'dateCreated'
 	};
 
@@ -21,8 +22,10 @@ export default class DateRenderer extends React.Component {
 
 		const date = get(data, datePath);
 
-		const formattedDate = date ? dateFormatter(date) : '-';
-
-		return <td className={className}>{formattedDate}</td>;
+		return (
+			<td className={className}>
+				<DataValue format={dateFormatter} value={date} />
+			</td>
+		);
 	}
 }

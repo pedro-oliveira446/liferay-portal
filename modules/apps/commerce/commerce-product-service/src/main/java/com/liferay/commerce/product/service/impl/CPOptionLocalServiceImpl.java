@@ -12,9 +12,9 @@ import com.liferay.commerce.product.exception.CPOptionKeyException;
 import com.liferay.commerce.product.exception.CPOptionSKUContributorException;
 import com.liferay.commerce.product.exception.RequiredCPOptionException;
 import com.liferay.commerce.product.model.CPOption;
-import com.liferay.commerce.product.service.CPDefinitionOptionRelLocalService;
 import com.liferay.commerce.product.service.CPOptionValueLocalService;
 import com.liferay.commerce.product.service.base.CPOptionLocalServiceBaseImpl;
+import com.liferay.commerce.product.service.persistence.CPDefinitionOptionRelPersistence;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
 import com.liferay.portal.aop.AopService;
@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
@@ -40,7 +39,6 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.settings.SystemSettingsLocator;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
@@ -48,6 +46,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -157,13 +156,8 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 
 		// Commerce product option rels
 
-		CPDefinitionOptionRelLocalService cpDefinitionOptionRelLocalService =
-			_cpDefinitionOptionRelLocalServiceSnapshot.get();
-
-		int count =
-			cpDefinitionOptionRelLocalService.
-				getCPOptionCPDefinitionOptionRelsCount(
-					cpOption.getCPOptionId());
+		int count = _cpDefinitionOptionRelPersistence.countByCPOptionId(
+			cpOption.getCPOptionId());
 
 		if (count > 0) {
 			throw new RequiredCPOptionException();
@@ -236,7 +230,8 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 	@Override
 	public CPOption getOrAddEmptyCPOption(
 			String externalReferenceCode, long companyId, long userId,
-			String commerceOptionTypeKey, boolean skuContributor)
+			Map<Locale, String> nameMap, String commerceOptionTypeKey,
+			boolean skuContributor, String key)
 		throws PortalException {
 
 		ServiceContext serviceContext = new ServiceContext();
@@ -248,10 +243,9 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 			CPOption.class, companyId,
 			() -> cpOptionLocalService.addCPOption(
 				externalReferenceCode, userId,
-				Collections.singletonMap(
-					LocaleUtil.getSiteDefault(), externalReferenceCode),
-				null, commerceOptionTypeKey, false, false, skuContributor,
-				externalReferenceCode, serviceContext),
+				_getNameMap(externalReferenceCode, nameMap), null,
+				commerceOptionTypeKey, false, false, skuContributor,
+				GetterUtil.get(key, externalReferenceCode), serviceContext),
 			externalReferenceCode, this::fetchCPOptionByExternalReferenceCode,
 			this::getCPOptionByExternalReferenceCode, CPOption.class.getName());
 	}
@@ -361,9 +355,8 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 	private CPOptionConfiguration _getCPOptionConfiguration()
 		throws ConfigurationException {
 
-		return _configurationProvider.getConfiguration(
-			CPOptionConfiguration.class,
-			new SystemSettingsLocator(CPConstants.SERVICE_NAME_CP_OPTION));
+		return _configurationProvider.getSystemConfiguration(
+			CPOptionConfiguration.class);
 	}
 
 	private List<CPOption> _getCPOptions(Hits hits) throws PortalException {
@@ -394,6 +387,17 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 		}
 
 		return cpOptions;
+	}
+
+	private Map<Locale, String> _getNameMap(
+		String externalReferenceCode, Map<Locale, String> nameMap) {
+
+		if (MapUtil.isEmpty(nameMap)) {
+			return Collections.singletonMap(
+				LocaleUtil.getSiteDefault(), externalReferenceCode);
+		}
+
+		return nameMap;
 	}
 
 	private BaseModelSearchResult<CPOption> _searchCPOptions(
@@ -460,13 +464,11 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 		Field.ENTRY_CLASS_PK, Field.COMPANY_ID, Field.UID
 	};
 
-	private static final Snapshot<CPDefinitionOptionRelLocalService>
-		_cpDefinitionOptionRelLocalServiceSnapshot = new Snapshot<>(
-			CPOptionLocalServiceImpl.class,
-			CPDefinitionOptionRelLocalService.class);
-
 	@Reference
 	private ConfigurationProvider _configurationProvider;
+
+	@Reference
+	private CPDefinitionOptionRelPersistence _cpDefinitionOptionRelPersistence;
 
 	@Reference
 	private CPOptionValueLocalService _cpOptionValueLocalService;

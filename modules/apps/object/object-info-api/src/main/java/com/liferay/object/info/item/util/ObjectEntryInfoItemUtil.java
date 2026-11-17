@@ -72,6 +72,8 @@ public class ObjectEntryInfoItemUtil {
 				false, null, null, null, null, themeDisplay.getLocale(), null,
 				themeDisplay.getUser());
 
+		dtoConverterContext.setAttribute("addActions", Boolean.FALSE);
+
 		int version = serviceBuilderObjectEntry.getVersion();
 
 		if ((serviceBuilderObjectEntry.getHeadObjectEntryId() > 0) &&
@@ -188,15 +190,12 @@ public class ObjectEntryInfoItemUtil {
 				setLocale(
 					LocaleUtil.fromLanguageId(serviceContext.getLanguageId()));
 				setSiteGroupId(serviceContext.getScopeGroupId());
-				setUser(getUser());
+				setUser(ObjectEntryInfoItemUtil.getUser(serviceContext));
 			}
 		};
 	}
 
-	public static User getUser() {
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
-
+	public static User getUser(ServiceContext serviceContext) {
 		if (serviceContext == null) {
 			return null;
 		}

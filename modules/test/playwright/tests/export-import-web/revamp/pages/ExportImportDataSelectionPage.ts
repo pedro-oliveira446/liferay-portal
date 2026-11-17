@@ -3,15 +3,19 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Locator, Page} from '@playwright/test';
+import {Locator, Page, expect} from '@playwright/test';
 
 import {clickAndExpectToBeVisible} from '../../../../utils/clickAndExpectToBeVisible';
+
+type GroupSelectorLabel = 'Select Sites' | 'Select Spaces';
 
 export class ExportImportDataSelectionPage {
 	readonly collapseSectionButton: (name: string) => Locator;
 	readonly expandSectionButton: (name: string) => Locator;
+	readonly groupSelectorDialog: (label: GroupSelectorLabel) => Locator;
 	readonly page: Page;
 	readonly section: Locator;
+	readonly selectGroupsButton: (label: GroupSelectorLabel) => Locator;
 
 	constructor(page: Page) {
 		this.page = page;
@@ -21,6 +25,10 @@ export class ExportImportDataSelectionPage {
 			page.getByRole('button', {exact: true, name: `Collapse ${name}`});
 		this.expandSectionButton = (name) =>
 			page.getByRole('button', {exact: true, name: `Expand ${name}`});
+		this.groupSelectorDialog = (label) =>
+			page.getByRole('dialog', {name: label});
+		this.selectGroupsButton = (label) =>
+			page.getByRole('button', {name: label});
 	}
 
 	async expandSection(name: string) {
@@ -57,6 +65,16 @@ export class ExportImportDataSelectionPage {
 		return exportableItems;
 	}
 
+	async uncheckAllItems() {
+		await this.waitForContent();
+
+		const checkboxes = await this.section.getByRole('checkbox').all();
+
+		for (const checkbox of checkboxes) {
+			await checkbox.uncheck();
+		}
+	}
+
 	async uncheckItem(sectionName: string, label: string) {
 		await this.expandSection(sectionName);
 
@@ -66,20 +84,41 @@ export class ExportImportDataSelectionPage {
 	}
 
 	async selectOnlyObjectDefinition(label: string) {
-		await this.waitForContent();
-
-		const checkboxes = await this.section.getByRole('checkbox').all();
-
-		for (const checkbox of checkboxes) {
-			await checkbox.uncheck();
-		}
+		await this.uncheckAllItems();
 
 		await this.expandSection('Objects');
 
 		await this.section.getByRole('checkbox', {name: label}).check();
 	}
 
+	async selectSite(siteName: string) {
+		await this.selectGroup('Select Sites', siteName);
+	}
+
+	async selectSpace(spaceName: string) {
+		await this.selectGroup('Select Spaces', spaceName);
+	}
+
 	async waitForContent() {
 		await this.section.getByRole('checkbox').first().waitFor();
+	}
+
+	private async selectGroup(label: GroupSelectorLabel, name: string) {
+		await this.selectGroupsButton(label).click();
+
+		const dialog = this.groupSelectorDialog(label);
+
+		const searchbox = dialog.getByRole('searchbox', {name: 'Search'});
+
+		await searchbox.fill(name);
+		await searchbox.press('Enter');
+
+		await dialog.getByRole('row', {name}).getByRole('checkbox').check();
+
+		await dialog.getByRole('button', {exact: true, name: 'Select'}).click();
+
+		await expect(dialog).toBeHidden();
+
+		await expect(this.page.getByText(`Selected ${name}`)).toBeVisible();
 	}
 }

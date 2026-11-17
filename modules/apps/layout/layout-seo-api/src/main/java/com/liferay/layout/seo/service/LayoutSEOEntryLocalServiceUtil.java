@@ -125,12 +125,6 @@ public class LayoutSEOEntryLocalServiceUtil {
 		getService().deleteLayoutSEOEntry(groupId, privateLayout, layoutId);
 	}
 
-	public static void deleteLayoutSEOEntry(String uuid, long groupId)
-		throws com.liferay.layout.seo.exception.NoSuchEntryException {
-
-		getService().deleteLayoutSEOEntry(uuid, groupId);
-	}
-
 	/**
 	 * @throws PortalException
 	 */
@@ -224,6 +218,12 @@ public class LayoutSEOEntryLocalServiceUtil {
 		com.liferay.portal.kernel.dao.orm.Projection projection) {
 
 		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
+	public static LayoutSEOEntry fetchLayoutSEOEntry(
+		com.liferay.portal.kernel.model.Layout layout) {
+
+		return getService().fetchLayoutSEOEntry(layout);
 	}
 
 	public static LayoutSEOEntry fetchLayoutSEOEntry(long layoutSEOEntryId) {
@@ -474,4 +474,4 @@ public class LayoutSEOEntryLocalServiceUtil {
 			LayoutSEOEntryLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1464720495
+// LIFERAY-SERVICE-BUILDER-HASH:1932755052

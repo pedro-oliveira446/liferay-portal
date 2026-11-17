@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {COOKIE_TYPES, setCookie} from 'frontend-js-web';
+
 import {Cache} from './cache';
 import {Detection} from './detection';
 import {log} from './log';
@@ -16,14 +18,16 @@ import type {
 	RunDetectionOptions,
 } from './index';
 
+const COOKIE_NAME = 'com.liferay.frontend.js.audiences';
+
 // Global state variables for Audiences module
 
-const audiencePriorities: Map<AudienceId, number> = new Map();
+const audienceIndexes: Map<AudienceId, number> = new Map();
 const detectedAudiences = new Set<AudienceId>();
 const handlers: Map<AudienceId, Handler[]> = new Map();
 
 export function clear(): void {
-	audiencePriorities.clear();
+	audienceIndexes.clear();
 	detectedAudiences.clear();
 }
 
@@ -35,8 +39,8 @@ export function get(): Set<AudienceId> {
 	return new Set(detectedAudiences);
 }
 
-export function getPriority(audienceId: AudienceId): number {
-	return audiencePriorities.get(audienceId) ?? Infinity;
+export function getAudienceIndex(audienceId: AudienceId): number | undefined {
+	return audienceIndexes.get(audienceId);
 }
 
 export async function runDetection(
@@ -69,7 +73,7 @@ export async function runDetection(
 			: audiencesDefinition.audiences;
 
 		for (let i = 0; i < audiences.length; i++) {
-			audiencePriorities.set(audiences[i].id, i);
+			audienceIndexes.set(audiences[i].id, i);
 		}
 
 		// Run the detection and update detected audiences
@@ -95,6 +99,8 @@ export async function runDetection(
 		for (const match of matches) {
 			detectedAudiences.add(match);
 		}
+
+		saveDetectedAudiences();
 	}
 	catch (error: any) {
 		log(
@@ -159,9 +165,11 @@ export function set(audienceIds: AudienceId[]): void {
 	clear();
 
 	audienceIds.forEach((audienceId, index) => {
-		audiencePriorities.set(audienceId, index);
+		audienceIndexes.set(audienceId, index);
 		detectedAudiences.add(audienceId);
 	});
+
+	saveDetectedAudiences();
 }
 
 export function setLogEnabled(enabled: boolean) {
@@ -176,6 +184,14 @@ function createRunDetectionTimeoutAbortSignal(timeout?: number): AbortSignal {
 	}
 
 	return abortController.signal;
+}
+
+function saveDetectedAudiences(): void {
+	setCookie(
+		COOKIE_NAME,
+		encodeURIComponent(JSON.stringify([...detectedAudiences])),
+		COOKIE_TYPES.FUNCTIONAL
+	);
 }
 
 /**

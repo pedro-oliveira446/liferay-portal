@@ -998,6 +998,7 @@ function EditSXPBlueprintForm({
 						indexConfig={formik.values.indexConfig}
 						parameterConfig={formik.values.parameterConfig}
 						searchIndexes={searchIndexes}
+						searchableTypes={searchableTypes?.items}
 						setFieldTouched={formik.setFieldTouched}
 						setFieldValue={formik.setFieldValue}
 						sortConfig={formik.values.sortConfig}
@@ -1179,7 +1180,7 @@ function EditSXPBlueprintForm({
 						data-qa-id={TEST_IDS.PREVIEW_SIDEBAR_BUTTON}
 						displayType="secondary"
 						onClick={_handleToggleSidebar(SIDEBAR_TYPES.PREVIEW)}
-						small
+						size="sm"
 					>
 						{Liferay.Language.get('preview')}
 					</ClayButton>

@@ -101,12 +101,9 @@ public class OracleDB extends BaseDB {
 			}
 
 			alterColumnName(
-				connection, tableName, columnName,
-				tempColumnName + "2 " + newColumnType);
+				connection, tableName, columnName, tempColumnName + "2");
 
-			alterColumnName(
-				connection, tableName, tempColumnName,
-				columnName + StringPool.SPACE + newColumnType);
+			alterColumnName(connection, tableName, tempColumnName, columnName);
 
 			if (!indexMetadatas.isEmpty()) {
 				addIndexes(connection, indexMetadatas);
@@ -305,11 +302,13 @@ public class OracleDB extends BaseDB {
 			sb.append(":new.");
 			sb.append(sourceColumnNames[i]);
 
-			if (defaultValue != null) {
-				sb.append(", ");
-				sb.append(defaultValue);
-				sb.append(")");
+			if (defaultValue == null) {
+				continue;
 			}
+
+			sb.append(", ");
+			sb.append(defaultValue);
+			sb.append(")");
 		}
 
 		sb.append(")");
@@ -354,11 +353,13 @@ public class OracleDB extends BaseDB {
 			sb.append(":new.");
 			sb.append(sourceColumnNames[i]);
 
-			if (defaultValue != null) {
-				sb.append(", ");
-				sb.append(defaultValue);
-				sb.append(")");
+			if (defaultValue == null) {
+				continue;
 			}
+
+			sb.append(", ");
+			sb.append(defaultValue);
+			sb.append(")");
 		}
 
 		sb.append(" where ");

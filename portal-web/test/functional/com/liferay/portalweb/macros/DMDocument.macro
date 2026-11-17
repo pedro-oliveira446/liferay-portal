@@ -395,83 +395,6 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro addDocumentTypePG(dateValue = null, dmDocumentTitle = null, dmDocumentFile = null, numericField = null, webcontentField = null, dmDocumentTypeName = null, dmDocumentDescription = null, booleanField = null, selectOption = null, textField = null) {
-		var key_dmDocumentTypeName = ${dmDocumentTypeName};
-
-		Portlet.clickPortletPlusIconPG(portletName = "Documents and Media");
-
-		MenuItem.click(menuItem = ${dmDocumentTypeName});
-
-		DMDocument.editDocument(
-			dmDocumentDescription = ${dmDocumentDescription},
-			dmDocumentFile = ${dmDocumentFile},
-			dmDocumentTitle = ${dmDocumentTitle});
-
-		if (isSet(selectOption)) {
-			Select(
-				locator1 = "DocumentsAndMediaEditCustomDocumentType#SELECT_OPTIONS_SELECT",
-				value1 = ${selectOption});
-		}
-
-		if (isSet(textField)) {
-			var key_fieldName = "Text";
-
-			Type(
-				locator1 = "TextInput#TEXT_SPECIFIC",
-				value1 = ${textField});
-		}
-
-		if (isSet(numericField)) {
-			var key_fieldLabel = "Numeric";
-
-			Type(
-				locator1 = "TextInput#NUMERIC",
-				value1 = ${numericField});
-		}
-
-		if (isSet(dateValue)) {
-			if (!(isSet(dateFieldLabel))) {
-				var dateFieldLabel = "Date";
-			}
-
-			Type(
-				key_fieldFieldLabel = ${dateFieldLabel},
-				locator1 = "WCEditWebContent#DATE_INPUT",
-				value1 = ${dateValue});
-		}
-
-		if (isSet(booleanField)) {
-			var key_fieldName = "Boolean";
-
-			Check(
-				locator1 = "TextInput#DDM",
-				value1 = ${booleanField});
-		}
-
-		if (isSet(webcontentField)) {
-			Click(
-				fieldLabel = "Web Content",
-				locator1 = "Button#BUTTON_LABEL",
-				text = "Select");
-
-			SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-			AssertClick(
-				key_contentName = ${webcontentField},
-				locator1 = "ItemSelector#SELECT_FILE_WEB_CONTENT",
-				value1 = ${webcontentField});
-
-			SelectFrame(value1 = "relative=top");
-		}
-
-		AssertClick(
-			locator1 = "Button#PUBLISH",
-			value1 = "Publish");
-
-		Alert.viewSuccessMessage();
-	}
-
-	@summary = "Default summary"
 	macro addImageField() {
 		DMNavigator.openToAddDocumentType(siteURLKey = "guest");
 
@@ -1419,9 +1342,6 @@ definition {
 			else if (isSet(copyToStagingSite)) {
 				Alert.viewErrorMessage(errorMessage = "Cannot copy to the live version of a site. Make your changes in staging and publish them to Live afterwards to make them public.");
 			}
-			else if (isSet(copyWithRequiredField)) {
-				Alert.viewErrorMessage(errorMessage = "No value defined for field name");
-			}
 			else if (isSet(copyExceedsSizeLimit)) {
 				Alert.viewErrorMessage(errorMessage = " Item cannot be copied because it exceeds the limit set in the destination site's site settings. The total size of all items to copy must not exceed ${copyExceedsSizeLimit}.");
 			}
@@ -1544,23 +1464,6 @@ definition {
 		var liferayHome = PropsUtil.get("liferay.home.dir.name");
 
 		FileUtil.delete("${liferayHome}/${appServer}/temp");
-	}
-
-	@summary = "Default summary"
-	macro deleteVersion(dmDocumentVersionNumber = null) {
-		DMDocument.expandInfo();
-
-		DMNavigator.gotoDocumentVersion();
-
-		var key_dmDocumentVersionNumber = "Version ${dmDocumentVersionNumber}";
-
-		Click(locator1 = "DocumentsAndMedia#DOCUMENT_VERSION_VERTICAL_ELLIPSIS");
-
-		MenuItem.clickNoError(menuItem = "Delete");
-
-		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
-
-		Alert.viewSuccessMessage();
 	}
 
 	@summary = "Default summary"
@@ -2278,7 +2181,13 @@ definition {
 
 		echo("## * Document URL: ${dmDocumentURL}");
 
-		var curl = '''${dmDocumentURL} -I''';
+		// Pass the query string as quoted data: unquoted, its ampersands make
+		// the shell run curl in the background, so its output is not always read
+
+		var dmDocumentBaseURL = StringUtil.extractFirst(${dmDocumentURL}, "?");
+		var dmDocumentQueryString = StringUtil.extractLast(${dmDocumentURL}, "?");
+
+		var curl = '''${dmDocumentBaseURL} -G -d ${dmDocumentQueryString} -D - -o /dev/null''';
 
 		var responseHeader = JSONCurlUtil.post(${curl});
 
@@ -2305,17 +2214,6 @@ definition {
 		Click(
 			key_card = ${dmDocumentTitle},
 			locator1 = "Card#CARD_TITLE");
-	}
-
-	@summary = "Default summary"
-	macro gotoMenuItemViaInfoPanel(menuItem = null) {
-		DMDocument.expandInfo();
-
-		Click(locator1 = "Icon#SIDEBAR_HEADER_ACTION_VERTICAL_ELLIPSIS_BUTTON");
-
-		if (isSet(menuItem)) {
-			MenuItem.clickNoError(menuItem = ${menuItem});
-		}
 	}
 
 	@summary = "Default summary"
@@ -2624,6 +2522,8 @@ definition {
 		MouseOver(
 			key_oldFriendlyURL = ${oldFriendlyURL},
 			locator1 = "DocumentsAndMediaDocument#FRIENDLY_URL_HISTORY_ITEM");
+
+		WaitForVisible(locator1 = "Icon#FRIENDLY_URL_HISTORY_ITEM_RESTORE");
 
 		Click(locator1 = "Icon#FRIENDLY_URL_HISTORY_ITEM_RESTORE");
 
@@ -3194,7 +3094,7 @@ definition {
 		}
 
 		if (${indexNumber} == 2) {
-			Click(locator1 = "Button#DUPLICATE");
+			Button.click(button = "Add Option");
 
 			Type(
 				key_fieldLabel = "Mime Type",
@@ -3264,8 +3164,8 @@ definition {
 		}
 
 		if (isSet(guestWithoutViewPermission)) {
-			if (contains(${responseHeader}, 302)) {
-				echo("The guest user will be redirected to the login page when the user doesn't have view permissions.");
+			if (contains(${responseHeader}, 404)) {
+				echo("The guest user gets a not found response when the user doesn't have view permissions.");
 			}
 			else {
 				fail("FAIL!");
@@ -4070,7 +3970,13 @@ definition {
 			}
 
 			for (var category : list ${category}) {
-				AssertTextEquals(
+
+				// The node was just expanded, so its card body also holds
+				// the extension chips nested underneath it. Match on partial
+				// text to read the category and its item count without
+				// requiring the node to have no children. See LPD-107571.
+
+				AssertTextEquals.assertPartialText(
 					key_nodeName = ${category},
 					locator1 = "Treeview#NODE_ITEM",
 					value1 = ${category});
@@ -4204,11 +4110,6 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro viewNoAddPermission() {
-		AssertElementNotPresent(locator1 = "Button#PLUS");
-	}
-
-	@summary = "Default summary"
 	macro viewNoCacheControlConfigurationInConsole(responseHeader = null, cacheControlAttribute = null) {
 		if (!(contains(${responseHeader}, ${cacheControlAttribute}))) {
 			echo("No configured cache control property in the console.");
@@ -4246,17 +4147,6 @@ definition {
 				key_mgDocumentTitle = ${mgDocumentTitle},
 				locator1 = "MediaGallery#IMAGE_TITLE");
 		}
-	}
-
-	@summary = "Default summary"
-	macro viewNoItemInVersionMenu(menuItem = null, dmDocumentVersionNumber = null) {
-		DMNavigator.gotoDocumentVersion();
-
-		var key_dmDocumentVersionNumber = "Version ${dmDocumentVersionNumber}";
-
-		Click(locator1 = "DocumentsAndMedia#DOCUMENT_VERSION_VERTICAL_ELLIPSIS");
-
-		MenuItem.viewNotPresent(menuItem = ${menuItem});
 	}
 
 	@summary = "Default summary"

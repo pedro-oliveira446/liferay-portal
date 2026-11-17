@@ -138,7 +138,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 		Role targetRole = null;
 
 		try {
-			targetRole = _roleLocalService.copyRole(
+			targetRole = _roleService.copyRole(
 				_portal.getUserId(actionRequest),
 				ParamUtil.getString(actionRequest, "roleName"), roleId,
 				ServiceContextFactory.getInstance(
@@ -339,10 +339,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 		if (ArrayUtil.isNotEmpty(addUserIds) ||
 			ArrayUtil.isNotEmpty(removeUserIds)) {
 
-			try (SafeCloseable safeCloseable =
-					CTCollectionThreadLocal.
-						setProductionModeWithSafeCloseable()) {
-
+			try {
 				_userService.addRoleUsers(roleId, addUserIds);
 				_userService.unsetRoleUsers(roleId, removeUserIds);
 			}
@@ -361,29 +358,19 @@ public class RolesAdminPortlet extends MVCPortlet {
 		if (ArrayUtil.isNotEmpty(addGroupIds) ||
 			ArrayUtil.isNotEmpty(removeGroupIds)) {
 
-			try (SafeCloseable safeCloseable =
-					CTCollectionThreadLocal.
-						setProductionModeWithSafeCloseable()) {
-
-				_groupService.addRoleGroups(roleId, addGroupIds);
-				_groupService.unsetRoleGroups(roleId, removeGroupIds);
-			}
+			_groupService.addRoleGroups(roleId, addGroupIds);
+			_groupService.unsetRoleGroups(roleId, removeGroupIds);
 		}
 
 		long[] addSegmentsEntryIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "addSegmentsEntryIds"), 0L);
 
 		if (ArrayUtil.isNotEmpty(addSegmentsEntryIds)) {
-			try (SafeCloseable safeCloseable =
-					CTCollectionThreadLocal.
-						setProductionModeWithSafeCloseable()) {
-
-				for (long segmentsEntryId : addSegmentsEntryIds) {
-					_segmentsEntryRoleLocalService.addSegmentsEntryRole(
-						segmentsEntryId, roleId,
-						ServiceContextFactory.getInstance(
-							Role.class.getName(), actionRequest));
-				}
+			for (long segmentsEntryId : addSegmentsEntryIds) {
+				_segmentsEntryRoleLocalService.addSegmentsEntryRole(
+					segmentsEntryId, roleId,
+					ServiceContextFactory.getInstance(
+						Role.class.getName(), actionRequest));
 			}
 		}
 
@@ -391,14 +378,9 @@ public class RolesAdminPortlet extends MVCPortlet {
 			ParamUtil.getString(actionRequest, "removeSegmentsEntryIds"), 0L);
 
 		if (ArrayUtil.isNotEmpty(removeSegmentsEntryIds)) {
-			try (SafeCloseable safeCloseable =
-					CTCollectionThreadLocal.
-						setProductionModeWithSafeCloseable()) {
-
-				for (long segmentsEntryId : removeSegmentsEntryIds) {
-					_segmentsEntryRoleLocalService.deleteSegmentsEntryRole(
-						segmentsEntryId, roleId);
-				}
+			for (long segmentsEntryId : removeSegmentsEntryIds) {
+				_segmentsEntryRoleLocalService.deleteSegmentsEntryRole(
+					segmentsEntryId, roleId);
 			}
 		}
 	}
@@ -518,16 +500,18 @@ public class RolesAdminPortlet extends MVCPortlet {
 					role, themeDisplay.getScopeGroupId(), selResource, actionId,
 					selected, scope, groupIds);
 
-				if (selected &&
-					actionId.equals(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
+				if (!selected ||
+					!actionId.equals(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
 
-					_updateViewControlPanelPermission(
-						role, themeDisplay.getScopeGroupId(), selResource,
-						scope, groupIds);
-
-					rootResourceScope = scope;
-					rootResourceGroupIds = groupIds;
+					continue;
 				}
+
+				_updateViewControlPanelPermission(
+					role, themeDisplay.getScopeGroupId(), selResource, scope,
+					groupIds);
+
+				rootResourceScope = scope;
+				rootResourceGroupIds = groupIds;
 			}
 		}
 
@@ -548,6 +532,18 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 		if (Validator.isNotNull(redirect)) {
 			actionResponse.sendRedirect(redirect);
+		}
+	}
+
+	@Override
+	protected boolean callActionMethod(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws PortletException {
+
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setProductionModeWithSafeCloseable()) {
+
+			return super.callActionMethod(actionRequest, actionResponse);
 		}
 	}
 
@@ -633,9 +629,10 @@ public class RolesAdminPortlet extends MVCPortlet {
 				include("/edit_role.jsp", renderRequest, renderResponse);
 			}
 		}
-		else if (SessionErrors.contains(
-					renderRequest,
-					DataLimitExceededException.class.getName()) ||
+		else if (_isStaleRole(renderRequest, roleId, mvcPath) ||
+				 SessionErrors.contains(
+					 renderRequest,
+					 DataLimitExceededException.class.getName()) ||
 				 SessionErrors.contains(
 					 renderRequest, NoSuchRoleException.class.getName()) ||
 				 SessionErrors.contains(
@@ -685,14 +682,16 @@ public class RolesAdminPortlet extends MVCPortlet {
 				_panelCategoryRoleTypeMapperRegistry.
 					getPanelCategoryRoleTypeMappers()) {
 
-			if (ArrayUtil.contains(
+			if (!ArrayUtil.contains(
 					panelCategoryRoleTypeMapper.getRoleTypes(),
 					role.getType())) {
 
-				Collections.addAll(
-					panelAppKeys,
-					panelCategoryRoleTypeMapper.getExcludedPanelAppKeys(role));
+				continue;
 			}
+
+			Collections.addAll(
+				panelAppKeys,
+				panelCategoryRoleTypeMapper.getExcludedPanelAppKeys(role));
 		}
 
 		return panelAppKeys.toArray(new String[0]);
@@ -707,6 +706,20 @@ public class RolesAdminPortlet extends MVCPortlet {
 		catch (PortalException portalException) {
 			return ReflectionUtil.throwException(portalException);
 		}
+	}
+
+	private boolean _isStaleRole(
+		RenderRequest renderRequest, long roleId, String mvcPath) {
+
+		if ((roleId > 0) && mvcPath.equals("/edit_role.jsp") &&
+			(_roleLocalService.fetchRole(roleId) == null)) {
+
+			SessionErrors.add(renderRequest, NoSuchRoleException.class);
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private void _setAttributes(PortletRequest portletRequest) {

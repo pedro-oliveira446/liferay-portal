@@ -1,31 +1,34 @@
 import ClayButton from '@clayui/button';
+import ClayModal from '@clayui/modal';
 import Form from 'shared/components/form';
 import Loading, {Align} from 'shared/components/Loading';
-import Modal from '../modal';
 import React from 'react';
-import {Frequency, Report} from 'settings/channels/components/EmailReports';
-import {Modal as ModalTypes} from 'shared/types';
+import type {Observer} from '@clayui/modal/lib/types';
+import {
+	Frequency,
+	FREQUENCIES,
+	FREQUENCY_KEYS,
+	Report,
+} from 'settings/channels/components/EmailReports';
 
 interface IEditEmailReportsModalProps
 	extends React.HTMLAttributes<HTMLElement> {
-	onCancel: ModalTypes.close;
+	observer: Observer;
+	onCancel: () => void;
 	onSave: (report: Report) => void;
 	report: Report | null;
 }
 
-const FREQUENCIES: {[key: string]: string} = {
-	[Frequency.Daily]: Liferay.Language.get('daily'),
-	[Frequency.Weekly]: Liferay.Language.get('weekly'),
-	[Frequency.Monthly]: Liferay.Language.get('monthly'),
-};
-
 const EditEmailReportsModal: React.FC<IEditEmailReportsModalProps> = ({
+	observer,
 	onCancel,
 	onSave,
 	report,
 }) => (
-	<Modal>
-		<Modal.Header title={Liferay.Language.get('configure-email-reports')} />
+	<ClayModal observer={observer}>
+		<ClayModal.Header>
+			{Liferay.Language.get('configure-email-reports')}
+		</ClayModal.Header>
 
 		<Form<Report>
 			initialValues={{
@@ -36,7 +39,7 @@ const EditEmailReportsModal: React.FC<IEditEmailReportsModalProps> = ({
 		>
 			{({handleSubmit, isSubmitting, isValid, values}) => (
 				<Form.Form onSubmit={handleSubmit}>
-					<Modal.Body>
+					<ClayModal.Body>
 						<Form.Group
 							autoFit
 							className="align-items-center d-flex"
@@ -67,44 +70,48 @@ const EditEmailReportsModal: React.FC<IEditEmailReportsModalProps> = ({
 									label={Liferay.Language.get('frequency')}
 									name="frequency"
 								>
-									{Object.keys(FREQUENCIES).map(
-										(frequency) => (
-											<Form.Select.Item
-												key={frequency}
-												value={frequency}
-											>
-												{FREQUENCIES[frequency]}
-											</Form.Select.Item>
-										)
-									)}
+									{FREQUENCY_KEYS.map((frequency) => (
+										<Form.Select.Item
+											key={frequency}
+											value={frequency}
+										>
+											{FREQUENCIES[frequency]}
+										</Form.Select.Item>
+									))}
 								</Form.Select>
 							</Form.GroupItem>
 						</Form.Group>
-					</Modal.Body>
-					<Modal.Footer>
-						<ClayButton
-							className="button-root"
-							displayType="secondary"
-							onClick={onCancel}
-						>
-							{Liferay.Language.get('cancel')}
-						</ClayButton>
+					</ClayModal.Body>
+					<ClayModal.Footer
+						last={
+							<ClayButton.Group spaced>
+								<ClayButton
+									className="button-root"
+									displayType="secondary"
+									onClick={onCancel}
+								>
+									{Liferay.Language.get('cancel')}
+								</ClayButton>
 
-						<ClayButton
-							className="button-root"
-							disabled={isSubmitting || !isValid}
-							displayType="primary"
-							type="submit"
-						>
-							{isSubmitting && <Loading align={Align.Left} />}
+								<ClayButton
+									className="button-root"
+									disabled={isSubmitting || !isValid}
+									displayType="primary"
+									type="submit"
+								>
+									{isSubmitting && (
+										<Loading align={Align.Left} />
+									)}
 
-							{Liferay.Language.get('save')}
-						</ClayButton>
-					</Modal.Footer>
+									{Liferay.Language.get('save')}
+								</ClayButton>
+							</ClayButton.Group>
+						}
+					/>
 				</Form.Form>
 			)}
 		</Form>
-	</Modal>
+	</ClayModal>
 );
 
 export default EditEmailReportsModal;

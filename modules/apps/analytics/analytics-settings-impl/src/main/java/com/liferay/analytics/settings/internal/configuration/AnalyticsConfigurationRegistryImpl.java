@@ -19,7 +19,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.configuration.module.configuration.BaseManagedServiceFactory;
-import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
+import com.liferay.portal.kernel.cluster.ClusterMasterExecutor;
 import com.liferay.portal.kernel.concurrent.SystemExecutorServiceUtil;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
@@ -27,23 +27,19 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyConstants;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.security.auth.CompanyInheritableThreadLocalCallable;
 import com.liferay.portal.kernel.service.CompanyLocalService;
-import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalService;
@@ -113,24 +109,25 @@ public class AnalyticsConfigurationRegistryImpl
 			_analyticsConfigurationManagedServiceFactory.getCompanyIdsMap();
 
 		for (Map.Entry<String, Long> entry : companyIdsMap.entrySet()) {
-			if (Objects.equals(entry.getValue(), companyId)) {
-				try {
-					Configuration configuration =
-						_configurationAdmin.getConfiguration(
-							entry.getKey(), StringPool.QUESTION);
+			if (!Objects.equals(entry.getValue(), companyId)) {
+				continue;
+			}
 
-					return configuration.getProperties();
-				}
-				catch (Exception exception) {
-					if (_log.isWarnEnabled()) {
-						_log.warn(
-							"Unable to get configuration for company " +
-								companyId,
-							exception);
-					}
+			try {
+				Configuration configuration =
+					_configurationAdmin.getConfiguration(
+						entry.getKey(), StringPool.QUESTION);
 
-					break;
+				return configuration.getProperties();
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Unable to get configuration for company " + companyId,
+						exception);
 				}
+
+				break;
 			}
 		}
 
@@ -267,30 +264,8 @@ public class AnalyticsConfigurationRegistryImpl
 				"liferayAnalyticsProjectId", "liferayAnalyticsURL"
 			});
 
-		for (String groupId :
-				PrefsPropsUtil.getStringArray(
-					companyId, "liferayAnalyticsGroupIds", StringPool.COMMA)) {
-
-			Group group = _groupLocalService.fetchGroup(
-				GetterUtil.getLong(groupId));
-
-			if (group == null) {
-				continue;
-			}
-
-			UnicodeProperties typeSettingsUnicodeProperties =
-				group.getTypeSettingsProperties();
-
-			typeSettingsUnicodeProperties.remove("analyticsChannelId");
-
-			group.setTypeSettingsProperties(typeSettingsUnicodeProperties);
-
-			_groupLocalService.updateGroup(group);
-		}
-
 		try {
-			_configurationProvider.deleteCompanyConfiguration(
-				AnalyticsConfiguration.class, companyId);
+			_analyticsSettingsManager.deleteCompanyConfiguration(companyId);
 		}
 		catch (Exception exception) {
 			_log.error(exception);
@@ -368,6 +343,10 @@ public class AnalyticsConfigurationRegistryImpl
 	private void _enable(long companyId) {
 		try {
 			_active = true;
+
+			if (!_clusterMasterExecutor.isMaster()) {
+				return;
+			}
 
 			_addAnalyticsAdministratorUser(companyId);
 			_addSAPEntry(companyId);
@@ -924,6 +903,10 @@ public class AnalyticsConfigurationRegistryImpl
 				_enable((Long)dictionary.get("companyId"));
 			}
 
+			if (!_clusterMasterExecutor.isMaster()) {
+				return;
+			}
+
 			AnalyticsConfiguration analyticsConfiguration =
 				getAnalyticsConfiguration(companyId);
 
@@ -984,19 +967,15 @@ public class AnalyticsConfigurationRegistryImpl
 	private AnalyticsSettingsManager _analyticsSettingsManager;
 
 	@Reference
+	private ClusterMasterExecutor _clusterMasterExecutor;
+
+	@Reference
 	private CompanyLocalService _companyLocalService;
 
 	@Reference
 	private ConfigurationAdmin _configurationAdmin;
 
-	@Reference
-	private ConfigurationProvider _configurationProvider;
-
 	private ExecutorService _executorService;
-
-	@Reference
-	private GroupLocalService _groupLocalService;
-
 	private final Set<Long> _initializedCompanyIds = new HashSet<>();
 
 	@Reference

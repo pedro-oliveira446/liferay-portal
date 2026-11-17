@@ -1,4 +1,4 @@
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import getCN from 'classnames';
 import PickerTriggerButton from '../PickerTriggerButton';
 import React from 'react';
@@ -42,6 +42,12 @@ export const getDefaultChannel = (
 
 	return null;
 };
+
+export const isValidChannel = (
+	channelId: string | undefined,
+	channels: Channel[]
+) =>
+	!channelId || !channels.length || channels.some(({id}) => id === channelId);
 
 /**
  * Built on `Picker` (`@clayui/core`) with `searchable`, the same idiomatic
@@ -106,7 +112,9 @@ export const ChannelsMenu: React.FC<IChannelsMenuProps> = ({
 			>
 				{(item) => (
 					<Option key={item.id} textValue={item.name}>
-						{truncateText(item.name, MAX_LABEL_LENGTH, null)}
+						<span>
+							{truncateText(item.name, MAX_LABEL_LENGTH, null)}
+						</span>
 					</Option>
 				)}
 			</Picker>

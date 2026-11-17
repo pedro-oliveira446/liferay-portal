@@ -133,6 +133,17 @@ public class CommerceDiscountRelServiceWrapper
 	}
 
 	@Override
+	public java.util.List
+		<com.liferay.commerce.discount.model.CommerceDiscountRel>
+				getCommerceDiscountRels(
+					long commerceDiscountId, String className, long classPK)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceDiscountRelService.getCommerceDiscountRels(
+			commerceDiscountId, className, classPK);
+	}
+
+	@Override
 	public int getCommerceDiscountRelsCount(
 			long commerceDiscountId, String className)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -216,6 +227,18 @@ public class CommerceDiscountRelServiceWrapper
 	}
 
 	@Override
+	public com.liferay.commerce.discount.model.CommerceDiscountRel
+			updateTypeSettings(
+				long commerceDiscountRelId,
+				com.liferay.portal.kernel.util.UnicodeProperties
+					typeSettingsUnicodeProperties)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceDiscountRelService.updateTypeSettings(
+			commerceDiscountRelId, typeSettingsUnicodeProperties);
+	}
+
+	@Override
 	public CommerceDiscountRelService getWrappedService() {
 		return _commerceDiscountRelService;
 	}
@@ -230,4 +253,4 @@ public class CommerceDiscountRelServiceWrapper
 	private CommerceDiscountRelService _commerceDiscountRelService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:107007562
+// LIFERAY-SERVICE-BUILDER-HASH:-1298130047

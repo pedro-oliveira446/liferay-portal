@@ -110,6 +110,14 @@ public class CommerceDiscountRelServiceUtil {
 			commerceDiscountId, className, start, end, orderByComparator);
 	}
 
+	public static List<CommerceDiscountRel> getCommerceDiscountRels(
+			long commerceDiscountId, String className, long classPK)
+		throws PortalException {
+
+		return getService().getCommerceDiscountRels(
+			commerceDiscountId, className, classPK);
+	}
+
 	public static int getCommerceDiscountRelsCount(
 			long commerceDiscountId, String className)
 		throws PortalException {
@@ -178,6 +186,16 @@ public class CommerceDiscountRelServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	public static CommerceDiscountRel updateTypeSettings(
+			long commerceDiscountRelId,
+			com.liferay.portal.kernel.util.UnicodeProperties
+				typeSettingsUnicodeProperties)
+		throws PortalException {
+
+		return getService().updateTypeSettings(
+			commerceDiscountRelId, typeSettingsUnicodeProperties);
+	}
+
 	public static CommerceDiscountRelService getService() {
 		return _serviceSnapshot.get();
 	}
@@ -188,4 +206,4 @@ public class CommerceDiscountRelServiceUtil {
 			CommerceDiscountRelService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:981426397
+// LIFERAY-SERVICE-BUILDER-HASH:1907906316

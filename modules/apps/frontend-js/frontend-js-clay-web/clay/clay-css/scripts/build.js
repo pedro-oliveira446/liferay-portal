@@ -88,6 +88,10 @@ async function build() {
 			}\n`
 		);
 
+		if (result === data) {
+			return;
+		}
+
 		fs.writeFile(licenseText, result, 'utf8', (error) => {
 			if (error) {
 				return console.error(error);
@@ -104,6 +108,15 @@ async function build() {
 	copyRecursiveSync(
 		path.resolve(__dirname, '..', './src/images/icons'),
 		path.join(OUTPUT_DIRECTORY, 'images/icons')
+	);
+
+	fs.mkdirSync(path.join(OUTPUT_DIRECTORY, 'images/images'), {
+		recursive: true,
+	});
+
+	fs.copyFileSync(
+		path.resolve(__dirname, '..', './src/images/images/empty_states.svg'),
+		path.join(OUTPUT_DIRECTORY, 'images/images/empty_states.svg')
 	);
 
 	copyRecursiveSync(

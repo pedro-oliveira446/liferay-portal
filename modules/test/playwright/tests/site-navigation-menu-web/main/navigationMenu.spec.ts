@@ -269,7 +269,7 @@ test.describe('Missing reference warnings for Navigation Menu Items', () => {
 	test(
 		'Missing reference for a Layout type Navigation Menu Item',
 		{
-			tag: '@LPD-71409',
+			tag: ['@LPD-71409', '@LPD-114349'],
 		},
 		async ({apiHelpers, navigationMenusPage, page, site}) => {
 			const {layout1, layout2} =
@@ -333,11 +333,11 @@ test.describe('Missing reference warnings for Navigation Menu Items', () => {
 					.getByRole('link', {name: navigationMenuName})
 					.click();
 
-				// Layout type Navigation Menu Items are deleted from the Navigation Menu when the Layout is deleted
-
-				await expect(
-					page.getByText(layout1.nameCurrentValue)
-				).not.toBeVisible();
+				await assertMissingReferenceWarnings(
+					page,
+					layout1.nameCurrentValue,
+					navigationMenusPage
+				);
 			});
 
 			await test.step("Verify that Navigation Menu's rendered preview doesn't show Menu Items with missing references", async () => {
@@ -1953,5 +1953,99 @@ test(
 				'Spanish'
 			);
 		});
+	}
+);
+
+test(
+	'Update the preview for unsaved navigation menu and parent menu item selections',
+	{
+		tag: '@LPD-107168',
+	},
+	async ({apiHelpers, navigationMenuWidgetPage, site, widgetPagePage}) => {
+		const layout = await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: site.id,
+			title: getRandomString(),
+		});
+
+		const childURLItemName = getRandomString();
+		const navigationMenuName = getRandomString();
+		const siblingURLItemName = getRandomString();
+		const submenuItemName = getRandomString();
+
+		await apiHelpers.headlessAdminSite.postSiteNavigationMenu(
+			site.externalReferenceCode,
+			{
+				name: navigationMenuName,
+				navigationMenuItems: [
+					{
+						name_i18n: {en_US: submenuItemName},
+						navigationMenuItems: [
+							{
+								name_i18n: {en_US: childURLItemName},
+								navigationMenuItemSettings: {
+									url: 'https://www.liferay.com',
+								},
+								type: 'url',
+							},
+						],
+						type: 'node',
+					},
+					{
+						name_i18n: {en_US: siblingURLItemName},
+						navigationMenuItemSettings: {
+							url: 'https://www.liferay.com',
+						},
+						type: 'url',
+					},
+				],
+			}
+		);
+
+		await widgetPagePage.goto(layout, site.friendlyUrlPath);
+
+		await navigationMenuWidgetPage.openConfigurationModal(
+			layout.nameCurrentValue
+		);
+
+		await navigationMenuWidgetPage.selectCustomNavigationMenu(
+			navigationMenuName
+		);
+
+		const preview = navigationMenuWidgetPage.menuDisplayModal.locator(
+			'.taglib-portlet-preview'
+		);
+
+		await expect(preview.getByText(siblingURLItemName)).toBeVisible();
+
+		await navigationMenuWidgetPage.menuDisplayModal
+			.getByLabel('Start with Menu Items In')
+			.selectOption('Select Parent');
+
+		await navigationMenuWidgetPage.menuDisplayModal
+			.getByRole('button', {name: 'Menu Item'})
+			.click();
+
+		const selectSiteNavigationMenuItemModal =
+			navigationMenuWidgetPage.menuDisplayModal.frameLocator(
+				'iframe[title="Select Site Navigation Menu Item"]'
+			);
+
+		await clickAndExpectToBeVisible({
+			target: selectSiteNavigationMenuItemModal.getByText(
+				submenuItemName,
+				{exact: true}
+			),
+			trigger: selectSiteNavigationMenuItemModal.getByText(
+				navigationMenuName,
+				{exact: true}
+			),
+		});
+
+		await selectSiteNavigationMenuItemModal
+			.getByText(submenuItemName, {exact: true})
+			.click();
+
+		await expect(preview.getByText(childURLItemName)).toBeAttached();
+		await expect(preview.getByText(siblingURLItemName)).toHaveCount(0);
 	}
 );

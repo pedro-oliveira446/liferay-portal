@@ -14,10 +14,12 @@ import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
 import com.liferay.oauth2.provider.service.OAuth2ScopeGrantLocalService;
 import com.liferay.petra.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.image.ImageToolUtil;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -63,6 +65,8 @@ import org.junit.runner.RunWith;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.ServiceRegistration;
 
+import org.skyscreamer.jsonassert.JSONAssert;
+
 /**
  * @author Stian Sigvartsen
  */
@@ -73,34 +77,6 @@ public class SecurityTest extends BaseClientTestCase {
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
 		new LiferayIntegrationTestRule();
-
-	@Test
-	public void testConfidentialApplicationIsDisclosedToAuthorizedUser() {
-		Response response = _getApplicationResponse(
-			_EXTERNAL_REFERENCE_CODE_CLIENT_CREDENTIALS,
-			getAuthenticatedCookie(
-				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
-				null));
-
-		Assert.assertEquals(200, getStatus(response));
-
-		String bodyString = getBodyAsString(response);
-
-		Assert.assertTrue(bodyString.contains(_CLIENT_ID_CLIENT_CREDENTIALS));
-	}
-
-	@Test
-	public void testConfidentialApplicationIsNotDisclosedToGuestUser() {
-		Response response1 = _getApplicationResponse(
-			_EXTERNAL_REFERENCE_CODE_CLIENT_CREDENTIALS, null);
-		Response response2 = _getApplicationResponse(
-			RandomTestUtil.randomString(), null);
-
-		Assert.assertEquals(400, getStatus(response1));
-		Assert.assertEquals(getStatus(response2), getStatus(response1));
-		Assert.assertEquals(
-			getBodyAsString(response2), getBodyAsString(response1));
-	}
 
 	@Test
 	public void testEscapeOAuth2ApplicationName() {
@@ -137,12 +113,82 @@ public class SecurityTest extends BaseClientTestCase {
 	}
 
 	@Test
+	public void testGetApplication() throws Exception {
+		_testGetApplication(
+			_CLIENT_ID_CLIENT_CREDENTIALS,
+			getAuthenticatedCookie(
+				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
+				null),
+			_EXTERNAL_REFERENCE_CODE_CLIENT_CREDENTIALS);
+		_testGetApplication(
+			_CLIENT_ID_CODE_PKCE_1, null, _EXTERNAL_REFERENCE_CODE_CODE_PKCE);
+		_testGetApplication(
+			_CLIENT_ID_CODE_PKCE_2, null, _generatedExternalReferenceCode);
+
+		Response response1 = _getApplicationResponse(
+			_EXTERNAL_REFERENCE_CODE_CLIENT_CREDENTIALS, null);
+		Response response2 = _getApplicationResponse(
+			RandomTestUtil.randomString(), null);
+
+		Assert.assertEquals(400, getStatus(response1));
+		Assert.assertEquals(
+			getBodyAsString(response2), getBodyAsString(response1));
+		Assert.assertEquals(getStatus(response2), getStatus(response1));
+	}
+
+	@Test
 	public void testGuestOwnerCreateTokenPermission() {
 		Assert.assertEquals(
 			"invalid_grant",
 			getToken(
 				_CLIENT_ID_DEFAULT_USER, null,
 				this::getClientCredentialsResponse, this::parseError));
+	}
+
+	/**
+	 * OAUTH2-96
+	 */
+	@Test
+	public void testPreventCSRF() {
+		String authorizationCode = parseAuthorizationCodeString(
+			getCodeResponse(
+				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
+				null,
+				getCodeFunction(
+					webTarget -> webTarget.queryParam(
+						"client_id", _CLIENT_ID_CODE_PKCE_1
+					).queryParam(
+						"code_challenge", "correctCodeChallenge"
+					).queryParam(
+						"response_type", "code"
+					))));
+
+		Assert.assertNotNull(authorizationCode);
+
+		Assert.assertEquals(
+			"invalid_grant",
+			getToken(
+				_CLIENT_ID_CODE_PKCE_1, null,
+				getExchangeAuthorizationCodePKCEBiFunction(
+					authorizationCode, "wrongCodeVerifier", null),
+				this::parseError));
+
+		String state = "csrf_token";
+
+		Assert.assertEquals(
+			state,
+			parseStateString(
+				getCodeResponse(
+					_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
+					null,
+					getCodeFunction(
+						webTarget -> webTarget.queryParam(
+							"client_id", _CLIENT_ID_CODE
+						).queryParam(
+							"response_type", "code"
+						).queryParam(
+							"state", state
+						)))));
 	}
 
 	/**
@@ -163,58 +209,6 @@ public class SecurityTest extends BaseClientTestCase {
 						).queryParam(
 							"response_type", "code"
 						)))));
-	}
-
-	/**
-	 * OAUTH2-96
-	 */
-	@Test
-	public void testPreventCSRFUsingPKCE() {
-		String authorizationCode = parseAuthorizationCodeString(
-			getCodeResponse(
-				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
-				null,
-				getCodeFunction(
-					webTarget -> webTarget.queryParam(
-						"client_id", _CLIENT_ID_CODE_PKCE
-					).queryParam(
-						"code_challenge", "correctCodeChallenge"
-					).queryParam(
-						"response_type", "code"
-					))));
-
-		Assert.assertNotNull(authorizationCode);
-
-		Assert.assertEquals(
-			"invalid_grant",
-			getToken(
-				_CLIENT_ID_CODE_PKCE, null,
-				getExchangeAuthorizationCodePKCEBiFunction(
-					authorizationCode, null, "wrongCodeVerifier"),
-				this::parseError));
-	}
-
-	/**
-	 * OAUTH2-96
-	 */
-	@Test
-	public void testPreventCSRFUsingStateParam() {
-		String state = "csrf_token";
-
-		String responseState = parseStateString(
-			getCodeResponse(
-				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
-				null,
-				getCodeFunction(
-					webTarget -> webTarget.queryParam(
-						"client_id", _CLIENT_ID_CODE
-					).queryParam(
-						"response_type", "code"
-					).queryParam(
-						"state", state
-					))));
-
-		Assert.assertEquals(state, responseState);
 	}
 
 	/**
@@ -240,7 +234,7 @@ public class SecurityTest extends BaseClientTestCase {
 	 * OAUTH2-97
 	 */
 	@Test
-	public void testPreventOpenRedirect() {
+	public void testPreventOpenRedirect() throws Exception {
 		Response response = getCodeResponse(
 			_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD, null,
 			getCodeFunction(
@@ -254,22 +248,14 @@ public class SecurityTest extends BaseClientTestCase {
 				)));
 
 		Assert.assertEquals(400, getStatus(response));
-		Assert.assertEquals(
-			"{\"error\":\"invalid_request\",\"error_description\":\"Client " +
-				"Redirect Uri is invalid\"}",
-			getBodyAsString(response));
-	}
 
-	@Test
-	public void testPublicApplicationIsDisclosedToGuestUser() {
-		Response response = _getApplicationResponse(
-			_EXTERNAL_REFERENCE_CODE_CODE_PKCE, null);
-
-		Assert.assertEquals(200, getStatus(response));
-
-		String bodyString = getBodyAsString(response);
-
-		Assert.assertTrue(bodyString.contains(_CLIENT_ID_CODE_PKCE));
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				"error", "invalid_request"
+			).put(
+				"error_description", "Client Redirect Uri is invalid"
+			).toString(),
+			getBodyAsString(response), true);
 	}
 
 	@Test
@@ -502,6 +488,25 @@ public class SecurityTest extends BaseClientTestCase {
 		);
 	}
 
+	private void _testGetApplication(
+			String clientId, Cookie cookie, String externalReferenceCode)
+		throws Exception {
+
+		Response response = _getApplicationResponse(
+			externalReferenceCode, cookie);
+
+		Assert.assertEquals(200, getStatus(response));
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				"client_id", clientId
+			).put(
+				"homePageURL",
+				"http://localhost:" + PortalUtil.getPortalServerPort(false)
+			).toString(),
+			getBodyAsString(response), true);
+	}
+
 	private void _testUnregisteredClientIdIsRejected(WebTarget webTarget) {
 		Response response1 = _getPublicClientResponse(
 			_CLIENT_ID_CLIENT_CREDENTIALS, webTarget);
@@ -519,7 +524,10 @@ public class SecurityTest extends BaseClientTestCase {
 
 	private static final String _CLIENT_ID_CODE = RandomTestUtil.randomString();
 
-	private static final String _CLIENT_ID_CODE_PKCE =
+	private static final String _CLIENT_ID_CODE_PKCE_1 =
+		RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_CODE_PKCE_2 =
 		RandomTestUtil.randomString();
 
 	private static final String _CLIENT_ID_DEFAULT_USER =
@@ -546,6 +554,7 @@ public class SecurityTest extends BaseClientTestCase {
 
 	private static final String _INJECTED_SCRIPT = "<script>alert(1)</script>";
 
+	private String _generatedExternalReferenceCode;
 	private long _oAuth2ApplicationId;
 
 	@Inject
@@ -567,6 +576,27 @@ public class SecurityTest extends BaseClientTestCase {
 
 			_user = UserTestUtil.getAdminUser(companyId);
 
+			boolean agreedToTermsOfUse = _user.isAgreedToTermsOfUse();
+			String reminderQueryAnswer = _user.getReminderQueryAnswer();
+			String reminderQueryQuestion = _user.getReminderQueryQuestion();
+
+			autoCloseables.add(
+				() -> {
+					User user = UserLocalServiceUtil.getUser(_user.getUserId());
+
+					user.setReminderQueryQuestion(reminderQueryQuestion);
+					user.setReminderQueryAnswer(reminderQueryAnswer);
+					user.setAgreedToTermsOfUse(agreedToTermsOfUse);
+
+					UserLocalServiceUtil.updateUser(user);
+				});
+
+			_user.setReminderQueryQuestion(RandomTestUtil.randomString());
+			_user.setReminderQueryAnswer(RandomTestUtil.randomString());
+			_user.setAgreedToTermsOfUse(true);
+
+			_user = UserLocalServiceUtil.updateUser(_user);
+
 			_oAuth2ApplicationLocalService.updateExternalReferenceCode(
 				createOAuth2Application(
 					companyId, _user, _CLIENT_ID_CLIENT_CREDENTIALS),
@@ -579,7 +609,7 @@ public class SecurityTest extends BaseClientTestCase {
 
 			_oAuth2ApplicationLocalService.updateExternalReferenceCode(
 				createOAuth2ApplicationWithNone(
-					companyId, _user, _CLIENT_ID_CODE_PKCE,
+					companyId, _user, _CLIENT_ID_CODE_PKCE_1,
 					Collections.singletonList(
 						GrantType.AUTHORIZATION_CODE_PKCE),
 					Collections.singletonList(
@@ -587,6 +617,19 @@ public class SecurityTest extends BaseClientTestCase {
 							PortalUtil.getPortalServerPort(false)),
 					false, Collections.singletonList("everything"), false),
 				_EXTERNAL_REFERENCE_CODE_CODE_PKCE);
+
+			OAuth2Application oAuth2Application1 =
+				createOAuth2ApplicationWithNone(
+					companyId, _user, _CLIENT_ID_CODE_PKCE_2,
+					Collections.singletonList(
+						GrantType.AUTHORIZATION_CODE_PKCE),
+					Collections.singletonList(
+						"http://redirecturi:" +
+							PortalUtil.getPortalServerPort(false)),
+					false, Collections.singletonList("everything"), false);
+
+			_generatedExternalReferenceCode =
+				oAuth2Application1.getExternalReferenceCode();
 
 			Company company = CompanyLocalServiceUtil.getCompany(companyId);
 
@@ -600,7 +643,7 @@ public class SecurityTest extends BaseClientTestCase {
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE),
 				_INJECTED_SCRIPT, Collections.singletonList("everything"));
 
-			OAuth2Application oAuth2Application = createOAuth2Application(
+			OAuth2Application oAuth2Application2 = createOAuth2Application(
 				companyId, _user, _CLIENT_ID_UNESCAPED_SCOPE,
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE),
 				Collections.singletonList(
@@ -608,7 +651,7 @@ public class SecurityTest extends BaseClientTestCase {
 
 			_oAuth2ScopeGrantLocalService.createOAuth2ScopeGrant(
 				companyId,
-				oAuth2Application.getOAuth2ApplicationScopeAliasesId(),
+				oAuth2Application2.getOAuth2ApplicationScopeAliasesId(),
 				"Liferay.Captcha.REST", "com.liferay.captcha.rest.impl", "GET",
 				Collections.singletonList(
 					"Liferay.Captcha.REST.everything.read"));

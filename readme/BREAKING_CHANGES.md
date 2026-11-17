@@ -1925,9 +1925,11 @@ This affects anyone who triggered one of these operations by saving the correspo
 
 Use the Portal Instances headless API:
 
-- `POST /o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}/copy`
-- `POST /o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}/export`
+- `POST /o/headless-portal-instances/v1.0/portal-instances/copy`
+- `POST /o/headless-portal-instances/v1.0/portal-instances/export`
 - `POST /o/headless-portal-instances/v1.0/portal-instances/import`
+
+Copy and export take the instance in the request body, as `sourcePortalInstanceId` and `portalInstanceId` respectively.
 
 Copy and export can also be triggered from the Virtual Instances page in the Control Panel. Every endpoint requires an authenticated omniadmin, whereas deploying a configuration file required no credentials, so provisioning scripts that ran before an administrator existed must now authenticate.
 
@@ -1997,3 +1999,88 @@ When reading, treat `description` as a map keyed by language ID (for example, `{
 ### Why was this change made?
 
 The description is authored by administrators and surfaces in the generated OpenAPI document that AI clients consume, so it has to carry a language rather than a single untagged string. Every other administrator authored text on the same resource was already localized; the description was the remaining exception.
+
+---------------------------------------
+
+## Removed the Configuration Panel Category
+- **Date:** 2026-Sep-30
+- **JIRA Ticket:** [LPD-106961](https://liferay.atlassian.net/browse/LPD-106961)
+
+### What changed?
+
+The Control Panel no longer has a Configuration category. Its applications moved into the System and Instance scopes, and the `control_panel.configuration` panel category is deleted. `PanelCategoryKeys.CONTROL_PANEL_CONFIGURATION` and `PortletCategoryKeys.CONTROL_PANEL_CONFIGURATION` are both removed.
+
+### Who is affected?
+
+This affects administrators with a custom object in Configuration. The object is moved to Control Panel > Objects by an upgrade process, not deleted.
+
+This also affects developers whose module or client extension names a removed constant or its literal key value. A panel app registered under the old key is left out of the menu until it is pointed at a scope that exists.
+
+This also affects portlets that declare `control_panel.configuration` as their control panel entry category. The upgrade source processor rewrites that value in Java and JSP, but a WAR plugin that declares it in `liferay-portlet.xml` must be updated by hand to `control_panel.instance` or `control_panel.system`. A portlet that declares the legacy `configuration`, `portal` or `server` value is not affected: `configuration` and `portal` are mapped to the Instance scope, and `server` to the System scope.
+
+### How should I update my code?
+
+Point the removed key at the scope the application belongs to:
+
+| Removed Key | Replacement |
+| --- | --- |
+| `PanelCategoryKeys.CONTROL_PANEL_CONFIGURATION` | `PanelCategoryKeys.CONTROL_PANEL_INSTANCE` or `PanelCategoryKeys.CONTROL_PANEL_SYSTEM` |
+| `PortletCategoryKeys.CONTROL_PANEL_CONFIGURATION` | `PortletCategoryKeys.CONTROL_PANEL_INSTANCE` or `PortletCategoryKeys.CONTROL_PANEL_SYSTEM` |
+
+Use the Instance key for an application that applies to one virtual instance, and the System key for one that applies to the whole installation. In a JSON object definition payload, a `panelCategoryKey` of `control_panel.configuration` should be rewritten to `control_panel.object`, which is where the upgrade process moves a stored object definition.
+
+### Why was this change made?
+
+Configuration mixed settings that apply to the whole installation with settings that apply to one virtual instance. The Control Panel root is rebuilt around that distinction as a System scope and an Instance scope, which left Configuration empty.
+
+---------------------------------------
+
+## Changed the CMP Project and Task Description Fields to Rich Text
+- **Date:** 2026-Oct-19
+- **JIRA Ticket:** [LPD-107347](https://liferay.atlassian.net/browse/LPD-107347)
+
+### What changed?
+
+The `description` field of the CMPProject and CMPTask object definitions has the Rich Text business type instead of Long Text. An upgrade process converts the existing descriptions to HTML: blank lines separate paragraphs, single line breaks are kept as line breaks, and `<`, `>` and `&` are escaped so that plain text is not interpreted as HTML. The `/o/cmp/projects` and `/o/cmp/tasks` endpoints return HTML in `description` and expose a read-only `descriptionRawText` property with the text content. Rich Text fields are not part of the OData entity model, so `description` is no longer accepted in the `filter` and `sort` parameters of those endpoints. The `descriptionRawText` property is not exposed in GraphQL or in the generated OpenAPI document, and it is ignored when it is sent in a request body.
+
+### Who is affected?
+
+This affects integrations that read a project's or a task's `description` and expect plain text, that filter or sort projects or tasks by `description`, or that write `description` and expect the value to be displayed verbatim. End users see a rich text editor on the project and task edit pages.
+
+### How should I update my code?
+
+Read `descriptionRawText` when the text content is needed, and treat `description` as HTML. Remove `description` from `filter` and `sort` expressions, and use the `search` parameter to match projects or tasks by their description. When writing a description, send HTML; a plain string is still accepted and is stored as is.
+
+### Why was this change made?
+
+Long Text stores plain text, so project and task descriptions could not carry headings, lists, tables or images. Rich Text is the Objects business type for HTML content and the one the CMS content fields already use, so the descriptions reuse the same editor and the same API contract instead of introducing a parallel field. The fields keep their names and external reference codes so that existing integrations keep addressing the same properties, which is why the change in the values' contract is documented here instead of going through a deprecation.
+
+---------------------------------------
+
+## Renamed Columns Without Their Type
+- **Date:** 2026-Oct-22
+- **JIRA Ticket:** [LPD-4267](https://liferay.atlassian.net/browse/LPD-4267)
+
+### What changed?
+
+The column rename operation takes the new column name only. The third argument of `UpgradeProcessFactory.alterColumnName`, `BaseDBProcess.alterColumnName` and `DB.alterColumnName` was the new column definition, for example `"iFrameURL VARCHAR(1024) null"`, and is now the new column name, for example `"iFrameURL"`. The same applies to the second argument of `LiveUpgradeProcessFactory.alterColumnName`. A new column name that still contains a type is renamed to its first word, and a warning is logged. On MySQL and MariaDB the rename now runs `rename column` instead of `change column`. The `alter_column_name <table> <old column> <new column>` statement that `runSQL` accepts also takes the new column name only and rejects a trailing type.
+
+### Who is affected?
+
+This affects developers whose upgrade processes rename a column with one of these methods. The code still compiles because the argument is still a `String`, and an upgrade step that passes a type logs a warning when it runs.
+
+### How should I update my code?
+
+Pass the new column name only:
+
+```java
+UpgradeProcessFactory.alterColumnName("RemoteAppEntry", "url", "iFrameURL")
+```
+
+The column keeps its existing type, nullability and default value.
+
+### Why was this change made?
+
+The type was only needed for MySQL 5.7, which cannot rename a column without restating its definition. A type that did not match the column in the database failed the upgrade with `Type change is not allowed when altering column name`. Support for MySQL 5.7 and MariaDB 10.2 and 10.4 ends in 2026.Q4, so the type is no longer needed.
+
+---------------------------------------

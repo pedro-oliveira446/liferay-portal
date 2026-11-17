@@ -5,15 +5,19 @@
 
 package com.liferay.portal.search.web.internal.search.results.portlet.shared.search;
 
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.dao.search.SearchPaginationUtil;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.search.constants.SearchContextAttributes;
 import com.liferay.portal.search.searcher.SearchRequestBuilder;
 import com.liferay.portal.search.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.web.constants.SearchResultsPortletKeys;
+import com.liferay.portal.search.web.internal.search.results.configuration.SearchResultsPortletInstanceConfiguration;
 import com.liferay.portal.search.web.internal.search.results.portlet.SearchResultsPortletPreferences;
 import com.liferay.portal.search.web.internal.search.results.portlet.SearchResultsPortletPreferencesImpl;
 import com.liferay.portal.search.web.internal.util.SearchStringUtil;
@@ -34,6 +38,8 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class SearchResultsPortletSharedSearchContributor
 	implements PortletSharedSearchContributor {
+
+	public static final int RESULT_COUNT_ACCURACY_LIMIT = 10000;
 
 	@Override
 	public void contribute(
@@ -69,6 +75,28 @@ public class SearchResultsPortletSharedSearchContributor
 	@Reference
 	protected SearchRequestBuilderFactory searchRequestBuilderFactory;
 
+	private boolean _isLimitResultCountAccuracy(
+		PortletSharedSearchSettings portletSharedSearchSettings) {
+
+		try {
+			ThemeDisplay themeDisplay =
+				portletSharedSearchSettings.getThemeDisplay();
+
+			SearchResultsPortletInstanceConfiguration
+				searchResultsPortletInstanceConfiguration =
+					_configurationProvider.getPortletInstanceConfiguration(
+						SearchResultsPortletInstanceConfiguration.class,
+						themeDisplay.getLayout(),
+						portletSharedSearchSettings.getPortletId());
+
+			return searchResultsPortletInstanceConfiguration.
+				limitResultCountAccuracy();
+		}
+		catch (ConfigurationException configurationException) {
+			throw new RuntimeException(configurationException);
+		}
+	}
+
 	private void _paginate(
 		SearchResultsPortletPreferences searchResultsPortletPreferences,
 		PortletSharedSearchSettings portletSharedSearchSettings,
@@ -97,10 +125,11 @@ public class SearchResultsPortletSharedSearchContributor
 			Function.identity());
 
 		if (FeatureFlagManagerUtil.isEnabled(
-				searchContext.getCompanyId(), "LPD-98858")) {
+				searchContext.getCompanyId(), "LPD-98858") &&
+			_isLimitResultCountAccuracy(portletSharedSearchSettings)) {
 
 			searchRequestBuilder.trackTotalHitsLimit(
-				searchResultsPortletPreferences.getAccurateCountLimit());
+				RESULT_COUNT_ACCURACY_LIMIT + 1);
 		}
 
 		int paginationStart = GetterUtil.getInteger(
@@ -119,5 +148,8 @@ public class SearchResultsPortletSharedSearchContributor
 			searchRequestBuilder.from((paginationStart - 1) * paginationDelta);
 		}
 	}
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
 
 }

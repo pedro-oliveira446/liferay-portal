@@ -11,14 +11,15 @@ import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.model.AssetTagGroupRel;
 import com.liferay.asset.kernel.service.AssetTagGroupRelLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
+import com.liferay.depot.constants.DepotConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -48,37 +49,39 @@ public class AssetTagGroupRelLocalServiceTest {
 	}
 
 	@Test
-	public void testGetAssetTagGroupRelsByAssetTagId() throws Exception {
-		Group group1 = GroupTestUtil.addGroup();
-		Group group2 = GroupTestUtil.addGroup();
+	public void testDeleteAssetTagGroupRelsByAssetTagIdAndDepotEntryType()
+		throws Exception {
 
-		long[] groupIds = {group1.getGroupId(), group2.getGroupId()};
+		Group projectGroup = GroupTestUtil.addGroup();
 
 		_assetTagGroupRelLocalService.setAssetTagGroupRels(
-			_assetTag.getTagId(), groupIds);
+			_assetTag.getTagId(), new long[] {projectGroup.getGroupId()},
+			DepotConstants.TYPE_PROJECT);
 
-		List<AssetTagGroupRel> assetTagGroupRels =
-			_assetTagGroupRelLocalService.getAssetTagGroupRelsByTagId(
-				_assetTag.getTagId());
+		Group spaceGroup = GroupTestUtil.addGroup();
 
-		Assert.assertEquals(
-			assetTagGroupRels.toString(), groupIds.length,
-			assetTagGroupRels.size());
+		_assetTagGroupRelLocalService.setAssetTagGroupRels(
+			_assetTag.getTagId(), new long[] {spaceGroup.getGroupId()},
+			DepotConstants.TYPE_SPACE);
 
-		for (AssetTagGroupRel assetTagGroupRel : assetTagGroupRels) {
-			Assert.assertEquals(
-				_assetTag.getTagId(), assetTagGroupRel.getTagId());
-			Assert.assertTrue(
-				ArrayUtil.contains(groupIds, assetTagGroupRel.getGroupId()));
-		}
+		_assertAssetTagGroupRelByTagId(
+			_assetTag, DepotConstants.TYPE_PROJECT, projectGroup);
 
-		_assetTagLocalService.deleteTag(_assetTag);
+		_assetTagGroupRelLocalService.
+			deleteAssetTagGroupRelsByTagIdAndDepotEntryType(
+				_assetTag.getTagId(), DepotConstants.TYPE_PROJECT);
 
-		assetTagGroupRels =
-			_assetTagGroupRelLocalService.getAssetTagGroupRelsByTagId(
-				_assetTag.getTagId());
+		List<AssetTagGroupRel> projectAssetTagGroupRels =
+			_assetTagGroupRelLocalService.
+				getAssetTagGroupRelsByTagIdAndDepotEntryType(
+					_assetTag.getTagId(), DepotConstants.TYPE_PROJECT);
 
-		Assert.assertTrue(assetTagGroupRels.isEmpty());
+		Assert.assertTrue(
+			projectAssetTagGroupRels.toString(),
+			projectAssetTagGroupRels.isEmpty());
+
+		_assertAssetTagGroupRelByTagId(
+			_assetTag, DepotConstants.TYPE_SPACE, spaceGroup);
 	}
 
 	@Test
@@ -86,34 +89,31 @@ public class AssetTagGroupRelLocalServiceTest {
 		AssetTag assetTag1 = _addAssetTag();
 		AssetTag assetTag2 = _addAssetTag();
 
-		long[] assetTagIds = {assetTag1.getTagId(), assetTag2.getTagId()};
-
 		Group group = GroupTestUtil.addGroup();
 
-		for (long assetTagId : assetTagIds) {
-			_assetTagGroupRelLocalService.addAssetTagGroupRel(
-				group.getGroupId(), assetTagId);
-		}
+		_assetTagGroupRelLocalService.addAssetTagGroupRel(
+			group.getGroupId(), assetTag1.getTagId(),
+			DepotConstants.TYPE_PROJECT);
+		_assetTagGroupRelLocalService.addAssetTagGroupRel(
+			group.getGroupId(), assetTag2.getTagId(),
+			DepotConstants.TYPE_SPACE);
 
 		List<AssetTagGroupRel> assetTagGroupRels =
-			_assetTagGroupRelLocalService.getAssetTagGroupRelsByGroupyId(
+			_assetTagGroupRelLocalService.getAssetTagGroupRelsByGroupId(
 				group.getGroupId());
 
 		Assert.assertEquals(
-			assetTagGroupRels.toString(), assetTagIds.length,
-			assetTagGroupRels.size());
+			assetTagGroupRels.toString(), 2, assetTagGroupRels.size());
 
-		for (AssetTagGroupRel assetTagGroupRel : assetTagGroupRels) {
-			Assert.assertEquals(
-				group.getGroupId(), assetTagGroupRel.getGroupId());
-			Assert.assertTrue(
-				ArrayUtil.contains(assetTagIds, assetTagGroupRel.getTagId()));
-		}
+		_assertAssetTagGroupRelByGroupId(
+			assetTag1, DepotConstants.TYPE_PROJECT, group);
+		_assertAssetTagGroupRelByGroupId(
+			assetTag2, DepotConstants.TYPE_SPACE, group);
 
 		_groupLocalService.deleteGroup(group);
 
 		assetTagGroupRels =
-			_assetTagGroupRelLocalService.getAssetTagGroupRelsByGroupyId(
+			_assetTagGroupRelLocalService.getAssetTagGroupRelsByGroupId(
 				group.getGroupId());
 
 		Assert.assertTrue(assetTagGroupRels.isEmpty());
@@ -121,26 +121,21 @@ public class AssetTagGroupRelLocalServiceTest {
 
 	@Test
 	public void testSetAssetTagGroupRels() throws Exception {
-		try {
-			_assetTagGroupRelLocalService.setAssetTagGroupRels(
-				_assetTag.getTagId(), new long[0]);
-
-			Assert.fail();
-		}
-		catch (AssetTagGroupRelGroupIdException
-					assetTagGroupRelGroupIdException) {
-
-			Assert.assertNotNull(assetTagGroupRelGroupIdException);
-		}
+		AssertUtils.assertFailure(
+			AssetTagGroupRelGroupIdException.class, null,
+			() -> _assetTagGroupRelLocalService.setAssetTagGroupRels(
+				_assetTag.getTagId(), new long[0], DepotConstants.TYPE_SPACE));
 
 		Group group1 = GroupTestUtil.addGroup();
 
 		_assetTagGroupRelLocalService.setAssetTagGroupRels(
-			_assetTag.getTagId(), new long[] {group1.getGroupId()});
+			_assetTag.getTagId(), new long[] {group1.getGroupId()},
+			DepotConstants.TYPE_SPACE);
 
 		List<AssetTagGroupRel> assetTagGroupRels =
-			_assetTagGroupRelLocalService.getAssetTagGroupRelsByTagId(
-				_assetTag.getTagId());
+			_assetTagGroupRelLocalService.
+				getAssetTagGroupRelsByTagIdAndDepotEntryType(
+					_assetTag.getTagId(), DepotConstants.TYPE_SPACE);
 
 		Assert.assertEquals(
 			assetTagGroupRels.toString(), 1, assetTagGroupRels.size());
@@ -152,11 +147,13 @@ public class AssetTagGroupRelLocalServiceTest {
 		Group group2 = GroupTestUtil.addGroup();
 
 		_assetTagGroupRelLocalService.setAssetTagGroupRels(
-			_assetTag.getTagId(), new long[] {group2.getGroupId()});
+			_assetTag.getTagId(), new long[] {group2.getGroupId()},
+			DepotConstants.TYPE_SPACE);
 
 		assetTagGroupRels =
-			_assetTagGroupRelLocalService.getAssetTagGroupRelsByTagId(
-				_assetTag.getTagId());
+			_assetTagGroupRelLocalService.
+				getAssetTagGroupRelsByTagIdAndDepotEntryType(
+					_assetTag.getTagId(), DepotConstants.TYPE_SPACE);
 
 		Assert.assertEquals(
 			assetTagGroupRels.toString(), 1, assetTagGroupRels.size());
@@ -164,6 +161,18 @@ public class AssetTagGroupRelLocalServiceTest {
 		_assertAssetTagGroupRel(
 			assetTagGroupRels.get(0), _assetTag.getTagId(),
 			group2.getGroupId());
+
+		Group projectGroup = GroupTestUtil.addGroup();
+
+		_assetTagGroupRelLocalService.setAssetTagGroupRels(
+			_assetTag.getTagId(), new long[] {projectGroup.getGroupId()},
+			DepotConstants.TYPE_PROJECT);
+
+		_assertAssetTagGroupRelByTagId(
+			_assetTag, DepotConstants.TYPE_PROJECT, projectGroup);
+
+		_assertAssetTagGroupRelByTagId(
+			_assetTag, DepotConstants.TYPE_SPACE, group2);
 	}
 
 	private AssetTag _addAssetTag() throws Exception {
@@ -181,6 +190,38 @@ public class AssetTagGroupRelLocalServiceTest {
 
 		Assert.assertEquals(expectedAssetTagId, assetTagGroupRel.getTagId());
 		Assert.assertEquals(expectedGroupId, assetTagGroupRel.getGroupId());
+	}
+
+	private void _assertAssetTagGroupRelByGroupId(
+			AssetTag assetTag, int depotEntryType, Group group)
+		throws Exception {
+
+		List<AssetTagGroupRel> assetTagGroupRels =
+			_assetTagGroupRelLocalService.
+				getAssetTagGroupRelsByGroupIdAndDepotEntryType(
+					group.getGroupId(), depotEntryType);
+
+		Assert.assertEquals(
+			assetTagGroupRels.toString(), 1, assetTagGroupRels.size());
+
+		_assertAssetTagGroupRel(
+			assetTagGroupRels.get(0), assetTag.getTagId(), group.getGroupId());
+	}
+
+	private void _assertAssetTagGroupRelByTagId(
+			AssetTag assetTag, int depotEntryType, Group group)
+		throws Exception {
+
+		List<AssetTagGroupRel> assetTagGroupRels =
+			_assetTagGroupRelLocalService.
+				getAssetTagGroupRelsByTagIdAndDepotEntryType(
+					assetTag.getTagId(), depotEntryType);
+
+		Assert.assertEquals(
+			assetTagGroupRels.toString(), 1, assetTagGroupRels.size());
+
+		_assertAssetTagGroupRel(
+			assetTagGroupRels.get(0), assetTag.getTagId(), group.getGroupId());
 	}
 
 	private AssetTag _assetTag;

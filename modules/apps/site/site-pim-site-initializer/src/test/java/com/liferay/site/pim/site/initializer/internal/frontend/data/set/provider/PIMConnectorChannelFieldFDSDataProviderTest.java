@@ -7,16 +7,17 @@ package com.liferay.site.pim.site.initializer.internal.frontend.data.set.provide
 
 import com.liferay.frontend.data.set.provider.search.FDSKeywords;
 import com.liferay.frontend.data.set.provider.search.FDSPagination;
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
-import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.model.ObjectRelationship;
-import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
+import com.liferay.object.service.ObjectDefinitionService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.service.ObjectEntryLocalServiceUtil;
 import com.liferay.object.service.ObjectFieldLocalService;
-import com.liferay.object.service.ObjectFolderLocalService;
-import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.object.service.ObjectRelationshipLocalServiceUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -33,6 +34,7 @@ import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.site.pim.site.initializer.connector.PIMConnector;
 import com.liferay.site.pim.site.initializer.connector.PIMConnectorChannelField;
 import com.liferay.site.pim.site.initializer.connector.PIMConnectorRegistry;
+import com.liferay.site.pim.site.initializer.constants.PIMObjectDefinitionConstants;
 import com.liferay.site.pim.site.initializer.constants.PIMObjectFolderConstants;
 import com.liferay.site.pim.site.initializer.internal.frontend.data.set.model.PIMConnectorChannelFieldDisplay;
 
@@ -43,13 +45,16 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 /**
@@ -67,7 +72,7 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 	public void setUp() {
 		ReflectionTestUtil.setFieldValue(
 			_pimConnectorChannelFieldFDSDataProvider,
-			"_objectDefinitionLocalService", _objectDefinitionLocalService);
+			"_objectDefinitionService", _objectDefinitionService);
 		ReflectionTestUtil.setFieldValue(
 			_pimConnectorChannelFieldFDSDataProvider,
 			"_objectEntryLocalService", _objectEntryLocalService);
@@ -75,21 +80,15 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 			_pimConnectorChannelFieldFDSDataProvider,
 			"_objectFieldLocalService", _objectFieldLocalService);
 		ReflectionTestUtil.setFieldValue(
-			_pimConnectorChannelFieldFDSDataProvider,
-			"_objectFolderLocalService", _objectFolderLocalService);
-		ReflectionTestUtil.setFieldValue(
-			_pimConnectorChannelFieldFDSDataProvider,
-			"_objectRelationshipLocalService", _objectRelationshipLocalService);
-		ReflectionTestUtil.setFieldValue(
 			_pimConnectorChannelFieldFDSDataProvider, "_pimConnectorRegistry",
 			_pimConnectorRegistry);
 
 		_httpServletRequest = Mockito.mock(HttpServletRequest.class);
 
 		Mockito.when(
-			_httpServletRequest.getParameter("editFieldMappingURL")
+			_httpServletRequest.getParameter("editFieldMappingsURL")
 		).thenReturn(
-			"/web/pim/edit-field-mapping?objectEntryId=" + _OBJECT_ENTRY_ID
+			"/web/pim/edit-field-mappings?objectEntryId=" + _OBJECT_ENTRY_ID
 		);
 
 		Mockito.when(
@@ -123,6 +122,16 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 		Language language = Mockito.mock(Language.class);
 
 		Mockito.when(
+			language.format(
+				Mockito.eq(LocaleUtil.US), Mockito.anyString(),
+				Mockito.any(Object.class))
+		).thenAnswer(
+			invocationOnMock ->
+				invocationOnMock.getArgument(1) + ": " +
+					invocationOnMock.getArgument(2)
+		);
+
+		Mockito.when(
 			language.get(Mockito.eq(LocaleUtil.US), Mockito.anyString())
 		).thenAnswer(
 			invocationOnMock -> invocationOnMock.getArgument(1)
@@ -130,8 +139,28 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 
 		languageUtil.setLanguage(language);
 
+		_mockObjectDefinition(
+			PIMObjectDefinitionConstants.
+				EXTERNAL_REFERENCE_CODE_CONNECTOR_FIELD_MAPPING,
+			"/pim/connector-field-mappings");
+		_mockObjectDefinition(
+			PIMObjectDefinitionConstants.
+				EXTERNAL_REFERENCE_CODE_CONNECTOR_FIELD_MAPPING_RULE,
+			"/pim/connector-field-mapping-rules");
+		_mockObjectRelationship(
+			"L_PIM_CONNECTOR_TO_PIM_CONNECTOR_FIELD_MAPPINGS",
+			_PIM_FIELD_MAPPING_OBJECT_RELATIONSHIP_ID);
+		_mockObjectRelationship(
+			"L_PIM_CONNECTOR_TO_PIM_CONNECTOR_FIELD_MAPPING_RULES",
+			_PIM_FIELD_MAPPING_RULE_OBJECT_RELATIONSHIP_ID);
 		_mockPIMObjectDefinition();
-		_mockPIMObjectRelationship();
+	}
+
+	@After
+	public void tearDown() {
+		_objectDefinitionLocalServiceUtilMockedStatic.close();
+		_objectEntryLocalServiceUtilMockedStatic.close();
+		_objectRelationshipLocalServiceUtilMockedStatic.close();
 	}
 
 	@Test
@@ -185,12 +214,16 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 
 		Assert.assertEquals(
 			"Name", pimConnectorChannelFieldDisplay.getChannelField());
+		Assert.assertEquals(
+			Collections.emptyList(),
+			pimConnectorChannelFieldDisplay.getFieldMappingIds());
 		Assert.assertFalse(pimConnectorChannelFieldDisplay.isMapped());
 		Assert.assertTrue(pimConnectorChannelFieldDisplay.isRequired());
 
 		_mockPIMConnectorFieldMappingObjectEntries(
 			_mockPIMConnectorFieldMappingObjectEntry(
-				"skus[].sku", 0, "code", "dynamicValue", StringPool.BLANK));
+				"skus[].sku", 1, 0, StringPool.BLANK, "sku", "dynamicValue",
+				StringPool.BLANK));
 
 		pimConnectorChannelFieldDisplays =
 			_pimConnectorChannelFieldFDSDataProvider.getItems(
@@ -203,17 +236,18 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 		Assert.assertEquals(
 			"SKU", pimConnectorChannelFieldDisplay.getChannelField());
 		Assert.assertEquals(
-			"/web/pim/edit-field-mapping?objectEntryId=" + _OBJECT_ENTRY_ID +
+			"/web/pim/edit-field-mappings?objectEntryId=" + _OBJECT_ENTRY_ID +
 				"&channelField=skus%5B%5D.sku",
 			pimConnectorChannelFieldDisplay.getHref());
 		Assert.assertTrue(pimConnectorChannelFieldDisplay.isMapped());
 		Assert.assertEquals(
-			Collections.singletonList("Code"),
+			Collections.singletonList("SKU"),
 			pimConnectorChannelFieldDisplay.getSourceAttributes());
 
 		_mockPIMConnectorFieldMappingObjectEntries(
 			_mockPIMConnectorFieldMappingObjectEntry(
-				"skus[].sku", 0, StringPool.BLANK, "fixedValue", "ABC-1"));
+				"skus[].sku", 1, 0, StringPool.BLANK, StringPool.BLANK,
+				"fixedValue", "ABC-1"));
 
 		pimConnectorChannelFieldDisplays =
 			_pimConnectorChannelFieldFDSDataProvider.getItems(
@@ -232,9 +266,11 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 
 		_mockPIMConnectorFieldMappingObjectEntries(
 			_mockPIMConnectorFieldMappingObjectEntry(
-				"skus[].sku", 2, StringPool.BLANK, "fixedValue", "ABC-1"),
+				"skus[].sku", 2, 2, StringPool.BLANK, StringPool.BLANK,
+				"fixedValue", "ABC-1"),
 			_mockPIMConnectorFieldMappingObjectEntry(
-				"skus[].sku", 1, "code", "dynamicValue", StringPool.BLANK));
+				"skus[].sku", 1, 1, StringPool.BLANK, "sku", "dynamicValue",
+				StringPool.BLANK));
 
 		pimConnectorChannelFieldDisplays =
 			_pimConnectorChannelFieldFDSDataProvider.getItems(
@@ -245,7 +281,98 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 			1);
 
 		Assert.assertEquals(
-			Arrays.asList("Code", "ABC-1"),
+			Arrays.asList(1L, 2L),
+			pimConnectorChannelFieldDisplay.getFieldMappingIds());
+		Assert.assertEquals(
+			Arrays.asList("SKU", "ABC-1"),
+			pimConnectorChannelFieldDisplay.getSourceAttributes());
+		Assert.assertEquals(
+			Collections.emptyList(),
+			pimConnectorChannelFieldDisplay.getTransformationRules());
+
+		_mockPIMConnectorFieldMappingRuleObjectEntries(
+			_mockPIMConnectorFieldMappingRuleObjectEntry(
+				"name", RandomTestUtil.randomLong(),
+				HashMapBuilder.<String, Serializable>put(
+					"textCase", "lower"
+				).build()),
+			_mockPIMConnectorFieldMappingRuleObjectEntry(
+				"skus[].sku", 4,
+				HashMapBuilder.<String, Serializable>put(
+					"stripHTMLTags", true
+				).put(
+					"textCase", "upper"
+				).put(
+					"trimWhitespace", true
+				).put(
+					"truncateLength", 80
+				).put(
+					"urlEncode", true
+				).put(
+					"useFirstNonemptySource", true
+				).build()));
+
+		pimConnectorChannelFieldDisplays =
+			_pimConnectorChannelFieldFDSDataProvider.getItems(
+				_mockFDSKeywords(StringPool.BLANK), _mockFDSPagination(0, 20),
+				_httpServletRequest, null);
+
+		pimConnectorChannelFieldDisplay = pimConnectorChannelFieldDisplays.get(
+			0);
+
+		Assert.assertEquals(
+			Collections.singletonList("lowercase"),
+			pimConnectorChannelFieldDisplay.getTransformationRules());
+
+		pimConnectorChannelFieldDisplay = pimConnectorChannelFieldDisplays.get(
+			1);
+
+		Assert.assertEquals(
+			"/o/pim/connector-field-mapping-rules",
+			pimConnectorChannelFieldDisplay.getMappingRuleAPIURL());
+		Assert.assertEquals(
+			4, pimConnectorChannelFieldDisplay.getMappingRuleId());
+		Assert.assertEquals(
+			Arrays.asList(
+				"strip-html-tags", "uppercase", "trim-whitespace",
+				"truncate-x-characters: 80", "url-encode",
+				"first-nonempty-source"),
+			pimConnectorChannelFieldDisplay.getTransformationRules());
+		Assert.assertTrue(
+			pimConnectorChannelFieldDisplay.isUseFirstNonemptySource());
+
+		_mockPIMConnectorFieldMappingObjectEntries(
+			_mockPIMConnectorFieldMappingObjectEntry(
+				"skus[].sku", 1, 0, _OBJECT_DEFINITION_CLASS_NAME, "sku",
+				"dynamicValue", StringPool.BLANK));
+
+		pimConnectorChannelFieldDisplays =
+			_pimConnectorChannelFieldFDSDataProvider.getItems(
+				_mockFDSKeywords(StringPool.BLANK), _mockFDSPagination(0, 20),
+				_httpServletRequest, null);
+
+		pimConnectorChannelFieldDisplay = pimConnectorChannelFieldDisplays.get(
+			1);
+
+		Assert.assertEquals(
+			Collections.singletonList("PIM Basic Product/SKU"),
+			pimConnectorChannelFieldDisplay.getSourceAttributes());
+
+		_mockPIMConnectorFieldMappingObjectEntries(
+			_mockPIMConnectorFieldMappingObjectEntry(
+				"skus[].sku", 1, 0, _OBJECT_DEFINITION_CLASS_NAME,
+				StringPool.BLANK, "fixedValue", "ABC-1"));
+
+		pimConnectorChannelFieldDisplays =
+			_pimConnectorChannelFieldFDSDataProvider.getItems(
+				_mockFDSKeywords(StringPool.BLANK), _mockFDSPagination(0, 20),
+				_httpServletRequest, null);
+
+		pimConnectorChannelFieldDisplay = pimConnectorChannelFieldDisplays.get(
+			1);
+
+		Assert.assertEquals(
+			Collections.singletonList("PIM Basic Product/ABC-1"),
 			pimConnectorChannelFieldDisplay.getSourceAttributes());
 
 		pimConnectorChannelFieldDisplays =
@@ -307,13 +434,40 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 				pimConnectorChannelFieldDisplays,
 				PIMConnectorChannelFieldDisplay::getChannelField));
 
+		sort = Mockito.mock(Sort.class);
+
+		Mockito.when(
+			sort.getFieldName()
+		).thenReturn(
+			"transformationRules"
+		);
+
+		Mockito.when(
+			sort.isReverse()
+		).thenReturn(
+			true
+		);
+
+		pimConnectorChannelFieldDisplays =
+			_pimConnectorChannelFieldFDSDataProvider.getItems(
+				_mockFDSKeywords(StringPool.BLANK), _mockFDSPagination(0, 20),
+				_httpServletRequest, sort);
+
+		Assert.assertEquals(
+			Arrays.asList("SKU", "Name"),
+			TransformUtil.transform(
+				pimConnectorChannelFieldDisplays,
+				PIMConnectorChannelFieldDisplay::getChannelField));
+
 		PIMConnector pimConnector = Mockito.mock(PIMConnector.class);
 
 		Mockito.when(
-			pimConnector.getPIMConnectorChannelFields(LocaleUtil.US)
+			pimConnector.getPIMConnectorChannelFields()
 		).thenReturn(
 			Collections.singletonList(
-				new PIMConnectorChannelField("Tags", true, "tags", false))
+				new PIMConnectorChannelField(
+					"Tags", true, "tags", false,
+					ObjectFieldConstants.BUSINESS_TYPE_TEXT))
 		);
 
 		Mockito.when(
@@ -353,18 +507,18 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 			_pimConnectorChannelFieldFDSDataProvider.getItemsCount(
 				_mockFDSKeywords("sku"), _httpServletRequest));
 
-		Mockito.verify(
-			_objectEntryLocalService, Mockito.never()
-		).getOneToManyObjectEntries(
-			Mockito.anyLong(), Mockito.anyLong(), Mockito.any(),
-			Mockito.anyBoolean(), Mockito.anyLong(), Mockito.anyBoolean(),
-			Mockito.any(), Mockito.anyInt(), Mockito.anyInt(), Mockito.any()
-		);
+		_objectEntryLocalServiceUtilMockedStatic.verify(
+			() -> ObjectEntryLocalServiceUtil.getOneToManyObjectEntries(
+				Mockito.anyLong(), Mockito.anyLong(), Mockito.any(),
+				Mockito.anyBoolean(), Mockito.anyLong(), Mockito.anyBoolean(),
+				Mockito.any(), Mockito.anyInt(), Mockito.anyInt(),
+				Mockito.any()),
+			Mockito.never());
 
 		Mockito.verify(
-			_objectFolderLocalService, Mockito.never()
-		).fetchObjectFolderByExternalReferenceCode(
-			Mockito.anyString(), Mockito.anyLong()
+			_objectDefinitionService, Mockito.never()
+		).getCMSObjectDefinitions(
+			Mockito.anyLong(), Mockito.any()
 		);
 	}
 
@@ -400,6 +554,28 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 		return fdsPagination;
 	}
 
+	private void _mockObjectDefinition(
+		String externalReferenceCode, String restContextPath) {
+
+		ObjectDefinition objectDefinition = Mockito.mock(
+			ObjectDefinition.class);
+
+		Mockito.when(
+			objectDefinition.getRESTContextPath()
+		).thenReturn(
+			restContextPath
+		);
+
+		_objectDefinitionLocalServiceUtilMockedStatic.when(
+			() ->
+				ObjectDefinitionLocalServiceUtil.
+					fetchObjectDefinitionByExternalReferenceCode(
+						externalReferenceCode, _COMPANY_ID)
+		).thenReturn(
+			objectDefinition
+		);
+	}
+
 	private ObjectField _mockObjectField(String label, String name) {
 		ObjectField objectField = Mockito.mock(ObjectField.class);
 
@@ -418,15 +594,42 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 		return objectField;
 	}
 
+	private void _mockObjectRelationship(
+		String externalReferenceCode, long objectRelationshipId) {
+
+		ObjectRelationship objectRelationship = Mockito.mock(
+			ObjectRelationship.class);
+
+		Mockito.when(
+			objectRelationship.getObjectRelationshipId()
+		).thenReturn(
+			objectRelationshipId
+		);
+
+		_objectRelationshipLocalServiceUtilMockedStatic.when(
+			() ->
+				ObjectRelationshipLocalServiceUtil.
+					fetchObjectRelationshipByExternalReferenceCode(
+						externalReferenceCode,
+						_PIM_CONNECTOR_OBJECT_DEFINITION_ID)
+		).thenReturn(
+			objectRelationship
+		);
+	}
+
 	private void _mockPIMConnector() {
 		PIMConnector pimConnector = Mockito.mock(PIMConnector.class);
 
 		Mockito.when(
-			pimConnector.getPIMConnectorChannelFields(LocaleUtil.US)
+			pimConnector.getPIMConnectorChannelFields()
 		).thenReturn(
 			Arrays.asList(
-				new PIMConnectorChannelField("Name", false, "name", true),
-				new PIMConnectorChannelField("SKU", false, "skus[].sku", false))
+				new PIMConnectorChannelField(
+					"Name", false, "name", true,
+					ObjectFieldConstants.BUSINESS_TYPE_TEXT),
+				new PIMConnectorChannelField(
+					"SKU", false, "skus[].sku", false,
+					ObjectFieldConstants.BUSINESS_TYPE_TEXT))
 		);
 
 		Mockito.when(
@@ -440,10 +643,10 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 			ObjectEntry... objectEntries)
 		throws Exception {
 
-		Mockito.when(
-			_objectEntryLocalService.getOneToManyObjectEntries(
-				_GROUP_ID, _OBJECT_RELATIONSHIP_ID, null, false,
-				_OBJECT_ENTRY_ID, true, null, QueryUtil.ALL_POS,
+		_objectEntryLocalServiceUtilMockedStatic.when(
+			() -> ObjectEntryLocalServiceUtil.getOneToManyObjectEntries(
+				_GROUP_ID, _PIM_FIELD_MAPPING_OBJECT_RELATIONSHIP_ID, null,
+				false, _OBJECT_ENTRY_ID, true, null, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)
 		).thenReturn(
 			Arrays.asList(objectEntries)
@@ -451,10 +654,17 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 	}
 
 	private ObjectEntry _mockPIMConnectorFieldMappingObjectEntry(
-		String channelFieldName, int priority, String sourceFieldName,
-		String type, String value) {
+		String channelFieldName, long objectEntryId, int priority,
+		String sourceClassName, String sourceFieldName, String type,
+		String value) {
 
 		ObjectEntry objectEntry = Mockito.mock(ObjectEntry.class);
+
+		Mockito.when(
+			objectEntry.getObjectEntryId()
+		).thenReturn(
+			objectEntryId
+		);
 
 		Mockito.when(
 			objectEntry.getValues()
@@ -464,13 +674,52 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 			).put(
 				"priority", priority
 			).put(
-				"sourceClassName", StringPool.BLANK
+				"sourceClassName", sourceClassName
 			).put(
 				"sourceFieldName", sourceFieldName
 			).put(
 				"type", type
 			).put(
 				"value", value
+			).build()
+		);
+
+		return objectEntry;
+	}
+
+	private void _mockPIMConnectorFieldMappingRuleObjectEntries(
+			ObjectEntry... objectEntries)
+		throws Exception {
+
+		_objectEntryLocalServiceUtilMockedStatic.when(
+			() -> ObjectEntryLocalServiceUtil.getOneToManyObjectEntries(
+				_GROUP_ID, _PIM_FIELD_MAPPING_RULE_OBJECT_RELATIONSHIP_ID, null,
+				false, _OBJECT_ENTRY_ID, true, null, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, null)
+		).thenReturn(
+			Arrays.asList(objectEntries)
+		);
+	}
+
+	private ObjectEntry _mockPIMConnectorFieldMappingRuleObjectEntry(
+		String channelFieldName, long objectEntryId,
+		Map<String, Serializable> values) {
+
+		ObjectEntry objectEntry = Mockito.mock(ObjectEntry.class);
+
+		Mockito.when(
+			objectEntry.getObjectEntryId()
+		).thenReturn(
+			objectEntryId
+		);
+
+		Mockito.when(
+			objectEntry.getValues()
+		).thenReturn(
+			HashMapBuilder.<String, Serializable>put(
+				"channelFieldName", channelFieldName
+			).putAll(
+				values
 			).build()
 		);
 
@@ -489,7 +738,7 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 		Mockito.when(
 			objectEntry.getObjectDefinitionId()
 		).thenReturn(
-			_CONNECTOR_OBJECT_DEFINITION_ID
+			_PIM_CONNECTOR_OBJECT_DEFINITION_ID
 		);
 
 		Mockito.when(
@@ -514,24 +763,20 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 	}
 
 	private void _mockPIMObjectDefinition() {
-		ObjectFolder objectFolder = Mockito.mock(ObjectFolder.class);
-
-		Mockito.when(
-			objectFolder.getObjectFolderId()
-		).thenReturn(
-			_OBJECT_FOLDER_ID
-		);
-
-		Mockito.when(
-			_objectFolderLocalService.fetchObjectFolderByExternalReferenceCode(
-				PIMObjectFolderConstants.EXTERNAL_REFERENCE_CODE_PRODUCT_TYPES,
-				_COMPANY_ID)
-		).thenReturn(
-			objectFolder
-		);
-
 		ObjectDefinition objectDefinition = Mockito.mock(
 			ObjectDefinition.class);
+
+		Mockito.when(
+			objectDefinition.getClassName()
+		).thenReturn(
+			_OBJECT_DEFINITION_CLASS_NAME
+		);
+
+		Mockito.when(
+			objectDefinition.getLabel(LocaleUtil.US)
+		).thenReturn(
+			"PIM Basic Product"
+		);
 
 		Mockito.when(
 			objectDefinition.getObjectDefinitionId()
@@ -540,13 +785,17 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 		);
 
 		Mockito.when(
-			_objectDefinitionLocalService.getObjectFolderObjectDefinitions(
-				_OBJECT_FOLDER_ID)
+			_objectDefinitionService.getCMSObjectDefinitions(
+				_COMPANY_ID,
+				new String[] {
+					PIMObjectFolderConstants.
+						EXTERNAL_REFERENCE_CODE_PRODUCT_TYPES
+				})
 		).thenReturn(
 			Collections.singletonList(objectDefinition)
 		);
 
-		ObjectField objectField = _mockObjectField("Code", "code");
+		ObjectField objectField = _mockObjectField("SKU", "sku");
 
 		Mockito.when(
 			_objectFieldLocalService.getObjectFields(_OBJECT_DEFINITION_ID)
@@ -555,57 +804,45 @@ public class PIMConnectorChannelFieldFDSDataProviderTest {
 		);
 	}
 
-	private void _mockPIMObjectRelationship() {
-		ObjectRelationship objectRelationship = Mockito.mock(
-			ObjectRelationship.class);
-
-		Mockito.when(
-			objectRelationship.getObjectRelationshipId()
-		).thenReturn(
-			_OBJECT_RELATIONSHIP_ID
-		);
-
-		Mockito.when(
-			_objectRelationshipLocalService.
-				fetchObjectRelationshipByExternalReferenceCode(
-					"L_PIM_CONNECTOR_TO_PIM_CONNECTOR_FIELD_MAPPINGS",
-					_CONNECTOR_OBJECT_DEFINITION_ID)
-		).thenReturn(
-			objectRelationship
-		);
-	}
-
 	private static final long _COMPANY_ID = RandomTestUtil.randomLong();
-
-	private static final long _CONNECTOR_OBJECT_DEFINITION_ID =
-		RandomTestUtil.randomLong();
 
 	private static final long _GROUP_ID = RandomTestUtil.randomLong();
 
 	private static final String _KEY = "liferay-commerce";
+
+	private static final String _OBJECT_DEFINITION_CLASS_NAME =
+		"com.liferay.object.model.ObjectDefinition#P4R4";
 
 	private static final long _OBJECT_DEFINITION_ID =
 		RandomTestUtil.randomLong();
 
 	private static final long _OBJECT_ENTRY_ID = RandomTestUtil.randomLong();
 
-	private static final long _OBJECT_FOLDER_ID = RandomTestUtil.randomLong();
+	private static final long _PIM_CONNECTOR_OBJECT_DEFINITION_ID =
+		RandomTestUtil.randomLong();
 
-	private static final long _OBJECT_RELATIONSHIP_ID =
+	private static final long _PIM_FIELD_MAPPING_OBJECT_RELATIONSHIP_ID =
+		RandomTestUtil.randomLong();
+
+	private static final long _PIM_FIELD_MAPPING_RULE_OBJECT_RELATIONSHIP_ID =
 		RandomTestUtil.randomLong();
 
 	private HttpServletRequest _httpServletRequest;
-	private final ObjectDefinitionLocalService _objectDefinitionLocalService =
-		Mockito.mock(ObjectDefinitionLocalService.class);
+	private final MockedStatic<ObjectDefinitionLocalServiceUtil>
+		_objectDefinitionLocalServiceUtilMockedStatic = Mockito.mockStatic(
+			ObjectDefinitionLocalServiceUtil.class);
+	private final ObjectDefinitionService _objectDefinitionService =
+		Mockito.mock(ObjectDefinitionService.class);
 	private final ObjectEntryLocalService _objectEntryLocalService =
 		Mockito.mock(ObjectEntryLocalService.class);
+	private final MockedStatic<ObjectEntryLocalServiceUtil>
+		_objectEntryLocalServiceUtilMockedStatic = Mockito.mockStatic(
+			ObjectEntryLocalServiceUtil.class);
 	private final ObjectFieldLocalService _objectFieldLocalService =
 		Mockito.mock(ObjectFieldLocalService.class);
-	private final ObjectFolderLocalService _objectFolderLocalService =
-		Mockito.mock(ObjectFolderLocalService.class);
-	private final ObjectRelationshipLocalService
-		_objectRelationshipLocalService = Mockito.mock(
-			ObjectRelationshipLocalService.class);
+	private final MockedStatic<ObjectRelationshipLocalServiceUtil>
+		_objectRelationshipLocalServiceUtilMockedStatic = Mockito.mockStatic(
+			ObjectRelationshipLocalServiceUtil.class);
 	private final PIMConnectorChannelFieldFDSDataProvider
 		_pimConnectorChannelFieldFDSDataProvider =
 			new PIMConnectorChannelFieldFDSDataProvider();

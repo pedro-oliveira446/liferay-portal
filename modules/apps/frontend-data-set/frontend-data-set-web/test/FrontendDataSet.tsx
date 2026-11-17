@@ -160,6 +160,74 @@ describe('FrontendDataSet', () => {
 		expect(screen.getByText('newer')).toBeInTheDocument();
 	});
 
+	it('renders client extension cells when a view without fields follows the table', async () => {
+		fetch.mockResponse(itemsResponse(['Blue']));
+
+		render(
+			<FrontendDataSet
+				apiURL="/o/products"
+				id={id}
+				views={[
+					{
+						...VIEWS[0],
+						schema: {
+							fields: [
+								{
+									contentRendererClientExtension: true,
+									contentRendererModuleURL: `default from ${require.resolve('./__lib__/cellRenderer')}`,
+									fieldName: 'name',
+									label: 'Name',
+								},
+							],
+						},
+					},
+					{
+						contentRenderer: 'clientExtension',
+						contentRendererClientExtension: true,
+						label: 'Timeline',
+						name: 'timeline',
+					},
+				]}
+			/>
+		);
+
+		expect(await screen.findByText('Rendered Blue')).toBeInTheDocument();
+	});
+
+	it('shows an error when a visualization mode client extension fails to load', async () => {
+		const consoleErrorSpy = jest
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+
+		fetch.mockResponse(itemsResponse(['Blue']));
+
+		render(
+			<FrontendDataSet
+				apiURL="/o/products"
+				id={id}
+				views={[
+					{
+						contentRenderer: 'clientExtension',
+						contentRendererClientExtension: true,
+						contentRendererModuleURL:
+							'default from ./__lib__/missingVisualizationMode',
+						default: true,
+						label: 'Timeline',
+						name: 'timeline',
+					},
+				]}
+			/>
+		);
+
+		expect(
+			await screen.findByText(
+				'this-visualization-mode-could-not-be-displayed'
+			)
+		).toBeInTheDocument();
+
+		consoleErrorSpy.mockRestore();
+	});
+
 	it('keeps a stable onSearch identity across renders', async () => {
 		const requests = mockPendingRequests();
 
@@ -377,7 +445,6 @@ describe('FrontendDataSet', () => {
 		let onApply: jest.Mock;
 
 		beforeEach(() => {
-			Liferay.FeatureFlags['LPS-164563'] = true;
 
 			// The connection detaches this handle as it disconnects
 
@@ -386,8 +453,6 @@ describe('FrontendDataSet', () => {
 
 		afterEach(() => {
 			connection?.disconnect();
-
-			delete Liferay.FeatureFlags['LPS-164563'];
 
 			(Liferay.on as jest.Mock).mockReturnValue(undefined);
 		});
@@ -458,7 +523,9 @@ describe('FrontendDataSet', () => {
 			) ?? '';
 
 		async function chooseView(label: string) {
-			await userEvent.click(screen.getByRole('button', {name: 'views'}));
+			await userEvent.click(
+				screen.getByRole('button', {name: 'views[saved]'})
+			);
 
 			await userEvent.click(await screen.findByText(label));
 		}
@@ -538,6 +605,88 @@ describe('FrontendDataSet', () => {
 			expect(
 				readConfigFromURL(id)?.[EConfigInURLKeys.CUSTOM_CONFIGS]
 			).toBeUndefined();
+		});
+	});
+
+	describe('Search in the browser history', () => {
+		let pushState: jest.SpyInstance;
+		let replaceState: jest.SpyInstance;
+
+		beforeEach(() => {
+			pushState = jest.spyOn(window.history, 'pushState');
+			replaceState = jest.spyOn(window.history, 'replaceState');
+		});
+
+		afterEach(() => {
+			jest.restoreAllMocks();
+		});
+
+		async function renderLoaded(searchAsYouType: boolean) {
+			const requests = mockPendingRequests();
+
+			render(
+				<FrontendDataSet
+					apiURL="/o/products"
+					id={id}
+					searchAsYouType={searchAsYouType}
+					views={VIEWS}
+				/>
+			);
+
+			await waitFor(() => expect(requests).toHaveLength(1));
+
+			act(() => requests[0].resolve(itemsResponse(['unfiltered'])));
+
+			expect(await screen.findByText('unfiltered')).toBeInTheDocument();
+
+			return requests;
+		}
+
+		async function typeAndSettle(
+			requests: ReturnType<typeof mockPendingRequests>,
+			keystrokes: string
+		) {
+			const requestCount = requests.length;
+
+			await userEvent.type(screen.getByRole('searchbox'), keystrokes);
+
+			await waitFor(() =>
+				expect(requests).toHaveLength(requestCount + 1)
+			);
+
+			act(() => requests[requestCount].resolve(itemsResponse(['hit'])));
+
+			await settle();
+		}
+
+		function configInURL() {
+			return new URLSearchParams(window.location.search).get(
+				`${id}_fdsConfig`
+			);
+		}
+
+		it('keeps one entry for the queries committed while typing', async () => {
+			const requests = await renderLoaded(true);
+
+			await typeAndSettle(requests, 'lego');
+			await typeAndSettle(requests, 'land');
+
+			expect(pushState).not.toHaveBeenCalled();
+			expect(replaceState).toHaveBeenCalled();
+
+			// The query is still shareable and survives a reload
+
+			expect(configInURL()).toContain('q:legoland');
+		});
+
+		it('adds an entry for every query submitted with Enter', async () => {
+			const requests = await renderLoaded(false);
+
+			await typeAndSettle(requests, 'lego{Enter}');
+			await typeAndSettle(requests, 'land{Enter}');
+
+			expect(pushState).toHaveBeenCalledTimes(2);
+			expect(configInURL()).toContain('q:legoland');
 		});
 	});
 });

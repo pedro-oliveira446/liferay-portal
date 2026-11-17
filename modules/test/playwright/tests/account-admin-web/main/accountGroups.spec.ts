@@ -7,9 +7,9 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {accountsPagesTest} from '../../../fixtures/accountsPagesTest';
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {usersAndOrganizationsPagesTest} from '../../../fixtures/usersAndOrganizationsPagesTest';
+import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../../utils/getRandomString';
 import {performUserSwitch, userData} from '../../../utils/performLogin';
 import {waitForAlert} from '../../../utils/waitForAlert';
@@ -17,9 +17,6 @@ import {waitForAlert} from '../../../utils/waitForAlert';
 export const test = mergeTests(
 	accountsPagesTest,
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-35443': {enabled: true},
-	}),
 	loginTest(),
 	usersAndOrganizationsPagesTest
 );
@@ -1387,12 +1384,13 @@ test(
 			accountGroupsPage.accountGroupsTable.newButton
 		).toHaveCount(0);
 
-		await (
-			await accountGroupsPage.accountGroupsTable.rowActions(
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: accountGroupsPage.editLink,
+			trigger: await accountGroupsPage.accountGroupsTable.rowActions(
 				accountGroup.name
-			)
-		).click();
-		await accountGroupsPage.editLink.click();
+			),
+		});
 
 		accountGroup = {
 			description: getRandomString(),
@@ -1420,12 +1418,13 @@ test(
 			accountGroupsPage.accountGroupsTable.cell(accountGroup.name)
 		).toBeVisible();
 
-		await (
-			await accountGroupsPage.accountGroupsTable.rowActions(
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: accountGroupsPage.editLink,
+			trigger: await accountGroupsPage.accountGroupsTable.rowActions(
 				accountGroup.name
-			)
-		).click();
-		await accountGroupsPage.editLink.click();
+			),
+		});
 
 		await expect(editAccountGroupPage.accountGroupNameInput).toHaveValue(
 			accountGroup.name

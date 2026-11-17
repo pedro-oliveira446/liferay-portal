@@ -11,6 +11,7 @@ import com.liferay.digital.signature.constants.DigitalSignatureConstants;
 import com.liferay.digital.signature.constants.DigitalSignaturePortletKeys;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.display.context.DLUIItemKeys;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.document.conversion.DocumentConversionUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
@@ -21,7 +22,6 @@ import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLFileEntryMetadataLocalServiceUtil;
 import com.liferay.document.library.kernel.versioning.VersioningStrategy;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.document.library.web.internal.display.context.helper.FileEntryDisplayContextHelper;
 import com.liferay.document.library.web.internal.display.context.helper.FileShortcutDisplayContextHelper;
 import com.liferay.document.library.web.internal.helper.DLTrashHelper;
@@ -431,8 +431,13 @@ public class UIItemsBuilder {
 
 	public DropdownItem createHistoryDropdownItem() {
 		return DropdownItemBuilder.setHref(
-			_getControlPanelRenderURL(
-				"/document_library/view_file_entry_history", _getCurrentURL())
+			PortletURLBuilder.create(
+				_getControlPanelRenderURL(
+					"/document_library/view_file_entry_history",
+					_getCurrentURL())
+			).setParameter(
+				"fileEntryId", _fileEntry.getFileEntryId()
+			).buildString()
 		).setIcon(
 			"date-time"
 		).setKey(

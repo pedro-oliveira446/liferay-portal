@@ -171,6 +171,7 @@ create table AssetTagGroupRel (
 	groupId LONG,
 	companyId LONG,
 	tagId LONG,
+	depotEntryType INTEGER,
 	primary key (assetTagGroupRelId, ctCollectionId)
 );
 
@@ -398,7 +399,7 @@ create table DLFileEntryType (
 	modifiedDate DATE null,
 	dataDefinitionId LONG,
 	fileEntryTypeKey VARCHAR(75) null,
-	name STRING null,
+	name TEXT null,
 	description STRING null,
 	scope INTEGER,
 	lastPublishDate DATE null,
@@ -681,7 +682,8 @@ create table Layout (
 	parentLayoutId LONG,
 	classNameId LONG,
 	classPK LONG,
-	name STRING null,
+	launchSetId LONG,
+	name TEXT null,
 	title TEXT null,
 	description TEXT null,
 	keywords STRING null,
@@ -701,6 +703,7 @@ create table Layout (
 	faviconFileEntryERC VARCHAR(75) null,
 	faviconFileEntryScopeERC VARCHAR(75) null,
 	masterLPTEERC VARCHAR(75) null,
+	masterLPTESERC VARCHAR(75) null,
 	portletLPTEERC VARCHAR(75) null,
 	portletLPTESERC VARCHAR(75) null,
 	portletLPTELE BOOLEAN,
@@ -1283,7 +1286,7 @@ create table Role_ (
 	classNameId LONG,
 	classPK LONG,
 	name VARCHAR(75) null,
-	title STRING null,
+	title TEXT null,
 	description TEXT null,
 	type_ INTEGER,
 	subtype VARCHAR(75) null,

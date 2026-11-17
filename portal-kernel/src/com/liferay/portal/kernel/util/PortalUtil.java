@@ -538,6 +538,14 @@ public class PortalUtil {
 		return _portal.getCompany(httpServletRequest);
 	}
 
+	public static Company getCompany(
+			HttpServletRequest httpServletRequest,
+			boolean fallbackToDefaultCompany)
+		throws PortalException {
+
+		return _portal.getCompany(httpServletRequest, fallbackToDefaultCompany);
+	}
+
 	public static Company getCompany(PortletRequest portletRequest)
 		throws PortalException {
 
@@ -1495,6 +1503,10 @@ public class PortalUtil {
 
 	public static String getURLWithSessionId(String url, String sessionId) {
 		return _portal.getURLWithSessionId(url, sessionId);
+	}
+
+	public static String getUniqueElementId() {
+		return _portal.getUniqueElementId();
 	}
 
 	public static String getUniqueElementId(

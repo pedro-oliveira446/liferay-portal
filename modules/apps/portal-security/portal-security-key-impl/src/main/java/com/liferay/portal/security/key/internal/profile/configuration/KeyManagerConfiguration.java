@@ -13,7 +13,9 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
  * @author Tomas Polesovsky
  * @author Christopher Kian
  */
-@ExtendedObjectClassDefinition(category = "key-manager")
+@ExtendedObjectClassDefinition(
+	category = "key-manager", featureFlagKey = "LPD-88411"
+)
 @Meta.OCD(
 	id = "com.liferay.portal.security.key.internal.profile.configuration.KeyManagerConfiguration",
 	localization = "content/Language", name = "key-manager-configuration-name"
@@ -22,5 +24,11 @@ public interface KeyManagerConfiguration {
 
 	@Meta.AD(deflt = "custom", name = "active-profile-id", required = false)
 	public String activeProfileId();
+
+	@Meta.AD(
+		deflt = "", description = "company-kek-identifier-help",
+		name = "company-kek-identifier", required = false
+	)
+	public String companyKEKIdentifier();
 
 }

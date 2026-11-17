@@ -8,7 +8,6 @@ import {Page, expect, mergeTests} from '@playwright/test';
 import {accountsPagesTest} from '../../../fixtures/accountsPagesTest';
 import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {serverAdministrationPageTest} from '../../../fixtures/serverAdministrationPageTest';
 import {usersAndOrganizationsPagesTest} from '../../../fixtures/usersAndOrganizationsPagesTest';
@@ -27,9 +26,6 @@ export const test = mergeTests(
 	accountsPagesTest,
 	apiHelpersTest,
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-35443': {enabled: true},
-	}),
 	loginTest(),
 	serverAdministrationPageTest,
 	usersAndOrganizationsPagesTest
@@ -1658,7 +1654,7 @@ test(
 		let newPage: Page;
 
 		try {
-			await accountsPage.goto(false);
+			await accountsPage.goto();
 
 			await expect(async () => {
 				await accountsPage.accountsTable.newButton.click();
@@ -1728,7 +1724,7 @@ test(
 				screenName: 'test',
 			});
 
-			await accountsPage.goto(false);
+			await accountsPage.goto();
 
 			await expect(async () => {
 				await accountsPage.accountsTable.newButton.click();

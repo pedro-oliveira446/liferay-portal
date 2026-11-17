@@ -72,6 +72,29 @@ public class CommerceDiscountRuleLocalServiceUtil {
 			commerceDiscountId, name, type, typeSettings, serviceContext);
 	}
 
+	public static CommerceDiscountRule addCommerceDiscountRule(
+			String externalReferenceCode, long commerceDiscountId, String name,
+			String type, String typeSettings,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addCommerceDiscountRule(
+			externalReferenceCode, commerceDiscountId, name, type, typeSettings,
+			serviceContext);
+	}
+
+	public static CommerceDiscountRule addOrUpdateCommerceDiscountRule(
+			String externalReferenceCode, long commerceDiscountRuleId,
+			long commerceDiscountId, String name, String type,
+			String typeSettings,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateCommerceDiscountRule(
+			externalReferenceCode, commerceDiscountRuleId, commerceDiscountId,
+			name, type, typeSettings, serviceContext);
+	}
+
 	/**
 	 * Creates a new commerce discount rule with the primary key. Does not add the commerce discount rule to the database.
 	 *
@@ -237,6 +260,14 @@ public class CommerceDiscountRuleLocalServiceUtil {
 		return getService().fetchCommerceDiscountRule(commerceDiscountRuleId);
 	}
 
+	public static CommerceDiscountRule
+		fetchCommerceDiscountRuleByExternalReferenceCode(
+			String externalReferenceCode, long companyId) {
+
+		return getService().fetchCommerceDiscountRuleByExternalReferenceCode(
+			externalReferenceCode, companyId);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
@@ -255,6 +286,15 @@ public class CommerceDiscountRuleLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getCommerceDiscountRule(commerceDiscountRuleId);
+	}
+
+	public static CommerceDiscountRule
+			getCommerceDiscountRuleByExternalReferenceCode(
+				String externalReferenceCode, long companyId)
+		throws PortalException {
+
+		return getService().getCommerceDiscountRuleByExternalReferenceCode(
+			externalReferenceCode, companyId);
 	}
 
 	/**
@@ -282,14 +322,6 @@ public class CommerceDiscountRuleLocalServiceUtil {
 			commerceDiscountId, start, end, orderByComparator);
 	}
 
-	public static List<CommerceDiscountRule> getCommerceDiscountRules(
-			long commerceDiscountId, String name, int start, int end)
-		throws PortalException {
-
-		return getService().getCommerceDiscountRules(
-			commerceDiscountId, name, start, end);
-	}
-
 	/**
 	 * Returns the number of commerce discount rules.
 	 *
@@ -297,18 +329,6 @@ public class CommerceDiscountRuleLocalServiceUtil {
 	 */
 	public static int getCommerceDiscountRulesCount() {
 		return getService().getCommerceDiscountRulesCount();
-	}
-
-	public static int getCommerceDiscountRulesCount(long commerceDiscountId) {
-		return getService().getCommerceDiscountRulesCount(commerceDiscountId);
-	}
-
-	public static int getCommerceDiscountRulesCount(
-			long commerceDiscountId, String name)
-		throws PortalException {
-
-		return getService().getCommerceDiscountRulesCount(
-			commerceDiscountId, name);
 	}
 
 	public static
@@ -379,4 +399,4 @@ public class CommerceDiscountRuleLocalServiceUtil {
 			CommerceDiscountRuleLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1819709776
+// LIFERAY-SERVICE-BUILDER-HASH:340443860

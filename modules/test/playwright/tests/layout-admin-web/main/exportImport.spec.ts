@@ -26,7 +26,6 @@ const test = mergeTests(
 	exportImportPagesTest,
 	dataApiHelpersTest,
 	featureFlagsTest({
-		'LPD-35443': {enabled: true},
 		'LPD-57655': {enabled: true},
 		'LPD-76864': {enabled: true},
 		'LPS-178052': {enabled: true},
@@ -566,17 +565,7 @@ test(
 
 		await exportImportPage.clickNew();
 
-		// The import succeeds but reports Completed With Errors because of
-		// LPD-102645: the page is imported before the fragment, which reports a
-		// missing reference that nothing removes once the fragment arrives.
-		// Expect that status until LPD-102645 is fixed. The assertion below
-		// still verifies that the site is imported correctly.
-
-		await exportImportPage.import({
-			folderPath,
-			name,
-			taskStatus: 'completedWithErrors',
-		});
+		await exportImportPage.import({folderPath, name});
 
 		// The imported page on site B shows the same web content
 

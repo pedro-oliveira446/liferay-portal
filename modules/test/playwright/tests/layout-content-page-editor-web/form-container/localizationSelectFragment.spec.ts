@@ -46,16 +46,12 @@ test(
 
 		// Create a Space with English and French only
 
-		const spaceName = getRandomString();
-
-		await apiHelpers.headlessAssetLibrary.createAssetLibrary({
-			name: spaceName,
+		const space = await apiHelpers.headlessAssetLibrary.createSpace({
 			settings: {
 				availableLanguageIds: ['en_US', 'fr_FR'],
 				defaultLanguageId: 'en_US',
 				useCustomLanguages: true,
 			},
-			type: 'Space',
 		});
 
 		// Create a CMS structure
@@ -74,7 +70,7 @@ test(
 
 		await contentsPage.goto();
 
-		await contentsPage.createContent(structureLabel, spaceName);
+		await contentsPage.createContent(structureLabel, space.name);
 
 		// Check the language picker only shows English and French
 
@@ -148,8 +144,12 @@ test(
 
 		await contentsPage.fillData([
 			{label: 'Title', value: contentTitle},
-			{label: 'Date', value: '2025-08-08'},
-			{label: 'Date and Time', value: '2025-08-07T13:49'},
+			{label: 'Date', type: 'Date', value: '08/08/2025'},
+			{
+				label: 'Date and Time',
+				type: 'Date',
+				value: '08/07/2025 01:49 PM',
+			},
 			{label: 'Long Text', value: 'Papa'},
 			{label: 'Rich Text', type: 'Rich Text', value: 'Pepe'},
 			{label: 'Decimal', value: '1.2'},
@@ -267,8 +267,12 @@ test(
 
 		await contentsPage.fillData([
 			{label: 'Title', value: contentTitle},
-			{label: 'Date', value: '2025-08-08'},
-			{label: 'Date and Time', value: '2025-08-07T13:49'},
+			{label: 'Date', type: 'Date', value: '08/08/2025'},
+			{
+				label: 'Date and Time',
+				type: 'Date',
+				value: '08/07/2025 01:49 PM',
+			},
 			{label: 'Long Text', value: 'Papa'},
 			{label: 'Rich Text', type: 'Rich Text', value: 'Pepe'},
 		]);

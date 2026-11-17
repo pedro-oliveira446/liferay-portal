@@ -7,7 +7,7 @@ import {useField, useFormikContext} from 'formik';
 import React, {useEffect, useRef} from 'react';
 
 import {ExportImportProcess} from '../../../types/exportImportProcess';
-import {PreviewPortletDataHandlerSection} from '../../../types/portletDataHandler';
+import {PortletDataHandlerSection} from '../../../types/portletDataHandler';
 import {getFullDataSelection} from '../../../utils/contentSelection';
 import {PageTreeModalConfiguration} from '../../PageTreeModal';
 import ContentSelector, {
@@ -17,37 +17,34 @@ import ContentSelector, {
 interface FormikFieldContentSelectorProps {
 	'aria-labelledby'?: string;
 	'commentsAndRatingsEnabled'?: boolean;
-	'lookAndFeelEnabled'?: boolean;
 	'name': string;
 	'pageTreeModalConfiguration'?: PageTreeModalConfiguration;
-	'previewPortletDataHandlerSections': PreviewPortletDataHandlerSection[];
+	'portletDataHandlerSections': PortletDataHandlerSection[];
 	'process'?: ExportImportProcess;
 }
 
 export function FormikFieldContentSelector({
 	'aria-labelledby': ariaLabelledby,
 	commentsAndRatingsEnabled = false,
-	lookAndFeelEnabled = false,
 	name,
 	pageTreeModalConfiguration,
-	previewPortletDataHandlerSections,
+	portletDataHandlerSections,
 	process = 'export',
 }: FormikFieldContentSelectorProps) {
-	const [field, meta, helpers] = useField<ContentSelection | undefined>(name);
+	const [field, meta, helpers] = useField<
+		ContentSelection | null | undefined
+	>(name);
 	const [{value: deletions}] = useField<boolean | undefined>('deletions');
 	const {setFieldTouched, setFieldValue} = useFormikContext();
 
 	const showDeletions = !!deletions;
 
 	const shouldSeed =
-		!!previewPortletDataHandlerSections.length &&
-		field.value === undefined &&
-		!meta.touched;
+		!!portletDataHandlerSections.length && field.value === undefined;
 
 	const defaultContentSelection = shouldSeed
-		? getFullDataSelection(previewPortletDataHandlerSections, {
+		? getFullDataSelection(portletDataHandlerSections, {
 				commentsAndRatingsEnabled,
-				lookAndFeelEnabled,
 				showDeletions,
 			})
 		: undefined;
@@ -70,16 +67,13 @@ export function FormikFieldContentSelector({
 			commentsAndRatingsEnabled={commentsAndRatingsEnabled}
 			contentSelection={field.value ?? defaultContentSelection}
 			errorMessage={meta.touched && meta.error ? meta.error : undefined}
-			lookAndFeelEnabled={lookAndFeelEnabled}
 			name={name}
 			onChange={(newValue) => {
-				helpers.setValue(newValue);
+				helpers.setValue(newValue ?? null);
 				setFieldTouched(name, true, false);
 			}}
 			pageTreeModalConfiguration={pageTreeModalConfiguration}
-			previewPortletDataHandlerSections={
-				previewPortletDataHandlerSections
-			}
+			portletDataHandlerSections={portletDataHandlerSections}
 			process={process}
 			showDeletions={showDeletions}
 		/>

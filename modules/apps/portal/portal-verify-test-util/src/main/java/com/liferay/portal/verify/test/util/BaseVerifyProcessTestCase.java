@@ -76,13 +76,15 @@ public abstract class BaseVerifyProcessTestCase {
 
 				Connection connection = objectValuePair.getKey();
 
-				if (!connection.isClosed()) {
-					if (exception == null) {
-						exception = objectValuePair.getValue();
-					}
-					else {
-						exception.addSuppressed(objectValuePair.getValue());
-					}
+				if (connection.isClosed()) {
+					continue;
+				}
+
+				if (exception == null) {
+					exception = objectValuePair.getValue();
+				}
+				else {
+					exception.addSuppressed(objectValuePair.getValue());
 				}
 			}
 
@@ -109,14 +111,14 @@ public abstract class BaseVerifyProcessTestCase {
 	}
 
 	protected void alterColumnName(
-			String tableName, String oldColumnName, String newColumnDefinition)
+			String tableName, String oldColumnName, String newColumnName)
 		throws Exception {
 
 		DB db = DBManagerUtil.getDB();
 
 		try (Connection connection = DataAccess.getConnection()) {
 			db.alterColumnName(
-				connection, tableName, oldColumnName, newColumnDefinition);
+				connection, tableName, oldColumnName, newColumnName);
 		}
 	}
 

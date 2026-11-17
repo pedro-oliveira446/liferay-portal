@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiServiceUtil;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.PortalPreferencesLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -41,7 +42,6 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,7 +49,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
@@ -129,6 +128,8 @@ public class FeatureFlagsBagProviderImpl
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
+		_featureFlagPreferencesManager = new FeatureFlagPreferencesManager(
+			_portalPreferencesLocalService);
 		_serviceRegistration = bundleContext.registerService(
 			IdentifiableOSGiService.class, this, null);
 
@@ -186,7 +187,7 @@ public class FeatureFlagsBagProviderImpl
 	}
 
 	private FeatureFlagsBag _createFeatureFlagsBag(long companyId) {
-		Map<String, FeatureFlag> featureFlags = new TreeMap<>();
+		Map<String, FeatureFlag> featureFlags = new HashMap<>();
 
 		Map<String, FeatureFlag> systemFeatureFlags = new HashMap<>();
 
@@ -203,8 +204,7 @@ public class FeatureFlagsBagProviderImpl
 
 		_populateFeatureFlagsMap(companyId, featureFlags, systemFeatureFlags);
 
-		return new FeatureFlagsBag(
-			companyId, Collections.unmodifiableMap(featureFlags));
+		return new FeatureFlagsBag(companyId, featureFlags);
 	}
 
 	private List<String> _getFeatureFlagKeys(
@@ -239,14 +239,16 @@ public class FeatureFlagsBagProviderImpl
 		for (String stringPropertyName :
 				_featureFlagProperties.stringPropertyNames()) {
 
-			if (stringPropertyName.endsWith(".system") &&
-				GetterUtil.getBoolean(
+			if (!stringPropertyName.endsWith(".system") ||
+				!GetterUtil.getBoolean(
 					_featureFlagProperties.getProperty(stringPropertyName))) {
 
-				_systemFeatureFlags.add(
-					stringPropertyName.substring(
-						0, stringPropertyName.length() - 7));
+				continue;
 			}
+
+			_systemFeatureFlags.add(
+				stringPropertyName.substring(
+					0, stringPropertyName.length() - 7));
 		}
 	}
 
@@ -291,19 +293,19 @@ public class FeatureFlagsBagProviderImpl
 
 			boolean system = _systemFeatureFlags.contains(stringPropertyName);
 
-			if ((system && (companyId == CompanyConstants.SYSTEM)) ||
-				(!system && (companyId != CompanyConstants.SYSTEM))) {
+			if ((!system || (companyId != CompanyConstants.SYSTEM)) &&
+				(system || (companyId == CompanyConstants.SYSTEM))) {
 
-				FeatureFlag featureFlag = new FeatureFlagImpl(
-					stringPropertyName);
-
-				featureFlag = new LanguageAwareFeatureFlag(
-					featureFlag, _language);
-				featureFlag = new PreferenceAwareFeatureFlag(
-					companyId, featureFlag, _featureFlagPreferencesManager);
-
-				featureFlags.put(featureFlag.getKey(), featureFlag);
+				continue;
 			}
+
+			FeatureFlag featureFlag = new FeatureFlagImpl(stringPropertyName);
+
+			featureFlag = new LanguageAwareFeatureFlag(featureFlag, _language);
+			featureFlag = new PreferenceAwareFeatureFlag(
+				companyId, featureFlag, _featureFlagPreferencesManager);
+
+			featureFlags.put(featureFlag.getKey(), featureFlag);
 		}
 
 		for (Map.Entry<String, FeatureFlag> entry : featureFlags.entrySet()) {
@@ -340,28 +342,32 @@ public class FeatureFlagsBagProviderImpl
 						dependencyKey);
 				}
 
-				if (dependencyFeatureFlag != null) {
-					if (!ArrayUtil.contains(
-							dependencyFeatureFlag.getDependencyKeys(),
-							featureFlag.getKey())) {
+				if (dependencyFeatureFlag == null) {
+					continue;
+				}
 
-						dependencyFeatureFlags.add(dependencyFeatureFlag);
-					}
-					else {
-						_log.error(
-							StringBundler.concat(
-								"Skipping circular dependency ", dependencyKey,
-								" for feature flag ", featureFlag.getKey()));
-					}
+				if (!ArrayUtil.contains(
+						dependencyFeatureFlag.getDependencyKeys(),
+						featureFlag.getKey())) {
+
+					dependencyFeatureFlags.add(dependencyFeatureFlag);
+				}
+				else {
+					_log.error(
+						StringBundler.concat(
+							"Skipping circular dependency ", dependencyKey,
+							" for feature flag ", featureFlag.getKey()));
 				}
 			}
 
-			if (ListUtil.isNotEmpty(dependencyFeatureFlags)) {
-				entry.setValue(
-					new DependencyAwareFeatureFlag(
-						featureFlag,
-						dependencyFeatureFlags.toArray(new FeatureFlag[0])));
+			if (ListUtil.isEmpty(dependencyFeatureFlags)) {
+				continue;
 			}
+
+			entry.setValue(
+				new DependencyAwareFeatureFlag(
+					featureFlag,
+					dependencyFeatureFlags.toArray(new FeatureFlag[0])));
 		}
 	}
 
@@ -409,9 +415,7 @@ public class FeatureFlagsBagProviderImpl
 	@Reference
 	private CompanyLocalService _companyLocalService;
 
-	@Reference
 	private FeatureFlagPreferencesManager _featureFlagPreferencesManager;
-
 	private final Properties _featureFlagProperties = PropsUtil.getProperties(
 		FeatureFlagConstants.PORTAL_PROPERTY_KEY_FEATURE_FLAG +
 			StringPool.PERIOD,
@@ -424,6 +428,9 @@ public class FeatureFlagsBagProviderImpl
 
 	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED)
 	private ModuleServiceLifecycle _moduleServiceLifecycle;
+
+	@Reference
+	private PortalPreferencesLocalService _portalPreferencesLocalService;
 
 	private ServiceRegistration<IdentifiableOSGiService> _serviceRegistration;
 	private ServiceTrackerMap<String, List<FeatureFlagListener>>

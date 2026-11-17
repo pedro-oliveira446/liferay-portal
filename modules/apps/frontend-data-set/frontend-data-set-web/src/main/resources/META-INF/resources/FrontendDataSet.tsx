@@ -103,8 +103,11 @@ import ViewsContext, {
 	ISnapshots,
 	IUserConfiguration,
 } from './views/ViewsContext';
+import {getClientExtensionViewComponent} from './views/client_extension/ClientExtensionView';
 import getViewComponent from './views/getViewComponent';
 import viewsReducer, {EViewsActionTypes} from './views/viewsReducer';
+
+import type {FDSVisualizationMode} from '@liferay/js-api/data-set';
 
 const DEFAULT_PAGINATION_DELTA = 20;
 const DEFAULT_PAGINATION_PAGE_NUMBER = 1;
@@ -550,7 +553,7 @@ const FrontendDataSetContent = ({
 		const remainingNewSorts = [...newSorts];
 
 		return [
-			...oldSorts?.map((sort: TSort) => {
+			...oldSorts.map((sort: TSort) => {
 				const activeSortIndex = remainingNewSorts?.findIndex(
 					(activeSort: TSort) => {
 						return activeSort.key === sort.key;
@@ -716,6 +719,7 @@ const FrontendDataSetContent = ({
 
 	const {
 		component: View,
+		contentRendererClientExtension,
 		contentRendererModuleURL,
 		name: activeViewName,
 		...currentViewProps
@@ -829,9 +833,6 @@ const FrontendDataSetContent = ({
 
 		const configInURL: Partial<IConfigInURL> | null = readConfigFromURL(id);
 
-		const globalFDSStateSearchQuery = globalFDSState.search.query;
-		const urlSearchQuery = configInURL?.q;
-
 		const hasActiveFilterInURL = Boolean(configInURL?.filters?.length);
 		const hasActiveFilterInState = globalFDSState.filters.some(
 			(filter: IBaseFilterState) => filter.active
@@ -851,10 +852,6 @@ const FrontendDataSetContent = ({
 
 				return false;
 			});
-
-		const shouldUpdateSearch =
-			(urlSearchQuery ?? '') !== (globalFDSStateSearchQuery ?? '') &&
-			(urlSearchQuery || globalFDSStateSearchQuery);
 
 		const updateConfig: Partial<IConfigInURL> = {};
 
@@ -878,13 +875,34 @@ const FrontendDataSetContent = ({
 				: undefined;
 		}
 
-		if (shouldUpdateSearch) {
+		const globalFDSStateSearchQuery = globalFDSState.search.query;
+		const urlSearchQuery = configInURL?.q;
+
+		const shouldUpdateSearch =
+			(urlSearchQuery ?? '') !== (globalFDSStateSearchQuery ?? '') &&
+			(urlSearchQuery || globalFDSStateSearchQuery);
+
+		const overrideConfigInURLBehaviorForSearch =
+			searchAsYouType &&
+			configInURLBehavior === EConfigInURLBehavior.PUSH;
+
+		if (shouldUpdateSearch && !overrideConfigInURLBehaviorForSearch) {
 			updateConfig[EConfigInURLKeys.SEARCH_PARAM] =
 				globalFDSState.search.query;
 		}
 
 		if (Object.keys(updateConfig).length) {
 			updateConfigInURL(updateConfig);
+		}
+
+		if (shouldUpdateSearch && overrideConfigInURLBehaviorForSearch) {
+			updateConfigInURL(
+				{
+					[EConfigInURLKeys.SEARCH_PARAM]:
+						globalFDSState.search.query,
+				},
+				EConfigInURLBehavior.REPLACE
+			);
 		}
 
 		if (skipSnapshotsUpdatedChangeRef.current) {
@@ -898,11 +916,13 @@ const FrontendDataSetContent = ({
 		}
 	}, [
 		appliedCustomConfigs,
+		configInURLBehavior,
 		connectionFilters,
 		filteringOwnerAppId,
 		globalFDSState,
 		globalFDSStateInitialized,
 		id,
+		searchAsYouType,
 		updateConfigInURL,
 		viewsDispatch,
 	]);
@@ -1043,28 +1063,27 @@ const FrontendDataSetContent = ({
 				>,
 				view: IView
 			) => {
-				if (view.schema && 'fields' in view.schema) {
-					if (!view.schema.fields.length) {
-						return clientExtensionDefinitions;
-					}
+				const fields =
+					view.schema && 'fields' in view.schema
+						? view.schema.fields
+						: undefined;
 
-					const clientExtensionFields = view.schema.fields.filter(
-						(field: IField) =>
-							!!field.contentRendererClientExtension
-					);
-
-					for (const field of clientExtensionFields) {
-						clientExtensionDefinitions.push({
-							context: field,
-							importDeclaration: field.contentRendererModuleURL,
-						});
-					}
-
+				if (!Array.isArray(fields)) {
 					return clientExtensionDefinitions;
 				}
-				else {
-					return [];
+
+				const clientExtensionFields = fields.filter(
+					(field: IField) => !!field.contentRendererClientExtension
+				);
+
+				for (const field of clientExtensionFields) {
+					clientExtensionDefinitions.push({
+						context: field,
+						importDeclaration: field.contentRendererModuleURL,
+					});
 				}
+
+				return clientExtensionDefinitions;
 			},
 			[]
 		);
@@ -1510,25 +1529,51 @@ const FrontendDataSetContent = ({
 		setComponentLoading(true);
 
 		loadModule(contentRendererModuleURL)
-			.then((view: IView) => {
+			.then((binding: FDSVisualizationMode | IView['component']) => {
 				if (isMounted()) {
 					viewsDispatch({
 						type: EViewsActionTypes.UPDATE_VIEW_COMPONENT,
-						value: {component: view, name: activeViewName},
+						value: {
+							component: contentRendererClientExtension
+								? getClientExtensionViewComponent(
+										binding as FDSVisualizationMode
+									)
+								: binding,
+							name: activeViewName,
+						},
 					});
 
 					setComponentLoading(false);
 				}
 			})
-			.catch(() => {
-				openToast({
-					message: Liferay.Language.get('unexpected-error'),
-					type: 'danger',
-				});
+			.catch((error: unknown) => {
+				if (!contentRendererClientExtension) {
+					openToast({
+						message: Liferay.Language.get('unexpected-error'),
+						type: 'danger',
+					});
+
+					return;
+				}
+
+				console.error(error);
+
+				if (isMounted()) {
+					viewsDispatch({
+						type: EViewsActionTypes.UPDATE_VIEW_COMPONENT,
+						value: {
+							component: getClientExtensionViewComponent(),
+							name: activeViewName,
+						},
+					});
+
+					setComponentLoading(false);
+				}
 			});
 	}, [
 		View,
 		activeViewName,
+		contentRendererClientExtension,
 		contentRendererModuleURL,
 		viewsDispatch,
 		isMounted,
@@ -1757,7 +1802,7 @@ const FrontendDataSetContent = ({
 	};
 
 	const view =
-		!dataLoading && !componentLoading ? (
+		!dataLoading && !componentLoading && View ? (
 			<div className="data-set-content-wrapper">
 				<input
 					name={`${namespace || id + '_'}${

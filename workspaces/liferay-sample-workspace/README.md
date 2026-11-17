@@ -18,7 +18,7 @@ The standard directory name of a client extension is broken up into several part
 
 For `liferay-sample-batch`, the owner is `liferay` and the project is `sample`. The owner and the project must not contain `-` since we use `-` to differentiate the owner from the project.
 
-The third part is usually one of the available client extension types: batch, custom-element, fds-cell-renderer, global-css, global-js, iframe, notification-type, oahs, oaua, object-action, site-initializer, static-content, theme-css, theme-favicon, theme-spritemap, or workflow-action.
+The third part is usually one of the available client extension types: batch, custom-element, fds-cell-renderer, fds-filter, fds-visualization-mode, global-css, global-js, iframe, notification-type, oahs, oaua, object-action, site-initializer, static-content, theme-css, theme-favicon, theme-spritemap, or workflow-action.
 
 For `liferay-sample-batch`, the third part is the client extension type `batch`.
 
@@ -120,7 +120,7 @@ For `liferay-sample-etc-cron` and `liferay-sample-etc-spring-boot` the third typ
 
 	1. Go to `liferay-sample-workspace` and type `./gradlew :client-extensions:liferay-sample-etc-cron:deployDev`.
 
-	1. Login to Liferay and go to Control Panel > Configuration > OAuth 2 Administration. Select `Liferay Sample Etc Cron`.
+	1. Login to Liferay and go to Control Panel > Security > OAuth 2 Administration. Select `Liferay Sample Etc Cron`.
 
 	1. Copy the client secret. Open `liferay-sample-workspace/client-extensions/liferay-sample-etc-cron/src/main/resources/application-default.properties` and replace `liferay-sample-etc-cron.oauth2.headless.server.client.secret=myfancypassword` with the real client secret.
 
@@ -145,6 +145,10 @@ For `liferay-sample-etc-cron` and `liferay-sample-etc-spring-boot` the third typ
 - *liferay-sample-fds-filter*
 
 	Build a custom filter in a frontend data set.
+
+- *liferay-sample-fds-visualization-mode*
+
+	Build a custom visualization mode that shows the items of a frontend data set on a timeline.
 
 - *liferay-sample-global-css-1*
 
