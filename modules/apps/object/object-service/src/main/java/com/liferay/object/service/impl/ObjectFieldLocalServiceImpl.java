@@ -46,6 +46,7 @@ import com.liferay.object.model.ObjectEntryTable;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldSetting;
 import com.liferay.object.model.ObjectRelationship;
+import com.liferay.object.model.impl.ObjectFieldModelImpl;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTable;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTableFactory;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTable;
@@ -1165,7 +1166,12 @@ public class ObjectFieldLocalServiceImpl
 				}
 			}
 
-			if (objectFieldSetting != null) {
+			if ((objectFieldSetting != null) ||
+				(newObjectField.isState() &&
+				 StringUtil.equals(
+					 oldObjectFieldSetting.getName(),
+					 ObjectFieldSettingConstants.NAME_STATE_FLOW))) {
+
 				continue;
 			}
 
@@ -1638,6 +1644,17 @@ public class ObjectFieldLocalServiceImpl
 		}
 	}
 
+	private ObjectField _updateObjectField(ObjectField objectField) {
+		ObjectFieldModelImpl objectFieldModelImpl =
+			(ObjectFieldModelImpl)objectField;
+
+		if (objectFieldModelImpl.getColumnBitmask() == 0) {
+			return objectField;
+		}
+
+		return objectFieldPersistence.update(objectField);
+	}
+
 	private ObjectField _updateObjectField(
 			String externalReferenceCode, long objectFieldId,
 			long listTypeDefinitionId, String businessType, String dbType,
@@ -1708,6 +1725,10 @@ public class ObjectFieldLocalServiceImpl
 
 		_validateState(required, state);
 
+		if (Validator.isNull(externalReferenceCode)) {
+			externalReferenceCode = newObjectField.getUuid();
+		}
+
 		newObjectField.setExternalReferenceCode(externalReferenceCode);
 		newObjectField.setDescriptionMap(
 			_getDescriptionMap(
@@ -1731,7 +1752,7 @@ public class ObjectFieldLocalServiceImpl
 		newObjectField.setRequired(required);
 
 		if (objectDefinition.isApproved()) {
-			newObjectField = objectFieldPersistence.update(newObjectField);
+			newObjectField = _updateObjectField(newObjectField);
 
 			_addOrUpdateObjectFieldSettings(
 				newObjectField, objectDefinition, objectFieldBusinessType,
@@ -1765,7 +1786,7 @@ public class ObjectFieldLocalServiceImpl
 		newObjectField.setName(name);
 		newObjectField.setState(state);
 
-		newObjectField = objectFieldPersistence.update(newObjectField);
+		newObjectField = _updateObjectField(newObjectField);
 
 		_addOrUpdateObjectFieldSettings(
 			newObjectField, objectDefinition, objectFieldBusinessType,

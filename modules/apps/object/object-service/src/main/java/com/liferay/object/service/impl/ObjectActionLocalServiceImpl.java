@@ -31,6 +31,7 @@ import com.liferay.object.exception.ObjectActionSystemException;
 import com.liferay.object.exception.ObjectActionTriggerKeyException;
 import com.liferay.object.internal.action.trigger.util.ObjectActionTriggerUtil;
 import com.liferay.object.model.ObjectAction;
+import com.liferay.object.model.impl.ObjectActionModelImpl;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFolder;
@@ -466,7 +467,7 @@ public class ObjectActionLocalServiceImpl
 					objectDefinition.getDefaultLocale()),
 				objectDefinition.getDefaultLocale());
 
-			return objectActionPersistence.update(objectAction);
+			return _updateObjectAction(objectAction);
 		}
 
 		_validateExternalReferenceCode(
@@ -506,7 +507,7 @@ public class ObjectActionLocalServiceImpl
 		objectAction.setStatus(ObjectActionConstants.STATUS_NEVER_RAN);
 
 		if (objectDefinition.isApproved()) {
-			return objectActionPersistence.update(objectAction);
+			return _updateObjectAction(objectAction);
 		}
 
 		_validateName(
@@ -521,7 +522,7 @@ public class ObjectActionLocalServiceImpl
 		objectAction.setName(name);
 		objectAction.setObjectActionTriggerKey(objectActionTriggerKey);
 
-		return objectActionPersistence.update(objectAction);
+		return _updateObjectAction(objectAction);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -626,6 +627,17 @@ public class ObjectActionLocalServiceImpl
 		populatedLabelMap.put(locale, name);
 
 		return populatedLabelMap;
+	}
+
+	private ObjectAction _updateObjectAction(ObjectAction objectAction) {
+		ObjectActionModelImpl objectActionModelImpl =
+			(ObjectActionModelImpl)objectAction;
+
+		if (objectActionModelImpl.getColumnBitmask() == 0) {
+			return objectAction;
+		}
+
+		return objectActionPersistence.update(objectAction);
 	}
 
 	private void _validateActive(

@@ -32,6 +32,7 @@ import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.ObjectValidationRule;
 import com.liferay.object.model.ObjectValidationRuleSetting;
+import com.liferay.object.model.impl.ObjectValidationRuleModelImpl;
 import com.liferay.object.scripting.exception.ObjectScriptingException;
 import com.liferay.object.scripting.validator.ObjectScriptingValidator;
 import com.liferay.object.service.ObjectEntryLocalService;
@@ -358,8 +359,7 @@ public class ObjectValidationRuleLocalServiceImpl
 
 			objectValidationRule.setActive(active);
 
-			objectValidationRule = objectValidationRulePersistence.update(
-				objectValidationRule);
+			objectValidationRule = _updateObjectValidationRule(objectValidationRule);
 
 			objectValidationRule.setObjectValidationRuleSettings(
 				_objectValidationRuleSettingPersistence.
@@ -381,8 +381,7 @@ public class ObjectValidationRuleLocalServiceImpl
 		objectValidationRule.setOutputType(outputType);
 		objectValidationRule.setScript(script);
 
-		objectValidationRule = objectValidationRulePersistence.update(
-			objectValidationRule);
+		objectValidationRule = _updateObjectValidationRule(objectValidationRule);
 
 		objectValidationRule.setObjectValidationRuleSettings(
 			_updateObjectValidationRuleSettings(
@@ -457,6 +456,19 @@ public class ObjectValidationRuleLocalServiceImpl
 				objectEntry, objectEntry, null,
 				_userLocalService.getUser(userId)),
 			userId, objectValidationRules);
+	}
+
+	private ObjectValidationRule _updateObjectValidationRule(
+		ObjectValidationRule objectValidationRule) {
+
+		ObjectValidationRuleModelImpl objectValidationRuleModelImpl =
+			(ObjectValidationRuleModelImpl)objectValidationRule;
+
+		if (objectValidationRuleModelImpl.getColumnBitmask() == 0) {
+			return objectValidationRule;
+		}
+
+		return objectValidationRulePersistence.update(objectValidationRule);
 	}
 
 	private void _addRelatedObjectEntryValues(

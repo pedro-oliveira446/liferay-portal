@@ -260,6 +260,16 @@ public class PicklistObjectFieldBusinessType
 			return;
 		}
 
+		if ((oldObjectField != null) &&
+			(_objectStateFlowLocalService.fetchObjectFieldObjectStateFlow(
+				oldObjectField.getObjectFieldId()) != null)) {
+
+			_objectStateFlowLocalService.updateDefaultObjectStateFlow(
+				newObjectField, oldObjectField);
+
+			return;
+		}
+
 		_objectStateFlowLocalService.addDefaultObjectStateFlow(newObjectField);
 	}
 

@@ -645,6 +645,17 @@ public class ObjectDefinitionResourceImpl
 					getObjectFieldId();
 		}
 
+		long titleObjectFieldId = 0;
+
+		com.liferay.object.model.ObjectField titleServiceBuilderObjectField =
+			_objectFieldLocalService.fetchObjectField(
+				objectDefinitionId, objectDefinition.getTitleObjectFieldName());
+
+		if (titleServiceBuilderObjectField != null) {
+			titleObjectFieldId =
+				titleServiceBuilderObjectField.getObjectFieldId();
+		}
+
 		int statusInt = serviceBuilderObjectDefinitionStatus;
 
 		if (objectDefinitionStatus != null) {
@@ -666,7 +677,7 @@ public class ObjectDefinitionResourceImpl
 						_getObjectFolderId(
 							objectDefinition.
 								getObjectFolderExternalReferenceCode()),
-						0,
+						titleObjectFieldId,
 						ObjectDefinitionSettingUtil.toObjectDefinitionSettings(
 							contextUser.getCompanyId(), _groupLocalService,
 							objectDefinition.getObjectDefinitionSettings(),
@@ -715,7 +726,7 @@ public class ObjectDefinitionResourceImpl
 						_getObjectFolderId(
 							objectDefinition.
 								getObjectFolderExternalReferenceCode()),
-						0,
+						titleObjectFieldId,
 						GetterUtil.getBoolean(
 							objectDefinition.getAccountEntryRestricted()),
 						GetterUtil.getBoolean(
@@ -897,7 +908,7 @@ public class ObjectDefinitionResourceImpl
 				serviceBuilderObjectField);
 		}
 
-		com.liferay.object.model.ObjectField titleServiceBuilderObjectField =
+		titleServiceBuilderObjectField =
 			_objectFieldLocalService.fetchObjectField(
 				objectDefinitionId, objectDefinition.getTitleObjectFieldName());
 
@@ -922,7 +933,7 @@ public class ObjectDefinitionResourceImpl
 
 		ObjectLayout[] objectLayouts = objectDefinition.getObjectLayouts();
 
-		if (objectLayouts != null) {
+		if ((objectLayouts != null) && !GetterUtil.getBoolean(objectDefinition.getSystem())) {
 			_objectLayoutLocalService.deleteObjectLayouts(objectDefinitionId);
 		}
 

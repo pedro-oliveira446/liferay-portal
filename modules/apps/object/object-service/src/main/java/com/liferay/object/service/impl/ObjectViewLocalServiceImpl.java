@@ -20,6 +20,7 @@ import com.liferay.object.model.ObjectView;
 import com.liferay.object.model.ObjectViewColumn;
 import com.liferay.object.model.ObjectViewFilterColumn;
 import com.liferay.object.model.ObjectViewSortColumn;
+import com.liferay.object.model.impl.ObjectViewModelImpl;
 import com.liferay.object.service.ObjectViewFilterColumnLocalService;
 import com.liferay.object.service.base.ObjectViewLocalServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
@@ -39,6 +40,7 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -271,8 +273,6 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 				objectViewId, objectView.getObjectDefinitionId());
 		}
 
-		_objectViewColumnPersistence.removeByObjectViewId(objectViewId);
-
 		_objectViewFilterColumnPersistence.removeByObjectViewId(objectViewId);
 
 		_objectViewSortColumnPersistence.removeByObjectViewId(objectViewId);
@@ -284,15 +284,34 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 		objectView.setDefaultObjectView(defaultObjectView);
 		objectView.setNameMap(nameMap);
 
-		objectView = objectViewPersistence.update(objectView);
+		ObjectViewModelImpl objectViewModelImpl =
+			(ObjectViewModelImpl)objectView;
+
+		if (objectViewModelImpl.getColumnBitmask() != 0) {
+			objectView = objectViewPersistence.update(objectView);
+		}
 
 		User user = _userLocalService.getUser(objectView.getUserId());
 
-		objectView.setObjectViewColumns(
-			_addObjectViewColumns(user, objectViewId, objectViewColumns));
+		List<ObjectViewColumn> oldObjectViewColumns =
+			_objectViewColumnPersistence.findByObjectViewId(objectViewId);
+
+		if (_isSameObjectViewColumns(
+				oldObjectViewColumns, objectViewColumns)) {
+
+			objectView.setObjectViewColumns(oldObjectViewColumns);
+		}
+		else {
+			_objectViewColumnPersistence.removeByObjectViewId(objectViewId);
+
+			objectView.setObjectViewColumns(
+				_addObjectViewColumns(user, objectViewId, objectViewColumns));
+		}
+
 		objectView.setObjectViewFilterColumns(
 			_objectViewFilterColumnLocalService.addObjectViewFilterColumns(
 				user, objectView, objectViewFilterColumns));
+
 		objectView.setObjectViewSortColumns(
 			_addObjectViewSortColumns(
 				user, objectView, objectViewColumns, objectViewSortColumns));
@@ -373,6 +392,49 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 				return _objectViewSortColumnPersistence.update(
 					newObjectViewSortColumn);
 			});
+	}
+
+	private boolean _isSameObjectViewColumns(
+		List<ObjectViewColumn> oldObjectViewColumns,
+		List<ObjectViewColumn> objectViewColumns) {
+
+		if (oldObjectViewColumns.size() != objectViewColumns.size()) {
+			return false;
+		}
+
+		Map<String, ObjectViewColumn> oldObjectViewColumnsMap =
+			new HashMap<>();
+
+		for (ObjectViewColumn oldObjectViewColumn : oldObjectViewColumns) {
+			oldObjectViewColumnsMap.put(
+				oldObjectViewColumn.getObjectFieldName(), oldObjectViewColumn);
+		}
+
+		for (ObjectViewColumn objectViewColumn : objectViewColumns) {
+			ObjectViewColumn oldObjectViewColumn = oldObjectViewColumnsMap.get(
+				objectViewColumn.getObjectFieldName());
+
+			if ((oldObjectViewColumn == null) ||
+				(oldObjectViewColumn.getPriority() !=
+					objectViewColumn.getPriority())) {
+
+				return false;
+			}
+
+			ObjectViewColumn newObjectViewColumn =
+				(ObjectViewColumn)oldObjectViewColumn.clone();
+
+			newObjectViewColumn.setLabelMap(objectViewColumn.getLabelMap());
+
+			if (!Objects.equals(
+					oldObjectViewColumn.getLabelMap(),
+					newObjectViewColumn.getLabelMap())) {
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private void _validateDefaultObjectView(

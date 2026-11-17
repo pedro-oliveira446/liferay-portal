@@ -91,6 +91,7 @@ import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.ObjectValidationRuleSetting;
 import com.liferay.object.model.impl.ObjectDefinitionImpl;
+import com.liferay.object.model.impl.ObjectDefinitionModelImpl;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTable;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTableFactory;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTable;
@@ -1338,7 +1339,7 @@ public class ObjectDefinitionLocalServiceImpl
 				objectDefinition.getCompanyId(), objectFolderId));
 		objectDefinition.setTitleObjectFieldId(titleObjectFieldId);
 
-		objectDefinition = _update(objectDefinition);
+		objectDefinition = _updateObjectDefinition(objectDefinition);
 
 		_addOrUpdateObjectDefinitionSettings(
 			objectDefinition, objectDefinitionSettings);
@@ -1367,6 +1368,10 @@ public class ObjectDefinitionLocalServiceImpl
 			objectDefinitionPersistence.fetchByPrimaryKey(objectDefinitionId);
 
 		_validateObjectFieldId(objectDefinition, titleObjectFieldId);
+
+		if (objectDefinition.getTitleObjectFieldId() == titleObjectFieldId) {
+			return objectDefinition;
+		}
 
 		objectDefinition.setTitleObjectFieldId(titleObjectFieldId);
 
@@ -1592,7 +1597,7 @@ public class ObjectDefinitionLocalServiceImpl
 		objectDefinition.setPluralLabelCurrentLanguageId(
 			serviceContext.getLanguageId());
 
-		objectDefinition = _update(objectDefinition);
+		objectDefinition = _updateObjectDefinition(objectDefinition);
 
 		_resourceLocalService.addResources(
 			objectDefinition.getCompanyId(), 0, objectDefinition.getUserId(),
@@ -2737,7 +2742,14 @@ public class ObjectDefinitionLocalServiceImpl
 		}
 	}
 
-	private ObjectDefinition _update(ObjectDefinition objectDefinition) {
+	private ObjectDefinition _updateObjectDefinition(ObjectDefinition objectDefinition) {
+		ObjectDefinitionModelImpl objectDefinitionModelImpl =
+			(ObjectDefinitionModelImpl)objectDefinition;
+
+		if (objectDefinitionModelImpl.getColumnBitmask() == 0) {
+			return objectDefinition;
+		}
+
 		try {
 			return objectDefinitionPersistence.update(objectDefinition);
 		}
@@ -2855,10 +2867,16 @@ public class ObjectDefinitionLocalServiceImpl
 		_validateWorkflowDefinitionLinks(
 			objectDefinitionSettings, scope, workflowDefinitionLinks);
 
-		if (objectDefinition.getAccountEntryRestrictedObjectFieldId() != 0) {
+		long oldAccountEntryRestrictedObjectFieldId =
+			objectDefinition.getAccountEntryRestrictedObjectFieldId();
+
+		if ((oldAccountEntryRestrictedObjectFieldId != 0) &&
+			(!accountEntryRestricted ||
+			 (oldAccountEntryRestrictedObjectFieldId !=
+				 accountEntryRestrictedObjectFieldId))) {
+
 			_objectFieldLocalService.updateRequired(
-				objectDefinition.getAccountEntryRestrictedObjectFieldId(),
-				false);
+				oldAccountEntryRestrictedObjectFieldId, false);
 		}
 
 		if (accountEntryRestricted &&
@@ -2973,7 +2991,7 @@ public class ObjectDefinitionLocalServiceImpl
 				_updateWorkflowInstances(objectDefinition);
 			}
 
-			objectDefinition = _update(objectDefinition);
+			objectDefinition = _updateObjectDefinition(objectDefinition);
 
 			_updateObjectFields(
 				addSystemObjectFields, objectDefinition, objectFields);
@@ -3027,7 +3045,7 @@ public class ObjectDefinitionLocalServiceImpl
 					return WorkflowConstants.STATUS_EMPTY;
 				}));
 
-		objectDefinition = _update(objectDefinition);
+		objectDefinition = _updateObjectDefinition(objectDefinition);
 
 		for (ObjectField objectField :
 				_objectFieldLocalService.getObjectFields(

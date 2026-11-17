@@ -37,6 +37,7 @@ import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldSetting;
 import com.liferay.object.model.ObjectFolderItem;
 import com.liferay.object.model.ObjectRelationship;
+import com.liferay.object.model.impl.ObjectRelationshipModelImpl;
 import com.liferay.object.model.ObjectRelationshipTable;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTable;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTableUtil;
@@ -1009,7 +1010,7 @@ public class ObjectRelationshipLocalServiceImpl
 				_getDescriptionMap(descriptionMap));
 			objectRelationship.setLabelMap(labelMap);
 
-			return objectRelationshipPersistence.update(objectRelationship);
+			return _updateObjectRelationship(objectRelationship);
 		}
 
 		_validateExternalReferenceCode(
@@ -1020,7 +1021,7 @@ public class ObjectRelationshipLocalServiceImpl
 		if (objectRelationship.isReverse()) {
 			objectRelationship.setExternalReferenceCode(externalReferenceCode);
 
-			return objectRelationshipPersistence.update(objectRelationship);
+			return _updateObjectRelationship(objectRelationship);
 		}
 
 		_validateParameterObjectFieldId(
@@ -1763,6 +1764,17 @@ public class ObjectRelationshipLocalServiceImpl
 		objectRelationship.setDescriptionMap(
 			_getDescriptionMap(descriptionMap));
 		objectRelationship.setLabelMap(labelMap);
+
+		return _updateObjectRelationship(objectRelationship);
+	}
+
+	private ObjectRelationship _updateObjectRelationship(ObjectRelationship objectRelationship) {
+		ObjectRelationshipModelImpl objectRelationshipModelImpl =
+			(ObjectRelationshipModelImpl)objectRelationship;
+
+		if (objectRelationshipModelImpl.getColumnBitmask() == 0) {
+			return objectRelationship;
+		}
 
 		return objectRelationshipPersistence.update(objectRelationship);
 	}
